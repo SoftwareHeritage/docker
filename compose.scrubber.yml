@@ -6,9 +6,12 @@ services:
       POSTGRES_PASSWORD: testpassword
 
   swh-scrubber:
+    # this service is a kind of scrubber "worker"; it will setup the db, then
+    # wait forever; scrubbing session must then be created and executed via
+    # `docker compose exec' commands
     image: swh/stack
     build: ./
-    command: scrubber snapshot 16
+    command: init
     depends_on:
       - prometheus-statsd-exporter
       - swh-scrubber-db
@@ -18,5 +21,12 @@ services:
       - ./env/common_python.env
       - ./env/scrubber.env
     volumes:
-      - "./conf/scrubber.yml:srv/softwareheritage/config.yml:ro"
+      - "./conf/scrubber.yml:/srv/softwareheritage/config.yml:ro"
       - "./services/swh-scrubber/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
+    deploy:
+      replicas: 0
+    healthcheck:
+      test: "test -f scrubber_db_initialized"
+      interval: 5s
+      timeout: 5s
+      retries: 20
