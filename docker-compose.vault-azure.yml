@@ -7,9 +7,9 @@ services:
       test: nc 127.0.0.1 10000 -z
       interval: 1s
       retries: 30
-    ports:
-      - 10000:10000
     command: azurite-blob --blobHost 0.0.0.0
+    ports:
+      - "10000"
 
   azure-cli:
     image: mcr.microsoft.com/azure-cli:latest

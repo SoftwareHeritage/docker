@@ -68,7 +68,7 @@ def test_admin_user(deposit_host):
 def test_create_deposit_simple(deposit_host):
     deposit = deposit_host.check_output(
         "swh deposit upload --format json --username test --password test "
-        "--url http://nginx:5080/deposit/1 "
+        "--url http://nginx/deposit/1 "
         "--archive /tmp/archive.tgz "
         "--name test_deposit --author somebody"
     )
@@ -87,7 +87,7 @@ def test_create_deposit_simple(deposit_host):
         status = json.loads(
             deposit_host.check_output(
                 "swh deposit status --format json --username test --password test "
-                "--url http://nginx:5080/deposit/1 --deposit-id %s" % deposit_id
+                "--url http://nginx/deposit/1 --deposit-id %s" % deposit_id
             )
         )
         if status["deposit_status"] == "done":
@@ -100,7 +100,7 @@ def test_create_deposit_simple(deposit_host):
 def test_create_deposit_with_metadata(deposit_host):
     deposit = deposit_host.check_output(
         "swh deposit upload --format json --username test --password test "
-        "--url http://nginx:5080/deposit/1 "
+        "--url http://nginx/deposit/1 "
         "--archive /tmp/archive.tgz "
         "--metadata /tmp/metadata.xml"
     )
@@ -119,7 +119,7 @@ def test_create_deposit_with_metadata(deposit_host):
         status = json.loads(
             deposit_host.check_output(
                 "swh deposit status --format json --username test --password test "
-                "--url http://nginx:5080/deposit/1 --deposit-id %s" % deposit_id
+                "--url http://nginx/deposit/1 --deposit-id %s" % deposit_id
             )
         )
         if status["deposit_status"] == "done":
@@ -132,7 +132,7 @@ def test_create_deposit_with_metadata(deposit_host):
 def test_create_deposit_multipart(deposit_host):
     deposit = deposit_host.check_output(
         "swh deposit upload --format json --username test --password test "
-        "--url http://nginx:5080/deposit/1 "
+        "--url http://nginx/deposit/1 "
         "--archive /tmp/archive.tgz "
         "--partial"
     )
@@ -149,7 +149,7 @@ def test_create_deposit_multipart(deposit_host):
 
     deposit = deposit_host.check_output(
         "swh deposit upload --format json --username test --password test "
-        "--url http://nginx:5080/deposit/1 "
+        "--url http://nginx/deposit/1 "
         "--metadata /tmp/metadata.xml "
         "--deposit-id %s" % deposit_id
     )
@@ -161,7 +161,7 @@ def test_create_deposit_multipart(deposit_host):
         status = json.loads(
             deposit_host.check_output(
                 "swh deposit status --format json --username test --password test "
-                "--url http://nginx:5080/deposit/1 --deposit-id %s" % deposit_id
+                "--url http://nginx/deposit/1 --deposit-id %s" % deposit_id
             )
         )
         if status["deposit_status"] == "done":

@@ -12,7 +12,7 @@ from urllib.parse import quote_plus
 
 import pytest
 
-from .conftest import DOCKER_BRIDGE_NETWORK_GATEWAY_IP
+from .conftest import service_url
 
 
 @pytest.fixture(
@@ -31,33 +31,9 @@ def compose_files(request) -> List[str]:
     return request.param
 
 
-@pytest.fixture(scope="module", autouse=True)
-def azure_blob_endpoint_updater(
-    docker_compose, compose_cmd, compose_files, compose_files_tmpdir
+def test_vault_directory(
+    docker_compose, origins, compose_files, api_get, api_poll, api_get_directory
 ):
-    """Update azurite configuration for the vault as another port is used
-    when running those tests.
-    """
-    if "docker-compose.vault-azure.yml" in compose_files:
-        docker_compose.check_output(f"{compose_cmd} stop swh-vault")
-        azurite_default_port = 10000
-        azurite_new_port = docker_compose.check_output(
-            f"{compose_cmd} port azurite {azurite_default_port}"
-        ).split(":")[1]
-        vault_config_file = join(compose_files_tmpdir, "conf", "vault-azure.yml")
-        with open(vault_config_file, "r") as vault_config_reader:
-            vault_config = vault_config_reader.read()
-        with open(vault_config_file, "w") as vault_config_writer:
-            vault_config_writer.write(
-                vault_config.replace(
-                    f"http://{DOCKER_BRIDGE_NETWORK_GATEWAY_IP}:{azurite_default_port}",
-                    f"http://{DOCKER_BRIDGE_NETWORK_GATEWAY_IP}:{azurite_new_port}",
-                )
-            )
-        docker_compose.check_output(f"{compose_cmd} start swh-vault")
-
-
-def test_vault_directory(origins, api_get, api_poll, api_get_directory):
     # retrieve the root directory of the master branch of the ingested git
     # repository (by the git_origin fixture)
 
@@ -84,7 +60,16 @@ def test_vault_directory(origins, api_get, api_poll, api_get_directory):
         directory = api_get_directory(dir_id)
 
         # retrieve the cooked tar file
-        resp = api_poll(f"vault/flat/{swhid}/raw")
+        if "docker-compose.vault-azure.yml" in compose_files:
+            # if we use azure, we need to hack the 301 handling to rewrite the
+            # Location url to get the artifact from. This is needed because the
+            # http://azurite:10000/ url serving as azure endpoint is only
+            # available from the compose network, not from the host.
+            azure_url = service_url(docker_compose, "azurite", 10000)
+            rewrite_redirect = ("http://azurite:10000/", f"{azure_url}/")
+        else:
+            rewrite_redirect = None
+        resp = api_poll(f"vault/flat/{swhid}/raw/", rewrite_redirect=rewrite_redirect)
         tarf = tarfile.open(fileobj=io.BytesIO(resp.content))
 
         # and check the tarfile seems ok wrt. 'directory'
@@ -122,7 +107,16 @@ def test_vault_directory(origins, api_get, api_poll, api_get_directory):
         assert recook["status"] == "done"  # no need to wait for this to be true
 
 
-def test_vault_git_bare(host, origins, tmp_path, api_get, api_poll, api_get_directory):
+def test_vault_git_bare(
+    host,
+    docker_compose,
+    origins,
+    compose_files,
+    tmp_path,
+    api_get,
+    api_poll,
+    api_get_directory,
+):
     # retrieve the revision of the master branch of the ingested git
     # repository (by the git_origin fixture)
 
@@ -149,7 +143,18 @@ def test_vault_git_bare(host, origins, tmp_path, api_get, api_poll, api_get_dire
         directory = api_get_directory(dir_id)
 
         # retrieve the cooked tar file
-        resp = api_poll(f"vault/git-bare/{swhid}/raw")
+        if "docker-compose.vault-azure.yml" in compose_files:
+            # if we use azure, we need to hack the 301 handling to rewrite the
+            # Location url to get the artifact from. This is needed because the
+            # http://azurite:10000/ url serving as azure endpoint is only
+            # available from the compose network, not from the host.
+            azure_url = service_url(docker_compose, "azurite", 10000)
+            rewrite_redirect = ("http://azurite:10000/", f"{azure_url}/")
+        else:
+            rewrite_redirect = None
+        resp = api_poll(
+            f"vault/git-bare/{swhid}/raw/", rewrite_redirect=rewrite_redirect
+        )
         tarf = tarfile.open(fileobj=io.BytesIO(resp.content))
         assert tarf.getnames()[0] == f"{swhid}.git"
 

@@ -12,8 +12,6 @@ services:
   swh-deposit:
     image: swh/stack
     build: ./
-    ports:
-      - 5006:5006
     depends_on:
       - swh-deposit-db
       - swh-scheduler
@@ -45,7 +43,7 @@ services:
     environment:
       SWH_WORKER_INSTANCE: loader-deposit
       SWH_CONFIG_FILENAME: /loader-deposit.yml
-      SWH_SCHEDULER_INSTANCE: http://nginx:5080/scheduler
+      SWH_SCHEDULER_INSTANCE: http://nginx/scheduler
     entrypoint: /entrypoint.sh
     command: worker
     depends_on:

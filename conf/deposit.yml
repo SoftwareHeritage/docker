@@ -1,14 +1,14 @@
 scheduler:
   cls: remote
-  url: http://nginx:5080/scheduler
+  url: http://nginx/scheduler
 
 storage:
   cls: remote
-  url: http://nginx:5080/storage
+  url: http://nginx/storage
 
 storage_metadata:
   cls: remote
-  url: http://nginx:5080/storage
+  url: http://nginx/storage
 
 allowed_hosts:
   - '*'

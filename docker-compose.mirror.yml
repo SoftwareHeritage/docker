@@ -7,7 +7,7 @@ services:
     volumes:
       - "./conf/mirror/nginx.conf:/etc/nginx/nginx.conf:ro"
     ports:
-      - 5081:80
+      - "80"
 
   # create a dedicated db for the mirror
   swh-mirror-storage-db:

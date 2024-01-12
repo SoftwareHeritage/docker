@@ -13,7 +13,7 @@ storage:
         errors: 10
         window_size: 1000
     - cls: remote
-      url: http://nginx:5080/storage
+      url: http://nginx/storage
 
 celery:
   broker_heartbeat: null

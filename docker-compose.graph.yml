@@ -5,8 +5,6 @@ services:
     image: swh/stack
     build: ./
     entrypoint: /entrypoint.sh
-    ports:
-        - 5009:5009
     environment:
       SWH_CONFIG_FILENAME: /graph.yml
     depends_on:

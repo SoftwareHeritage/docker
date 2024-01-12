@@ -3,7 +3,7 @@ storage:
   db: postgresql:///?host=swh-storage-db&dbname=swh-storage&user=postgres&password=testpassword
   objstorage:
     cls: remote
-    url: http://nginx:5080/objstorage
+    url: http://nginx/objstorage
 
 graph:
   url: http://swh-alter:5009/

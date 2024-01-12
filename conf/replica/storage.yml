@@ -5,6 +5,6 @@ storage:
     cls: filtered
     storage_conf:
       cls: remote
-      url: http:/nginx:5080/objstorage
+      url: http:/nginx/objstorage
     filters_conf:
       - type: readonly

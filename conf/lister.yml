@@ -1,6 +1,6 @@
 scheduler:
   cls: remote
-  url: http://nginx:5080/scheduler
+  url: http://nginx/scheduler
 
 celery:
   broker_heartbeat: null
@@ -67,4 +67,3 @@ credentials:
       # add credentials as a list
       - username: # username
         password: # password or API token
-

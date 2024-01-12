@@ -1,10 +1,10 @@
 search:
   cls: remote
-  url: http://nginx:5080/search
+  url: http://nginx/search
 
 storage:
   cls: remote
-  url: http://nginx:5080/storage
+  url: http://nginx/storage
 
 journal:
   brokers:

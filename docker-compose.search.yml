@@ -8,15 +8,13 @@ services:
     environment:
       - ingest.geoip.downloader.enabled=false
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    ports:
-      - 9200:9200
     volumes:
       - elasticsearch-data:/usr/share/elasticsearch/data
 
   swh-search:
+    # overload main swh-search to use elasticsearch as backend
     depends_on:
       - elasticsearch
-      - prometheus-statsd-exporter
     volumes:
       - "./conf/search.yml:/search.yml:ro"
 

@@ -23,8 +23,6 @@ services:
     healthcheck:
       test: curl -f http://localhost:5005 || exit 1
       retries: 6
-    ports:
-      - 5005:5005
     depends_on:
       - swh-vault-db
       - swh-objstorage
@@ -47,7 +45,7 @@ services:
     environment:
       SWH_CONFIG_FILENAME: /cooker.yml
       SWH_SCHEDULER_HOST: swh-scheduler
-      SWH_SCHEDULER_INSTANCE: http://nginx:5080/scheduler
+      SWH_SCHEDULER_INSTANCE: http://nginx/scheduler
     depends_on:
       - swh-vault
       - swh-storage

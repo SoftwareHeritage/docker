@@ -41,8 +41,6 @@ services:
     volumes:
       - "./conf/prometheus-jmx-exporter-cassandra.yml:/opt/jmx_exporter/config.yml:ro"
       - "./conf/prometheus-jmx-exporter-logging.properties:/logging.properties:ro"
-    ports:
-    - "5556:5556"
 
   swh-storage:
     volumes:

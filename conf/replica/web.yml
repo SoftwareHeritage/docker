@@ -5,7 +5,7 @@ storage:
 
 indexer_storage:
   cls: remote
-  url: http://nginx:5080/indexer-storage
+  url: http://nginx/indexer-storage
 
 scheduler:
   cls: remote
@@ -17,7 +17,7 @@ vault:
     url: http://nginx-replica/vault
 
 deposit:
-  private_api_url: http://nginx:5080/deposit/1/private/
+  private_api_url: http://nginx/deposit/1/private/
   private_api_user: swhworker
   private_api_password: ""
 
@@ -68,7 +68,7 @@ throttling:
 
 search:
   cls: remote
-  url: http://nginx:5080/search
+  url: http://nginx/search
 
 search_config:
   metadata_backend: swh-search

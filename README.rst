@@ -58,11 +58,13 @@ in addition to the main one. Provided compose files are:
 
 - `docker-compose.mirror.yml`: deploy a complete SWH mirror stack in a
   dedicated environment: you can browse the mirror using the URL
-  http://localhost:5081 (by default).
+  http://localhost:<publicport> (`<publicport>` being the port chosen by docker
+  for the service ``nginx-mirror``).
 
 - `docker-compose.replica.yml`: deploy a partial SWH stack using a postgresal
   storage filled using the `pglogical`_ replication mechanism. You can browse
-  the mirror using the URL http://localhost:5082 (by default).
+  the mirror using the URL http://localhost:<publicport> (`<publicport>` being
+  the port chosen by docker for the service ``nginx-replica``).
 
 - `docker-compose.scrubber.yml`: deploy swh-scrubber_ services.
 
@@ -138,51 +140,32 @@ defines all the required backend services:
 Exposed Ports
 ^^^^^^^^^^^^^
 
-Several services have their listening ports exposed on the host:
+The only services exposing a port are the main nginx dispatchers (on internal
+port 80). The public port is chosen by docker compose so it does not collide
+with any use port on the host.
 
--  amqp: 5072
--  nginx: 5080
+That means that if you want to access the archive running in the compose
+session, you need to ask docker compose about the port to use for that::
 
-And for SWH services:
+   ~/swh-environment/docker$ docker compose port nginx 80
+   0.0.0.0:34081
 
--  scheduler API: 5008
--  storage API: 5002
--  object storage API: 5003
--  indexer API: 5007
--  web app: 5004
--  deposit app: 5006
+If you really want to make it use a fixed port instead, either modify the main
+`docker-compose.yml` file accordingly, or use an override file like::
 
-Beware that these ports are not the same as the ports used from within
-the docker network. This means that the same command executed from the
-host or from a docker container will not use the same urls to access
-services. For example, to use the ``celery`` utility from the host, you
-may type::
+   ~/swh-environment/docker$ cat docker-compose.override.yml
+   services:
+     nginx:
+       ports:
+         - "5080:80"
 
-   ~/swh-environment/docker$ celery --broker amqp://:5072// \
-       --app swh.scheduler.celery_backend.config.app status
-   loader@61704103668c: OK
-   [...]
-
-To run the same command from within a container::
+You generally just need to run commands from within a running container, so you
+may use all the default host and ports of services running in the compose
+session. For example to show the Celery status::
 
    ~/swh-environment/docker$ docker compose exec swh-scheduler celery status
    loader@61704103668c: OK
    [...]
-
-
-To consume ``kafka`` topics from the host, for example to run the `swh
-dataset graph export` command, a configuration file could be::
-
-  ~/swh-environment/docker$ cat dataset_config.yml
-  journal:
-    brokers:
-      - 127.0.0.1:5092
-
-  ~/swh-environment/docker$ swh dataset -C dataset_config.yml graph export output
-  Exporting release:
-  - Partition offsets: 100%|███████████████████████████████| 16/16 [00:00<00:00, 1863.62it/s]
-  - Export (release): 100%|████████████████| 3650/3650 [00:08<00:00, 437.89it/s, workers=1/1]
-  [...]
 
 
 .. _docker-manage-tasks:
@@ -318,8 +301,8 @@ Monitoring activity
 ^^^^^^^^^^^^^^^^^^^
 
 You can monitor the workers activity by connecting to the RabbitMQ
-console on ``http://localhost:5080/rabbitmq`` or the grafana dashboard
-on ``http://localhost:5080/grafana``.
+console on ``http://localhost:<publicport>/rabbitmq`` or the grafana dashboard
+on ``http://localhost:<publicport>/grafana``.
 
 If you cannot see any task being executed, check the logs of the
 ``swh-scheduler-runner`` service (here is a failure example due to the
@@ -736,7 +719,7 @@ Django-based authentication::
    [...]
 
 User registration in Keycloak database is available by following the Register link
-in the page located at http://localhost:5080/oidc/login/.
+in the page located at http://localhost:<publicport>/oidc/login/.
 
 Please note that email verification is required to properly register an account.
 As we are in a testing environment, we use a MailHog instance as a fake SMTP server.

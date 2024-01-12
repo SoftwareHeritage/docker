@@ -6,7 +6,7 @@
 import itertools
 from os.path import join
 import time
-from typing import Generator, Mapping, Tuple
+from typing import Generator, Mapping, Optional, Tuple
 from urllib.parse import urljoin
 
 import requests
@@ -36,15 +36,27 @@ def api_get(baseurl: str, path: str, verb: str = "GET", session=None, **kwargs):
         return resp.json()
 
 
-def api_poll(baseurl: str, path: str, verb: str = "GET", session=None, **kwargs):
+def api_poll(
+    baseurl: str,
+    path: str,
+    verb: str = "GET",
+    session=None,
+    rewrite_redirect: Optional[Tuple[str, str]] = None,
+    **kwargs,
+):
     """Poll the API at path until it returns an OK result"""
     if session is None:
         session = requests
     url = urljoin(baseurl, path)
+    if rewrite_redirect is not None:
+        kwargs["allow_redirects"] = False
     for _ in range(60):
         resp = session.request(verb, url, **kwargs)
         if resp.ok:
-            break
+            if rewrite_redirect and resp.status_code == 302:
+                url = resp.headers["Location"].replace(*rewrite_redirect)
+            else:
+                break
         time.sleep(1)
     else:
         raise AssertionError(f"Polling {url} failed")

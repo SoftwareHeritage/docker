@@ -1,22 +1,22 @@
 storage:
   cls: remote
-  url: http://nginx:5080/storage
+  url: http://nginx/storage
   timeout: 5
 
 indexer_storage:
   cls: remote
-  url: http://nginx:5080/indexer-storage
+  url: http://nginx/indexer-storage
 
 scheduler:
   cls: remote
-  url: http://nginx:5080/scheduler
+  url: http://nginx/scheduler
 
 vault:
   cls: remote
-  url: http://nginx:5080/vault
+  url: http://nginx/vault
 
 deposit:
-  private_api_url: http://nginx:5080/deposit/1/private/
+  private_api_url: http://nginx/deposit/1/private/
   private_api_user: swhworker
   private_api_password: ""
 
@@ -65,16 +65,16 @@ instance_name: archive-docker.softwareheritage.org
 
 search:
   cls: remote
-  url: http://nginx:5080/search
+  url: http://nginx/search
 
 search_config:
   metadata_backend: swh-search
 
 counters:
   cls: remote
-  url: http://nginx:5080/counters
+  url: http://nginx/counters
 counters_backend: swh-counters
-history_counters_url: http://nginx:5080/counters/counters_history/history.json
+history_counters_url: http://nginx/counters/counters_history/history.json
 
 save_code_now_webhook_secret: whsec_QgEXGNJPBPjKsyBMPwtAkJpgVtA0g41A
 secret_key: some_very_secret_key

@@ -1,6 +1,6 @@
 objstorage:
   cls: remote
-  url: http://nginx:5080/objstorage
+  url: http://nginx/objstorage
 
 objstorage_dst:
   cls: remote

@@ -8,7 +8,7 @@ journal:
 
 webhooks:
   svix:
-    server_url: http://nginx:5080/svix
+    server_url: http://nginx/svix
     auth_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQ\
       iOjE2ODIwODU4ODUsImV4cCI6MTk5NzQ0NTg4NSwibmJmIjoxNjgyMD\
       g1ODg1LCJpc3MiOiJzdml4LXNlcnZlciIsInN1YiI6Im9yZ18yM3JiO\

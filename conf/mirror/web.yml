@@ -5,7 +5,7 @@ storage:
 
 #indexer_storage:
 #  cls: remote
-#  url: http://nginx:5080/indexer-storage
+#  url: http://nginx/indexer-storage
 
 scheduler:
   cls: remote
@@ -64,7 +64,7 @@ throttling:
 # for now we use the main search service
 search:
   cls: remote
-  url: http://nginx:5080/search
+  url: http://nginx/search
 
 search_config:
   metadata_backend: swh-search

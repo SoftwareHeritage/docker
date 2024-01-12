@@ -17,8 +17,6 @@ services:
       - ./env/svix.env
     volumes:
       - "./conf/svix.toml:/config.toml:ro"
-    ports:
-      - "8071:8071"
     depends_on:
       - redis
       - svix-db
