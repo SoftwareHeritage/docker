@@ -80,7 +80,7 @@ def origin_urls():
 
 @pytest.fixture(scope="module")
 def compose_files() -> List[str]:
-    return ["docker-compose.yml", "docker-compose.mirror.yml"]
+    return ["compose.yml", "compose.mirror.yml"]
 
 
 @pytest.fixture(scope="module")

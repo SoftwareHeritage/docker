@@ -33,7 +33,7 @@ SAMPLE_METADATA = """\
 
 @pytest.fixture(scope="module")
 def compose_files() -> List[str]:
-    return ["docker-compose.yml", "docker-compose.deposit.yml"]
+    return ["compose.yml", "compose.deposit.yml"]
 
 
 # scope='module' so we use the same container for all the tests in a given test

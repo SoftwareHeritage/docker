@@ -15,7 +15,7 @@ from .test_git_loader import test_git_loader  # noqa
 @pytest.fixture(scope="module")
 def compose_files() -> List[str]:
     # overload the default list to add cassandra specific compose override
-    return ["docker-compose.yml", "docker-compose.cassandra.yml"]
+    return ["compose.yml", "compose.cassandra.yml"]
 
 
 @pytest.fixture(scope="module")

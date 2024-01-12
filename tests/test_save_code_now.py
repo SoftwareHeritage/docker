@@ -15,10 +15,10 @@ VISIT_TYPE = "git"
 @pytest.fixture(
     scope="module",
     params=[
-        ["docker-compose.yml"],
+        ["compose.yml"],
         [
-            "docker-compose.yml",
-            "docker-compose.webhooks.yml",
+            "compose.yml",
+            "compose.webhooks.yml",
         ],
     ],
     ids=["pull request status", "push request status"],

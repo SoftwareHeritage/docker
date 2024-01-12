@@ -19,11 +19,11 @@ from .conftest import service_url
     scope="module",
     params=[
         [
-            "docker-compose.yml",
-            "docker-compose.vault.yml",
-            "docker-compose.vault-azure.yml",
+            "compose.yml",
+            "compose.vault.yml",
+            "compose.vault-azure.yml",
         ],
-        ["docker-compose.yml", "docker-compose.vault.yml"],
+        ["compose.yml", "compose.vault.yml"],
     ],
     ids=["azure_cache", "local_cache"],
 )
@@ -60,7 +60,7 @@ def test_vault_directory(
         directory = api_get_directory(dir_id)
 
         # retrieve the cooked tar file
-        if "docker-compose.vault-azure.yml" in compose_files:
+        if "compose.vault-azure.yml" in compose_files:
             # if we use azure, we need to hack the 301 handling to rewrite the
             # Location url to get the artifact from. This is needed because the
             # http://azurite:10000/ url serving as azure endpoint is only
@@ -143,7 +143,7 @@ def test_vault_git_bare(
         directory = api_get_directory(dir_id)
 
         # retrieve the cooked tar file
-        if "docker-compose.vault-azure.yml" in compose_files:
+        if "compose.vault-azure.yml" in compose_files:
             # if we use azure, we need to hack the 301 handling to rewrite the
             # Location url to get the artifact from. This is needed because the
             # http://azurite:10000/ url serving as azure endpoint is only

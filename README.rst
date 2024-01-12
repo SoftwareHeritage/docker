@@ -41,37 +41,37 @@ So we divides the services in several "sets" that can be enabled or not. Each
 of these feature sets can be started by using the corresponding compose file,
 in addition to the main one. Provided compose files are:
 
-- `docker-compose.yml`: the main compose file, firing basic (core) SWH services
+- `compose.yml`: the main compose file, firing basic (core) SWH services
   (see below).
 
-- `docker-compose.cassandra.yml`: replace the backend of the main `swh-storage`
+- `compose.cassandra.yml`: replace the backend of the main `swh-storage`
   service by Cassandra (instead of postgresql).
 
-- `docker-compose.deposit.yml`: activate the swh-deposit_ feature set of the
+- `compose.deposit.yml`: activate the swh-deposit_ feature set of the
   SWH stack.
 
-- `docker-compose.graph.yml`: add the swh-graph_ feature.
+- `compose.graph.yml`: add the swh-graph_ feature.
 
-- `docker-compose.keycloak.yml`: activate the keycloak-based auhentication
+- `compose.keycloak.yml`: activate the keycloak-based auhentication
   backend for the web frontend (without it, you only have the django-based
   authentication mechanism included in swh-web_).
 
-- `docker-compose.mirror.yml`: deploy a complete SWH mirror stack in a
+- `compose.mirror.yml`: deploy a complete SWH mirror stack in a
   dedicated environment: you can browse the mirror using the URL
   http://localhost:<publicport> (`<publicport>` being the port chosen by docker
   for the service ``nginx-mirror``).
 
-- `docker-compose.replica.yml`: deploy a partial SWH stack using a postgresal
+- `compose.replica.yml`: deploy a partial SWH stack using a postgresal
   storage filled using the `pglogical`_ replication mechanism. You can browse
   the mirror using the URL http://localhost:<publicport> (`<publicport>` being
   the port chosen by docker for the service ``nginx-replica``).
 
-- `docker-compose.scrubber.yml`: deploy swh-scrubber_ services.
+- `compose.scrubber.yml`: deploy swh-scrubber_ services.
 
-- `docker-compose.search.yml`: replace the in-memory search engine backend for
+- `compose.search.yml`: replace the in-memory search engine backend for
   the SWH archive by and ElasticSearch based one.
 
-- `docker-compose.vault.yml`: activate the swh-vault feature of the SWH stack.
+- `compose.vault.yml`: activate the swh-vault feature of the SWH stack.
 
 .. _`pglogical`: https://github.com/2ndQuadrant/pglogical
 .. _swh-deposit: https://docs.softwareheritage.org/devel/swh-deposit/index.html
@@ -86,7 +86,7 @@ the appropriate `--file` options of the `docker compose` command, or define the
 
 For example:
 
-   ~/swh-environment/docker$ export COMPOSE_FILE=docker-compose.yml:docker-compose.search.yml:docker-compose.mirror.yml
+   ~/swh-environment/docker$ export COMPOSE_FILE=compose.yml:compose.search.yml:compose.mirror.yml
    ~/swh-environment/docker$ docker compose up -d
    [...]
 
@@ -94,7 +94,7 @@ For example:
 Details of the main service set
 -------------------------------
 
-The main `docker-compose.yml` file defines the following services on their
+The main `compose.yml` file defines the following services on their
 respectively standard ports, all of the following services are configured to
 communicate with each other:
 
@@ -151,9 +151,9 @@ session, you need to ask docker compose about the port to use for that::
    0.0.0.0:34081
 
 If you really want to make it use a fixed port instead, either modify the main
-`docker-compose.yml` file accordingly, or use an override file like::
+`compose.yml` file accordingly, or use an override file like::
 
-   ~/swh-environment/docker$ cat docker-compose.override.yml
+   ~/swh-environment/docker$ cat compose.override.yml
    services:
      nginx:
        ports:
@@ -355,8 +355,8 @@ It is possible to run a docker container with some swh packages
 installed from sources instead of using the latest published packages
 from pypi. To do this you must write a
 `Docker Compose override file <https://docs.docker.com/compose/extends>`_
-(``docker-compose.override.yml``). An example is given in the
-``docker-compose.override.yml.example`` file:
+(``compose.override.yml``). An example is given in the
+``compose.override.yml.example`` file:
 
 .. code:: yaml
 
@@ -367,7 +367,7 @@ from pypi. To do this you must write a
        volumes:
          - "$HOME/swh-environment/swh-objstorage:/src/swh-objstorage:ro"
 
-The file named ``docker-compose.override.yml`` will automatically be
+The file named ``compose.override.yml`` will automatically be
 loaded by Docker Compose.
 
 This example shows the simplest case of the ``swh-objstorage`` package:
@@ -441,7 +441,7 @@ When you use virtualenvwrapper, you can add postactivation commands::
    export SWH_SCHEDULER_URL=http://127.0.0.1:5008/
    export BROKER_URL=amqp://127.0.0.1:5072/
    export APP=swh.scheduler.celery_backend.config.app
-   export COMPOSE_FILE=~/swh-environment/docker/docker-compose.yml:~/swh-environment/docker/docker-compose.override.yml
+   export COMPOSE_FILE=~/swh-environment/docker/compose.yml:~/swh-environment/docker/compose.override.yml
    alias doco="docker compose"
 
    EOF
@@ -519,14 +519,14 @@ So now you can easily:
 Data persistence for a development setting
 ------------------------------------------
 
-The default ``docker-compose.yml`` configuration is not geared towards
+The default ``compose.yml`` configuration is not geared towards
 data persistence, but application testing.
 
 Volumes defined in associated images are anonymous and may get either
 unused or removed on the next ``docker compose up``.
 
 One way to make sure these volumes persist is to use named volumes. The
-volumes may be defined as follows in a ``docker-compose.override.yml``.
+volumes may be defined as follows in a ``compose.override.yml``.
 Note that volume definitions are merged with other compose files based
 on destination path.
 
@@ -552,7 +552,7 @@ Additional components
 ---------------------
 
 We provide some extra modularity in what components to run through
-additional ``docker-compose.*.yml`` files.
+additional ``compose.*.yml`` files.
 
 They are disabled by default, because they add layers of complexity
 and increase resource usage, while not being necessary to operate
@@ -561,15 +561,15 @@ a small Software Heritage instance.
 Starting a kafka-powered mirror of the storage
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This repo comes with an optional ``docker-compose.storage-mirror.yml``
+This repo comes with an optional ``compose.storage-mirror.yml``
 docker compose file that can be used to test the kafka-powered mirror
 mechanism for the main storage.
 
 This can be used like::
 
    ~/swh-environment/docker$ docker compose \
-        -f docker-compose.yml \
-        -f docker-compose.storage-mirror.yml \
+        -f compose.yml \
+        -f compose.storage-mirror.yml \
         up -d
    [...]
 
@@ -602,9 +602,9 @@ end-object] to the kafka topics.
 ::
 
    ~/swh-environment/docker$ docker compose \
-        -f docker-compose.yml \
-        -f docker-compose.storage-mirror.yml \
-        -f docker-compose.storage-mirror.override.yml \
+        -f compose.yml \
+        -f compose.storage-mirror.yml \
+        -f compose.storage-mirror.override.yml \
         run \
         swh-journal-backfiller \
         snapshot \
@@ -621,8 +621,8 @@ instead of PostgreSQL.
 This can be used like::
 
    ~/swh-environment/docker$ docker compose \
-        -f docker-compose.yml \
-        -f docker-compose.cassandra.yml \
+        -f compose.yml \
+        -f compose.cassandra.yml \
         up -d
    [...]
 
@@ -640,8 +640,8 @@ Instead, you can enable swh-search, which is based on ElasticSearch
 and much more efficient, like this::
 
    ~/swh-environment/docker$ docker compose \
-        -f docker-compose.yml \
-        -f docker-compose.search.yml \
+        -f compose.yml \
+        -f compose.search.yml \
         up -d
    [...]
 
@@ -660,8 +660,8 @@ So we have an alternative based on Redis' HyperLogLog feature, which you
 can test with::
 
    ~/swh-environment/docker$ docker compose \
-        -f docker-compose.yml \
-        -f docker-compose.counters.yml \
+        -f compose.yml \
+        -f compose.counters.yml \
         up -d
    [...]
 
@@ -678,8 +678,8 @@ in the sub-DAG of a given node.
 You can use it with::
 
    ~/swh-environment/docker$ docker compose \
-       -f docker-compose.yml \
-       -f docker-compose.graph.yml up -d
+       -f compose.yml \
+       -f compose.graph.yml up -d
 
 On the first start, it will run some precomputation based on all objects already
 in your local SWH instance; so it may take a long time if you loaded many
@@ -695,16 +695,16 @@ Then, you need to explicitly request recomputing the graph before restarts
 if you want to update it::
 
    ~/swh-environment/docker$ docker compose \
-        -f docker-compose.yml \
-        -f docker-compose.graph.yml \
+        -f compose.yml \
+        -f compose.graph.yml \
         run swh-graph update
    ~/swh-environment/docker$ docker compose \
-        -f docker-compose.yml \
-        -f docker-compose.graph.yml \
+        -f compose.yml \
+        -f compose.graph.yml \
         stop swh-graph
    ~/swh-environment/docker$ docker compose \
-        -f docker-compose.yml \
-        -f docker-compose.graph.yml \
+        -f compose.yml \
+        -f compose.graph.yml \
         up -d swh-graph
 
 
@@ -715,7 +715,7 @@ If you really want to hack on swh-web's authentication features,
 you will need to enable Keycloak as well, instead of the default
 Django-based authentication::
 
-   ~/swh-environment/docker$ docker compose -f docker-compose.yml -f docker-compose.keycloak.yml up -d
+   ~/swh-environment/docker$ docker compose -f compose.yml -f compose.keycloak.yml up -d
    [...]
 
 User registration in Keycloak database is available by following the Register link
@@ -781,7 +781,7 @@ run your own Sentry instance, you can use it.
 To do so, you must get a DSN from your Sentry instance, and set it as
 the value of ``SWH_SENTRY_DSN`` in the file ``env/common_python.env``.
 You may also set it per-service in the ``environment`` section of each
-services in ``docker-compose.override.yml``.
+services in ``compose.override.yml``.
 
 Caveats
 -------
@@ -792,7 +792,7 @@ space regularly when playing with this stack.
 
 Also, a few containers (``swh-storage``, ``swh-xxx-db``) use a volume
 for storing the blobs or the database files. With the default
-configuration provided in the ``docker-compose.yml`` file, these volumes
+configuration provided in the ``compose.yml`` file, these volumes
 are not persistent. So removing the containers will delete the volumes!
 
 Also note that for the ``swh-objstorage``, since the volume can be

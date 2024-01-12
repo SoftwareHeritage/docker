@@ -62,7 +62,7 @@ def docker_host():
 def compose_files() -> List[str]:
     # this fixture is meant to be overloaded in test modules to include the
     # required compose files for the test (see test_deposit.py for example)
-    return ["docker-compose.yml"]
+    return ["compose.yml"]
 
 
 @pytest.fixture(scope="module")

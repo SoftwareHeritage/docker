@@ -13,7 +13,7 @@ import pytest
 
 @pytest.fixture(scope="module")
 def compose_files() -> List[str]:
-    return ["docker-compose.yml", "docker-compose.search.yml"]
+    return ["compose.yml", "compose.search.yml"]
 
 
 @pytest.fixture(scope="module")
