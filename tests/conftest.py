@@ -80,7 +80,8 @@ def project_name() -> str:
 
 @pytest.fixture(scope="module")
 def compose_cmd(docker_host, project_name, compose_files):
-    print(f"compose project is {project_name}")
+    print(f"COMPOSE_PROJECT_NAME={project_name}")
+    print(f"COMPOSE_FILE={':'.join(compose_files)}")
     compose_file_cmd = "".join(f" -f {fname} " for fname in compose_files)
     try:
         docker_host.check_output("docker compose version")
