@@ -150,6 +150,7 @@ services:
       - ./env/common_python.env
     environment:
       POSTGRES_DB: swh-replica-scheduler
+      SWH_LOG_LEVELS: info
       SWH_SCHEDULER_CONFIG_FILE: /srv/softwareheritage/config.yml
       BROKER_URL: amqp://amqp-replica/
       WORKER_INSTANCES: vault
@@ -170,6 +171,7 @@ services:
       - ./env/common_python.env
     environment:
       POSTGRES_DB: swh-replica-scheduler
+      SWH_LOG_LEVELS: info
       SWH_SCHEDULER_CONFIG_FILE: /srv/softwareheritage/config.yml
       BROKER_URL: amqp://amqp-replica/
       WORKER_INSTANCES: vault

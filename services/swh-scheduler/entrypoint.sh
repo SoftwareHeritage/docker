@@ -55,7 +55,7 @@ for worker_instance in '$WORKER_INSTANCES'.split(','):
         done
 
         echo "Starting swh scheduler $1"
-        exec swh --log-level ${LOG_LEVEL:-INFO} scheduler -C $SWH_CONFIG_FILENAME $@
+        exec swh scheduler -C $SWH_CONFIG_FILENAME $@
         ;;
 
     "journal-client")
@@ -63,7 +63,7 @@ for worker_instance in '$WORKER_INSTANCES'.split(','):
       wait-for-it kafka:8082 -s --timeout=0
       wait-for-topic http://kafka:8082 swh.journal.objects.origin_visit_status
 
-      exec swh --log-level ${LOG_LEVEL:-INFO} \
+      exec swh \
            scheduler --config-file $SWH_CONFIG_FILENAME \
            journal-client
       ;;

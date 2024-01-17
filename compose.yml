@@ -167,6 +167,7 @@ services:
       - ./env/common_python.env
     environment:
       POSTGRES_DB: swh-scheduler
+      SWH_LOG_LEVELS: info
       SWH_SCHEDULER_CONFIG_FILE: /srv/softwareheritage/config.yml
       BROKER_URL: amqp://amqp/
       WORKER_INSTANCES: listers, loader
@@ -187,6 +188,7 @@ services:
       - ./env/common_python.env
     environment:
       POSTGRES_DB: swh-scheduler
+      SWH_LOG_LEVELS: info
       SWH_SCHEDULER_CONFIG_FILE: /srv/softwareheritage/config.yml
       BROKER_URL: amqp://amqp/
       WORKER_INSTANCES: listers, loader
@@ -207,6 +209,7 @@ services:
       - ./env/common_python.env
     environment:
       POSTGRES_DB: swh-scheduler
+      SWH_LOG_LEVELS: info
       SWH_SCHEDULER_CONFIG_FILE: /srv/softwareheritage/config.yml
       BROKER_URL: amqp://amqp/
       WORKER_INSTANCES: listers, loader
@@ -227,6 +230,7 @@ services:
       - ./env/common_python.env
     environment:
       POSTGRES_DB: swh-scheduler
+      SWH_LOG_LEVELS: info
       SWH_SCHEDULER_CONFIG_FILE: /srv/softwareheritage/config.yml
       BROKER_URL: amqp://amqp/
       WORKER_INSTANCES: listers, loader
@@ -456,6 +460,7 @@ services:
       - ./env/workers.env
     environment:
       SWH_WORKER_INSTANCE: indexer
+      SWH_LOG_LEVELS: info
       POSTGRES_DB: swh-idx-storage
       SWH_SCHEDULER_INSTANCE: http://nginx/rpc/scheduler/
     command: journal-client
@@ -475,6 +480,8 @@ services:
     image: swh/stack
     build: ./
     command: journal-client
+    environment:
+      SWH_LOG_LEVELS: info
     env_file:
       - ./env/common_python.env
     depends_on:

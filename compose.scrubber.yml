@@ -17,6 +17,8 @@ services:
       - swh-scrubber-db
       - swh-storage
       - nginx
+    environment:
+      SWH_LOG_LEVELS: warning
     env_file:
       - ./env/common_python.env
       - ./env/scrubber.env

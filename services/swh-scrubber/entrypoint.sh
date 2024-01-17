@@ -44,8 +44,7 @@ case "$1" in
         shift
 
         echo "Starting a SWH storage scrubber ${CFGNAME}"
-        swh --log-level ${LOG_LEVEL:-WARNING} \
-            scrubber check storage ${CFGNAME} $@
+        swh scrubber check storage ${CFGNAME} $@
         ;;
 
     *)

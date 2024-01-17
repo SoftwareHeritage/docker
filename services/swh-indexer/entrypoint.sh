@@ -47,7 +47,7 @@ case "$1" in
         # directly rather than spawning scheduler tasks to do the actual
         # indexing job.
         # This later behaviour should be now considered as deprecated.
-        exec swh --log-level ${LOG_LEVEL:-INFO} \
+        exec swh \
              indexer --config-file $SWH_CONFIG_FILENAME \
              journal-client 'origin_intrinsic_metadata'
         ;;

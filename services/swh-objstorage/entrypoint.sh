@@ -17,8 +17,7 @@ case "$1" in
       wait-for-http $(yq -r '.objstorage_dst.url' $SWH_CONFIG_FILENAME)
       wait-for-it kafka:9092 -s --timeout=0
       echo "Starting the SWH mirror content replayer"
-      exec swh --log-level ${LOG_LEVEL:-WARNING} \
-           objstorage replay $@
+      exec swh objstorage replay $@
       ;;
     "rpc")
       shift

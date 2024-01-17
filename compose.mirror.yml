@@ -101,7 +101,7 @@ services:
     env_file:
       - ./env/common_python.env
     environment:
-      LOG_LEVEL: DEBUG
+      SWH_LOG_LEVELS: debug
     command: replayer
     volumes:
       - "./conf/mirror/replayer.yml:/srv/softwareheritage/config.yml:ro"
@@ -123,7 +123,7 @@ services:
     env_file:
       - ./env/common_python.env
     environment:
-      LOG_LEVEL: DEBUG
+      SWH_LOG_LEVELS: debug
     command: replayer
     volumes:
       - "./conf/mirror/content-replayer.yml:/srv/softwareheritage/config.yml:ro"
@@ -222,6 +222,7 @@ services:
       - ./env/common_python.env
     environment:
       POSTGRES_DB: swh-mirror-scheduler
+      SWH_LOG_LEVELS: info
       SWH_SCHEDULER_CONFIG_FILE: /srv/softwareheritage/config.yml
       BROKER_URL: amqp://amqp-mirror/
       WORKER_INSTANCES: vault
@@ -242,6 +243,7 @@ services:
       - ./env/common_python.env
     environment:
       POSTGRES_DB: swh-mirror-scheduler
+      SWH_LOG_LEVELS: info
       SWH_SCHEDULER_CONFIG_FILE: /srv/softwareheritage/config.yml
       BROKER_URL: amqp://amqp-mirror/
       WORKER_INSTANCES: vault

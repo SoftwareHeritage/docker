@@ -61,11 +61,11 @@ case "$1" in
                 ;;
             "replayer")
                 echo Starting the Kafka storage replayer
-                exec swh --log-level ${LOG_LEVEL:-WARNING} storage replay $@
+                exec swh storage replay $@
                 ;;
             "backfiller")
                 echo Starting the Kafka storage backfiller
-                exec swh --log-level ${LOG_LEVEL:-WARNING} storage backfill $@
+                exec swh storage backfill $@
                 ;;
             *)
                 echo Unknown command ${cmd}

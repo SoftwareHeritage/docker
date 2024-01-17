@@ -85,6 +85,8 @@ services:
       - swh-storage-db
       - swh-cassandra-storage
       - prometheus-statsd-exporter
+    environment:
+      SWH_LOG_LEVELS: warning
     env_file:
       - ./env/common_python.env
     command: replayer
@@ -101,6 +103,8 @@ services:
       - swh-objstorage
       - swh-extra-objstorage
       - nginx
+    environment:
+      SWH_LOG_LEVELS: warning
     env_file:
       - ./env/common_python.env
     command: replayer
