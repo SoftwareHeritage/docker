@@ -27,7 +27,7 @@ def origin_urls():
     ]
 
 
-# Here is a quick explanation of waht's going on in this origin MD scaffolding:
+# Here is a quick explanation of what's going on in this origin MD scaffolding:
 # first we load a bunch of origins; the pypi ones do have intrinsic metadata
 # (the python packaging stuff), and Roberto's parmap comes with a codemeta file
 # in the source tree. The 2 swh-xxx git repos do not trigger a IMD detection
@@ -41,7 +41,7 @@ def origin_urls():
 #
 # so it's executing only the intrinsic metadata indexer which consumes only the
 # origin_visit_status topic). This journal client will look for known intrinsic
-# metadata files in the (root?) directory of each head of listed origins.
+# metadata files in the root directory of each head of listed origins.
 # Detected MD files are loaded and translated into a common data model then
 # stored in the metadata indexer storage (swh-idx-storage) as both (?) and
 # directory_intrinsic_metadata and origin_intrinsic_metadata.
@@ -81,7 +81,7 @@ def test_origin_metadata_search(origins, docker_compose, nginx_get, api_get):
         visit = api_get(f"origin/{quote_plus(url)}/visit/latest")
         assert visit["status"] == "full"
 
-    # 3. Check origins are in elasticserch (as a result of the
+    # 3. Check origins are in elasticsearch (as a result of the
     # swh-search-journal-client-objects consuming the
     # swh.journal.objects.origin topic at least)
     es_resp = nginx_get("es/origin/_search")
