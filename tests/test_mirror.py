@@ -82,27 +82,25 @@ def compose_files() -> List[str]:
 
 
 @pytest.fixture(scope="module")
-def mirror(
-    docker_host, compose_cmd, origins, base_api_get, mirror_api_get, kafka_api_url
-):
+def origins(docker_compose, origins, base_api_get, mirror_api_get, kafka_api_url):
     # this fixture ensures the origins have been loaded in the prinmary
     # storage, the mirror is up, and the replayers are done
-    ps = f"{compose_cmd} ps --quiet "
-    while docker_host.check_output(f"{ps} --status created"):
+    check_output = docker_compose.check_compose_output
+    while check_output("ps --quiet --status created"):
         sleep(0.2)
     print("Checking there is no dead service")
-    assert not docker_host.check_output(f"{ps} --status dead")
-    assert not docker_host.check_output(f"{ps} --status exited")
+    assert not check_output("ps --quiet --status dead")
+    assert not check_output("ps --quiet --status exited")
 
     print("Checking core services are reported as ok")
     print("Storage...", end=" ", flush=True)
-    assert docker_host.check_output(f"{ps} --status running swh-storage")
+    assert check_output("ps --quiet --status running swh-storage")
     print("OK")
     print("Mirror Storage...", end=" ", flush=True)
-    assert docker_host.check_output(f"{ps} --status running swh-mirror-storage")
+    assert check_output("ps --quiet --status running swh-mirror-storage")
     print("OK")
     print("Kafka REST proxy...", end=" ", flush=True)
-    assert docker_host.check_output(f"{ps} --status running kafka")
+    assert check_output("ps --quiet --status running kafka")
     print("OK")
 
     expected_urls = set(url for _, url in origins)
@@ -154,11 +152,11 @@ def mirror(
         raise AssertionError(
             "Could not detect a condition where the content replayer did its job"
         )
+    return origins
 
 
 def test_mirror_replication(
     origins,
-    mirror,
     base_api_get,
     base_api_get_directory,
     mirror_api_get,
