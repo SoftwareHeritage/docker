@@ -33,6 +33,8 @@ def mirror_api_url(nginx_mirror_url) -> str:
 
 @pytest.fixture(scope="module")
 def api_url(mirror_api_url):
+    # this will make all 3 fixtures api_get, api_poll and api_get_directory
+    # query the mirror instead of the main archive
     return mirror_api_url
 
 
@@ -42,23 +44,23 @@ def base_api_url(nginx_url) -> str:
 
 
 @pytest.fixture(scope="module")
-def base_api_get(base_api_url):
-    return partial(api_get_func, base_api_url)
+def base_api_get(base_api_url, http_session):
+    return partial(api_get_func, base_api_url, session=http_session)
 
 
 @pytest.fixture(scope="module")
-def mirror_api_get(mirror_api_url):
-    return partial(api_get_func, mirror_api_url)
+def mirror_api_get(mirror_api_url, http_session):
+    return partial(api_get_func, mirror_api_url, session=http_session)
 
 
 @pytest.fixture(scope="module")
-def base_api_get_directory(base_api_url):
-    return partial(api_get_directory_func, base_api_url)
+def base_api_get_directory(base_api_url, http_session):
+    return partial(api_get_directory_func, base_api_url, session=http_session)
 
 
 @pytest.fixture(scope="module")
-def mirror_api_get_directory(mirror_api_url):
-    return partial(api_get_directory_func, mirror_api_url)
+def mirror_api_get_directory(mirror_api_url, http_session):
+    return partial(api_get_directory_func, mirror_api_url, session=http_session)
 
 
 @pytest.fixture(scope="module")
@@ -82,7 +84,7 @@ def compose_files() -> List[str]:
 
 
 @pytest.fixture(scope="module")
-def origins(docker_compose, origins, base_api_get, mirror_api_get, kafka_api_url):
+def origins(docker_compose, origins, base_api_get, api_get, kafka_api_url):
     # this fixture ensures the origins have been loaded in the prinmary
     # storage, the mirror is up, and the replayers are done
     check_output = docker_compose.check_compose_output
@@ -134,7 +136,7 @@ def origins(docker_compose, origins, base_api_get, mirror_api_get, kafka_api_url
     print("Checking we have origins in the mirror")
     # at this point, origins should be in the mirror storage...
     for _ in range(30):
-        m_origins = set(x["url"] for x in mirror_api_get("origins/"))
+        m_origins = set(x["url"] for x in api_get("origins/"))
         if m_origins == expected_urls:
             break
         sleep(1)
@@ -159,9 +161,13 @@ def test_mirror_replication(
     origins,
     base_api_get,
     base_api_get_directory,
-    mirror_api_get,
-    mirror_api_get_directory,
+    api_get,
+    api_get_directory,
 ):
+    # double check we do not query the same endpoint as the main archive one
+    assert api_get.args != base_api_get.args
+    assert api_get_directory.args != base_api_get_directory.args
+
     def filter_obj(objd):
         if isinstance(objd, dict):
             return {
@@ -182,11 +188,11 @@ def test_mirror_replication(
     for _, origin_url in origins:
         print(f"... for {origin_url}")
         visit1 = base_api_get(f"origin/{quote_plus(origin_url)}/visit/latest/")
-        visit2 = mirror_api_get(f"origin/{quote_plus(origin_url)}/visit/latest/")
+        visit2 = api_get(f"origin/{quote_plus(origin_url)}/visit/latest/")
         assert filter_obj(visit1) == filter_obj(visit2)
 
         snapshot1 = base_api_get(f'snapshot/{visit1["snapshot"]}/')
-        snapshot2 = mirror_api_get(f'snapshot/{visit2["snapshot"]}/')
+        snapshot2 = api_get(f'snapshot/{visit2["snapshot"]}/')
         assert filter_obj(snapshot1) == filter_obj(snapshot2)
 
         assert snapshot1["branches"]["HEAD"]["target_type"] == "alias"
@@ -195,13 +201,13 @@ def test_mirror_replication(
         assert target["target_type"] == "revision"
         rev_id = target["target"]
         revision1 = base_api_get(f"revision/{rev_id}/")
-        revision2 = mirror_api_get(f"revision/{rev_id}/")
+        revision2 = api_get(f"revision/{rev_id}/")
         assert filter_obj(revision1) == filter_obj(revision2)
 
         dir_id = revision1["directory"]
 
         directory = base_api_get_directory(dir_id)
-        mirror_directory = mirror_api_get_directory(dir_id)
+        mirror_directory = api_get_directory(dir_id)
 
         for (p1, e1), (p2, e2) in zip(directory, mirror_directory):
             assert p1 == p2
@@ -210,4 +216,4 @@ def test_mirror_replication(
                 # here we check the content object is known by both the objstorages
                 target = e1["target"]
                 base_api_get(f"content/sha1_git:{target}/raw/", verb="HEAD")
-                mirror_api_get(f"content/sha1_git:{target}/raw/", verb="HEAD")
+                api_get(f"content/sha1_git:{target}/raw/", verb="HEAD")

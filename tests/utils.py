@@ -21,12 +21,14 @@ def grouper(iterable, n):
 
 
 # Utility functions
-def api_get(baseurl: str, path: str, verb: str = "GET", **kwargs):
+def api_get(baseurl: str, path: str, verb: str = "GET", session=None, **kwargs):
     """Query the API at path and return the json result or raise an
     AssertionError"""
+    if session is None:
+        session = requests
     assert path[0] != "/", "you probably do not want that..."
     url = urljoin(baseurl, path)
-    resp = requests.request(verb, url, **kwargs)
+    resp = session.request(verb, url, **kwargs)
     assert resp.status_code == 200, f"failed to retrieve {url}: {resp.text}"
     if verb.lower() == "head":
         return resp
@@ -34,11 +36,13 @@ def api_get(baseurl: str, path: str, verb: str = "GET", **kwargs):
         return resp.json()
 
 
-def api_poll(baseurl: str, path: str, verb: str = "GET", **kwargs):
+def api_poll(baseurl: str, path: str, verb: str = "GET", session=None, **kwargs):
     """Poll the API at path until it returns an OK result"""
+    if session is None:
+        session = requests
     url = urljoin(baseurl, path)
     for _ in range(60):
-        resp = requests.request(verb, url, **kwargs)
+        resp = session.request(verb, url, **kwargs)
         if resp.ok:
             break
         time.sleep(1)
@@ -48,13 +52,18 @@ def api_poll(baseurl: str, path: str, verb: str = "GET", **kwargs):
 
 
 def api_get_directory(
-    apiurl: str, dirid: str, currentpath: str = ""
+    apiurl: str,
+    dirid: str,
+    currentpath: str = "",
+    session=None,
 ) -> Generator[Tuple[str, Mapping], None, None]:
     """Recursively retrieve directory description from the archive"""
-    directory = api_get(apiurl, f"directory/{dirid}/")
+    directory = api_get(apiurl, f"directory/{dirid}/", session=session)
     for direntry in directory:
         path = join(currentpath, direntry["name"])
         if direntry["type"] != "dir":
             yield (path, direntry)
         else:
-            yield from api_get_directory(apiurl, direntry["target"], path)
+            yield from api_get_directory(
+                apiurl, direntry["target"], path, session=session
+            )

@@ -261,23 +261,29 @@ def scheduler_host(request, docker_compose):
 
 
 @pytest.fixture(scope="module")
-def api_get(api_url):
-    return partial(api_get_func, api_url)
+def http_session():
+    with requests.Session() as session:
+        yield session
 
 
 @pytest.fixture(scope="module")
-def nginx_get(nginx_url):
-    return partial(api_get_func, nginx_url)
+def nginx_get(nginx_url, http_session):
+    return partial(api_get_func, nginx_url, session=http_session)
 
 
 @pytest.fixture(scope="module")
-def api_poll(api_url):
-    return partial(api_poll_func, api_url)
+def api_get(api_url, http_session):
+    return partial(api_get_func, api_url, session=http_session)
 
 
 @pytest.fixture(scope="module")
-def api_get_directory(api_url):
-    return partial(api_get_directory_func, api_url)
+def api_poll(api_url, http_session):
+    return partial(api_poll_func, api_url, session=http_session)
+
+
+@pytest.fixture(scope="module")
+def api_get_directory(api_url, http_session):
+    return partial(api_get_directory_func, api_url, session=http_session)
 
 
 @pytest.fixture(scope="module")
