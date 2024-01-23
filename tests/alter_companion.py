@@ -349,5 +349,74 @@ def query_kafka(ctx: click.Context, presence: bool, swhids: List[str]) -> None:
             ctx.exit(1)
 
 
+########################################################################
+# objstorage
+#
+
+
+def validate_obj_id(ctx, param, value):
+    obj_ids = []
+    for s in value:
+        try:
+            obj_id = bytes.fromhex(s)
+        except ValueError as e:
+            raise click.BadParameter(f"“{s}” is not a hex-encoded SHA1 ({e.args[0]})")
+        if len(obj_id) != 20:
+            raise click.BadParameter(f"“{s}” is not a hex-encoded SHA1")
+        obj_ids.append(obj_id)
+    return obj_ids
+
+
+@cli.command()
+@click.option(
+    "--objstorage-url",
+    metavar="URL",
+    help="URL for the objstorage RPC",
+)
+@click.option(
+    "--presence",
+    is_flag=True,
+    show_default=True,
+    default=False,
+    help="Ensure the given objects are present instead of absent",
+)
+@click.argument("obj_ids", nargs=-1, callback=validate_obj_id)
+@click.pass_context
+def query_objstorage(
+    ctx: click.Context, objstorage_url: str, presence: bool, obj_ids: List[bytes]
+) -> None:
+    """Ensure that the given objects (referenced by their SHA1)
+    are absent from swh-objstorage"""
+
+    from swh.objstorage.exc import ObjNotFoundError
+    from swh.objstorage.factory import get_objstorage
+
+    objstorage = get_objstorage(cls="remote", url=objstorage_url)
+    searched_obj_ids = set(obj_ids)
+    found_obj_ids = set()
+    for obj_id in searched_obj_ids:
+        try:
+            objstorage.check(obj_id)
+        except ObjNotFoundError:
+            continue
+        found_obj_ids.add(obj_id)
+    if presence:
+        if found_obj_ids.issuperset(searched_obj_ids):
+            ctx.exit(0)
+        else:
+            print("Not found:\n")
+            for obj_id in sorted(searched_obj_ids - found_obj_ids):
+                click.echo(obj_id.hex())
+            ctx.exit(1)
+    else:
+        if found_obj_ids.isdisjoint(obj_ids):
+            ctx.exit(0)
+        else:
+            print("Found nonetheless:\n")
+            for obj_id in sorted(found_obj_ids & searched_obj_ids):
+                click.echo(obj_id.hex())
+            ctx.exit(1)
+
+
 if __name__ == "__main__":
     cli()

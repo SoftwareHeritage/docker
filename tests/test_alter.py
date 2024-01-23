@@ -5,8 +5,9 @@
 
 import dataclasses
 import hashlib
+import random
 import time
-from typing import Iterable, List, Tuple
+from typing import Iterable, List, Optional, Tuple
 
 import pytest
 import requests
@@ -24,7 +25,10 @@ def compose_services() -> List[str]:
     return [
         "swh-alter",
         "swh-storage",
+        "swh-objstorage",
         "swh-storage-replayer",
+        "swh-extra-objstorage",
+        "swh-objstorage-replayer",
         "swh-scheduler-runner",
         "swh-scheduler-listener",
         "swh-scheduler-schedule-recurrent",
@@ -70,19 +74,23 @@ def wait_for_replayer(docker_compose, kafka_api_url):
             return resp.json()
         resp.raise_for_status()
 
-    for _ in range(30):
-        try:
-            lag_sum = kget("consumer-groups/swh.storage.alter.replayer/lag-summary")
-        except requests.exceptions.HTTPError as exc:
-            print(f"Failed to retrieve consumer status: {exc}")
+    for replayer_type in ("storage", "objstorage"):
+        for _ in range(30):
+            try:
+                lag_sum = kget(
+                    f"consumer-groups/swh.alter.{replayer_type}.replayer/lag-summary"
+                )
+            except requests.exceptions.HTTPError as exc:
+                print(f"Failed to retrieve consumer status: {exc}")
+            else:
+                if lag_sum["total_lag"] == 0:
+                    break
+            time.sleep(1)
         else:
-            if lag_sum["total_lag"] == 0:
-                break
-        time.sleep(1)
-    else:
-        raise AssertionError(
-            "Could not detect a condition where the replayer did its job"
-        )
+            raise AssertionError(
+                "Could not detect a condition where the replayer "
+                f"for {replayer_type} did its job"
+            )
 
 
 @pytest.fixture(scope="module")
@@ -114,6 +122,31 @@ class RemovalOperation:
     bundle_path: str
     origins: List[str]
     removed_swhids: List[str] = dataclasses.field(default_factory=list)
+    _removed_content_sha1s: Optional[List[bytes]] = None
+
+    def get_removed_content_sha1s(self, host):
+        if self._removed_content_sha1s is None:
+            self._removed_content_sha1s = []
+            # Computing the SHA1 of content objects from the recovery bundle
+            # is a very slow operation. So let’s only take a random sample
+            # of the content SWHIDS.
+            some_content_swhids = random.sample(
+                [
+                    swhid
+                    for swhid in self.removed_swhids
+                    if swhid.startswith("swh:1:cnt:")
+                ],
+                k=5,
+            )
+            for swhid in some_content_swhids:
+                content = host.run(
+                    f"swh alter recovery-bundle extract-content "
+                    "--identity /age-identities.txt --output - "
+                    f"'{self.bundle_path}' '{swhid}'"
+                ).stdout_bytes
+                sha1 = hashlib.sha1(content).hexdigest()
+                self._removed_content_sha1s.append(sha1)
+        return self._removed_content_sha1s
 
     def run_in(self, host):
         remove_output = host.check_output(
@@ -152,6 +185,24 @@ def test_fork_removed_in_postgresql(docker_compose, fork_removed):
     )
 
 
+def test_fork_removed_in_primary_objstorage(docker_compose, fork_removed, alter_host):
+    # Ensure objects have been removed from primary objstorage
+    docker_compose.check_compose_output(
+        "exec swh-alter python /src/alter_companion.py query-objstorage "
+        "--objstorage-url http://nginx:5080/objstorage "
+        f"{' '.join(fork_removed.get_removed_content_sha1s(alter_host))}"
+    )
+
+
+def test_fork_removed_in_extra_objstorage(docker_compose, fork_removed, alter_host):
+    # Ensure objects have been removed from extra objstorage
+    docker_compose.check_compose_output(
+        "exec swh-alter python /src/alter_companion.py query-objstorage "
+        "--objstorage-url http://swh-extra-objstorage:5003 "
+        f"{' '.join(fork_removed.get_removed_content_sha1s(alter_host))}"
+    )
+
+
 def test_fork_removed_in_cassandra(docker_compose, fork_removed):
     # Ensure the SWHIDs have been removed from Cassandra
     docker_compose.check_compose_output(
@@ -186,8 +237,26 @@ def test_fork_restored_in_postgresql(docker_compose, fork_restored):
     )
 
 
+def test_fork_restored_in_primary_objstorage(docker_compose, fork_restored, alter_host):
+    # Ensure objects are back in primary objstorage
+    docker_compose.check_compose_output(
+        "exec swh-alter python /src/alter_companion.py query-objstorage --presence "
+        "--objstorage-url http://nginx:5080/objstorage "
+        f"{' '.join(fork_restored.get_removed_content_sha1s(alter_host))}"
+    )
+
+
+def test_fork_restored_in_extra_objstorage(docker_compose, fork_restored, alter_host):
+    # Ensure objects are back in extra objstorage (through the replayer)
+    docker_compose.check_compose_output(
+        "exec swh-alter python /src/alter_companion.py query-objstorage --presence "
+        "--objstorage-url http://swh-extra-objstorage:5003 "
+        f"{' '.join(fork_restored.get_removed_content_sha1s(alter_host))}"
+    )
+
+
 def test_fork_restored_in_cassandra(docker_compose, fork_restored):
-    # Ensure the SWHIDs are back in Cassandra
+    # Ensure the SWHIDs are back in Cassandra (through the replayer)
     docker_compose.check_compose_output(
         "exec swh-alter python /src/alter_companion.py "
         f"query-cassandra --presence {' '.join(fork_restored.removed_swhids)}"

@@ -1,13 +1,16 @@
 storage:
   cls: remote
   url: http://swh-cassandra-storage:5002
+  objstorage:
+    cls: remote
+    url: http://swh-extra-objstorage:5003
 
 journal_client:
   cls: kafka
   brokers:
     - kafka
   prefix: swh.journal.objects
-  group_id: swh.storage.alter.replayer
+  group_id: swh.alter.storage.replayer
   privileged: true
   object_types:
     - content

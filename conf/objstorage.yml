@@ -2,5 +2,6 @@ objstorage:
   cls: pathslicing
   root: /srv/softwareheritage/objects
   slicing: 0:5
+  allow_delete: true
 
 client_max_size: 1073741824

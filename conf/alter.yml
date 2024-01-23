@@ -22,6 +22,14 @@ removal_storages:
     - cassandra-seed
     keyspace: swh
 
+removal_objstorages:
+  primary:
+    cls: remote
+    url: http://nginx:5080/objstorage
+  extra:
+    cls: remote
+    url: http://swh-extra-objstorage:5003
+
 removal_journals:
   main:
     cls: kafka
