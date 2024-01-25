@@ -90,6 +90,13 @@ services:
     ports:
       - "80"
 
+  docker-proxy:
+    image: tecnativa/docker-socket-proxy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      CONTAINERS: 1
+
   # SMTP service (used by keycloak and vault)
   mailhog:
     image: mailhog/mailhog
