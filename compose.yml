@@ -14,6 +14,14 @@ services:
       KAFKA_LOG_CLEANUP_POLICY: compact
       KAFKA_LOG_DIRS: /var/lib/kafka/data/kraft-combined-logs
 
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    environment:
+      DYNAMIC_CONFIG_ENABLED: true
+      KAFKA_CLUSTERS_0_NAME: kafka
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      SERVER_SERVLET_CONTEXT_PATH: /kafka-ui
+
   kafka-create-topics:
     # this is a short-lived service, it creates kafka topics and exits
     image: swh/stack
