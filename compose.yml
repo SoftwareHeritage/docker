@@ -100,6 +100,15 @@ services:
   # SMTP service (used by keycloak and vault)
   mailhog:
     image: mailhog/mailhog
+    environment:
+      MH_UI_WEB_PATH: mailhog
+      MH_STORAGE: maildir
+      MH_MAILDIR_PATH: /home/mailhog/maildir
+    # use /home/mailhog as volume because it's an existing directory with
+    # proper ownership in the mailhog image, so the mounted volume is properly
+    # owned by the mailhog user
+    volumes:
+      - /home/mailhog
 
   # Scheduler
 
