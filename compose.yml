@@ -12,6 +12,7 @@ services:
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://:9092,PLAINTEXT_HOST://:9092
       KAFKA_NUM_PARTITIONS: 16
       KAFKA_LOG_CLEANUP_POLICY: compact
+      KAFKA_LOG_DIRS: /var/lib/kafka/data/kraft-combined-logs
 
   kafka-create-topics:
     # this is a short-lived service, it creates kafka topics and exits
