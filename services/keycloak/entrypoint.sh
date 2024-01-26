@@ -6,8 +6,8 @@ set -m
 cd
 if [ ! -d swh-keycloak-theme ]
 then
-  git clone https://forge.softwareheritage.org/source/swh-keycloak-theme.git
-  cp -r /opt/jboss/swh-keycloak-theme/swh /opt/jboss/keycloak/themes/swh
+    git clone https://gitlab.softwareheritage.org/swh/infra/websites/swh-keycloak-theme.git
+    cp -r /opt/jboss/swh-keycloak-theme/swh /opt/jboss/keycloak/themes/swh
 fi
 
 echo "Starting Keycloak"
@@ -18,4 +18,3 @@ echo "Configuring Keycloak to be used in docker environment"
 echo "and creating some test users in the SoftwareHeritage realm"
 /keycloak_swh_setup.py
 fg %1
-
