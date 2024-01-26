@@ -74,3 +74,11 @@ host-port-from-url() {
     port="$(echo $hostport | sed -e 's,^.*:,:,g' -e 's,.*:\([0-9]*\).*,\1,g' -e 's,[^0-9],,g')"
     echo "${host}:${port:-80}"
 }
+
+setup_config_file() {
+    if [ ! -f "$SWH_CONFIG_FILENAME" ] && [ -f "${SWH_CONFIG_FILENAME}.in" ]; then
+        # templatized...
+        export PUBLIC_PORT=`curl -s http://docker-helper/public-port/`
+        envsubst <${SWH_CONFIG_FILENAME}.in >${SWH_CONFIG_FILENAME}
+    fi
+}

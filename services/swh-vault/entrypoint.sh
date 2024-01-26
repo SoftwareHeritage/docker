@@ -8,6 +8,7 @@ source /srv/softwareheritage/utils/swhutils.sh
 
 setup_pip
 setup_pgsql
+setup_config_file
 
 case "$1" in
     "shell")

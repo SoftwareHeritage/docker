@@ -45,6 +45,7 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
   libsvn-dev \
   libsystemd-dev \
   gcc \
+  gettext-base \
   iputils-ping \
   jq \
   pkg-config \
