@@ -28,15 +28,13 @@ services:
       - ./env/common_python.env
       - ./env/storage-replica.env
     environment:
-      SWH_CONFIG_FILENAME: /storage.yml
       STORAGE_BACKEND: postgresql
       DB_FLAVOR: read_replica
       RPC_PORT: 5002
-    entrypoint: /entrypoint.sh
     command: rpc
     volumes:
-      - "./conf/replica/storage.yml:/storage.yml:ro"
-      - "./services/swh-storage/entrypoint.sh:/entrypoint.sh:ro"
+      - "./conf/replica/storage.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-storage/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   # override storage db to enable wal_level=logical
   swh-storage-db:
@@ -66,11 +64,9 @@ services:
       POSTGRES_DB: swh-replica-web
       VERBOSITY: 3
       DJANGO_SETTINGS_MODULE: swh.web.settings.production
-      SWH_CONFIG_FILENAME: /web.yml
-    entrypoint: /entrypoint.sh
     volumes:
-      - "./conf/replica/web.yml:/web.yml:ro"
-      - "./services/swh-web/entrypoint.sh:/entrypoint.sh:ro"
+      - "./conf/replica/web.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-web/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
       - "./assets/replica/:/replica/:ro"
 
   swh-replica-vault-db:
@@ -88,9 +84,7 @@ services:
       - ./env/common_python.env
     environment:
       POSTGRES_DB: swh-replica-vault
-      SWH_CONFIG_FILENAME: /vault.yml
       RPC_PORT: 5005
-    entrypoint: /entrypoint.sh
     command: rpc
     depends_on:
       - swh-replica-vault-db
@@ -101,19 +95,17 @@ services:
       - nginx
       - nginx-replica
     volumes:
-      - "./conf/replica/vault.yml:/vault.yml:ro"
-      - "./services/swh-vault/entrypoint.sh:/entrypoint.sh:ro"
+      - "./conf/replica/vault.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-vault/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   swh-replica-vault-worker:
     image: swh/stack
     build: ./
-    entrypoint: /entrypoint.sh
     command: worker
     env_file:
       - ./env/common_python.env
       - ./env/workers.env
     environment:
-      SWH_CONFIG_FILENAME: /cooker.yml
       SWH_SCHEDULER_HOST: swh-replica-scheduler
       SWH_SCHEDULER_INSTANCE: http://nginx-replica/scheduler
     depends_on:
@@ -122,8 +114,8 @@ services:
       - prometheus-statsd-exporter
       - nginx-replica
     volumes:
-      - "./conf/replica/vault-worker.yml:/cooker.yml:ro"
-      - "./services/swh-vault/entrypoint.sh:/entrypoint.sh:ro"
+      - "./conf/replica/vault-worker.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-vault/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   swh-replica-scheduler-db:
     image: postgres:16
@@ -140,19 +132,19 @@ services:
       - ./env/common_python.env
     environment:
       POSTGRES_DB: swh-replica-scheduler
-      SWH_CONFIG_FILENAME: /scheduler.yml
-      SWH_SCHEDULER_CONFIG_FILE: /scheduler.yml
+      # this is required because currently the 'swh scheduler' does not honor
+      # the SWH_CONFIG_FILENAME env var...
+      SWH_SCHEDULER_CONFIG_FILE: /srv/softwareheritage/config.yml
       RPC_PORT: 5008
       BROKER_URL: amqp://amqp-replica/
-    entrypoint: /entrypoint.sh
     command: rpc
     depends_on:
       - swh-replica-scheduler-db
       - amqp-replica
       - prometheus-statsd-exporter
     volumes:
-      - "./conf/replica/scheduler.yml:/scheduler.yml:ro"
-      - "./services/swh-scheduler/entrypoint.sh:/entrypoint.sh:ro"
+      - "./conf/replica/scheduler.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-scheduler/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   swh-replica-scheduler-listener:
     image: swh/stack
@@ -161,20 +153,18 @@ services:
       - ./env/common_python.env
     environment:
       POSTGRES_DB: swh-replica-scheduler
-      SWH_CONFIG_FILENAME: /scheduler.yml
-      SWH_SCHEDULER_CONFIG_FILE: /scheduler.yml
+      SWH_SCHEDULER_CONFIG_FILE: /srv/softwareheritage/config.yml
       BROKER_URL: amqp://amqp-replica/
       WORKER_INSTANCES: vault
       APP: swh.scheduler.celery_backend.config.app
-    entrypoint: /entrypoint.sh
     command: worker start-listener
     depends_on:
       - swh-replica-scheduler
       - amqp-replica
       - prometheus-statsd-exporter
     volumes:
-      - "./conf/replica/scheduler.yml:/scheduler.yml:ro"
-      - "./services/swh-scheduler/entrypoint.sh:/entrypoint.sh:ro"
+      - "./conf/replica/scheduler.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-scheduler/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   swh-replica-scheduler-runner:
     image: swh/stack
@@ -183,20 +173,18 @@ services:
       - ./env/common_python.env
     environment:
       POSTGRES_DB: swh-replica-scheduler
-      SWH_CONFIG_FILENAME: /scheduler.yml
-      SWH_SCHEDULER_CONFIG_FILE: /scheduler.yml
+      SWH_SCHEDULER_CONFIG_FILE: /srv/softwareheritage/config.yml
       BROKER_URL: amqp://amqp-replica/
       WORKER_INSTANCES: vault
       APP: swh.scheduler.celery_backend.config.app
-    entrypoint: /entrypoint.sh
     command: worker start-runner --period 10
     depends_on:
       - swh-replica-scheduler
       - amqp-replica
       - prometheus-statsd-exporter
     volumes:
-      - "./conf/replica/scheduler.yml:/scheduler.yml:ro"
-      - "./services/swh-scheduler/entrypoint.sh:/entrypoint.sh:ro"
+      - "./conf/replica/scheduler.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-scheduler/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   amqp-replica:
     image: rabbitmq:3.6-management

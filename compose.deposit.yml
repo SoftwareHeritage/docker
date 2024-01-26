@@ -22,16 +22,14 @@ services:
     environment:
       POSTGRES_DB: swh-deposit
       VERBOSITY: 3
-      SWH_CONFIG_FILENAME: /deposit.yml
       DJANGO_SETTINGS_MODULE: swh.deposit.settings.production
       RPC_PORT: 5006
-    entrypoint: /entrypoint.sh
     healthcheck:
       test: curl -f http://localhost:5006 || exit 1
       retries: 6
     volumes:
-      - "./conf/deposit.yml:/deposit.yml:ro"
-      - "./services/swh-deposit/entrypoint.sh:/entrypoint.sh:ro"
+      - "./conf/deposit.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-deposit/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   swh-loader-deposit:
     image: swh/stack
@@ -42,9 +40,7 @@ services:
     user: swh
     environment:
       SWH_WORKER_INSTANCE: loader-deposit
-      SWH_CONFIG_FILENAME: /loader-deposit.yml
       SWH_SCHEDULER_INSTANCE: http://nginx/scheduler
-    entrypoint: /entrypoint.sh
     command: worker
     depends_on:
       - swh-storage
@@ -54,5 +50,5 @@ services:
       - prometheus-statsd-exporter
       - nginx
     volumes:
-      - "./conf/loader-deposit.yml:/loader-deposit.yml:ro"
-      - "./services/swh-worker/entrypoint.sh:/entrypoint.sh:ro"
+      - "./conf/loader-deposit.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-worker/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"

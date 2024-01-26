@@ -28,9 +28,10 @@ services:
     depends_on:
       - kafka
     restart: on-failure
-    command: wait-for-it kafka:9092 -s --timeout=0 -- python /create_topics.py
+    entrypoint: []
+    command: wait-for-it kafka:9092 -s --timeout=0 -- python /srv/softwareheritage//create_topics.py
     volumes:
-      - "./utils/create_topics.py:/create_topics.py:ro"
+      - "./utils/create_topics.py:/srv/softwareheritage/create_topics.py:ro"
 
   # monitoring
   prometheus:
@@ -135,10 +136,8 @@ services:
       - ./env/common_python.env
     environment:
       POSTGRES_DB: swh-scheduler
-      SWH_CONFIG_FILENAME: /scheduler.yml
-      SWH_SCHEDULER_CONFIG_FILE: /scheduler.yml
+      SWH_SCHEDULER_CONFIG_FILE: /srv/softwareheritage/config.yml
       RPC_PORT: 5008
-    entrypoint: /entrypoint.sh
     command: rpc
     healthcheck:
       test: curl -f http://localhost:5008 || exit 1
@@ -147,8 +146,8 @@ services:
       - swh-scheduler-db
       - prometheus-statsd-exporter
     volumes:
-      - "./conf/scheduler.yml:/scheduler.yml:ro"
-      - "./services/swh-scheduler/entrypoint.sh:/entrypoint.sh:ro"
+      - "./conf/scheduler.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-scheduler/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   swh-scheduler-listener:
     image: swh/stack
@@ -157,20 +156,18 @@ services:
       - ./env/common_python.env
     environment:
       POSTGRES_DB: swh-scheduler
-      SWH_CONFIG_FILENAME: /scheduler.yml
-      SWH_SCHEDULER_CONFIG_FILE: /scheduler.yml
+      SWH_SCHEDULER_CONFIG_FILE: /srv/softwareheritage/config.yml
       BROKER_URL: amqp://amqp/
       WORKER_INSTANCES: listers, loader
       APP: swh.scheduler.celery_backend.config.app
-    entrypoint: /entrypoint.sh
     command: worker start-listener
     depends_on:
       - swh-scheduler
       - amqp
       - prometheus-statsd-exporter
     volumes:
-      - "./conf/scheduler.yml:/scheduler.yml:ro"
-      - "./services/swh-scheduler/entrypoint.sh:/entrypoint.sh:ro"
+      - "./conf/scheduler.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-scheduler/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   swh-scheduler-runner:
     image: swh/stack
@@ -179,20 +176,18 @@ services:
       - ./env/common_python.env
     environment:
       POSTGRES_DB: swh-scheduler
-      SWH_CONFIG_FILENAME: /scheduler.yml
-      SWH_SCHEDULER_CONFIG_FILE: /scheduler.yml
+      SWH_SCHEDULER_CONFIG_FILE: /srv/softwareheritage/config.yml
       BROKER_URL: amqp://amqp/
       WORKER_INSTANCES: listers, loader
       APP: swh.scheduler.celery_backend.config.app
-    entrypoint: /entrypoint.sh
     command: worker start-runner --period 10
     depends_on:
       - swh-scheduler
       - amqp
       - prometheus-statsd-exporter
     volumes:
-      - "./conf/scheduler.yml:/scheduler.yml:ro"
-      - "./services/swh-scheduler/entrypoint.sh:/entrypoint.sh:ro"
+      - "./conf/scheduler.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-scheduler/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   swh-scheduler-runner-priority:
     image: swh/stack
@@ -201,20 +196,18 @@ services:
       - ./env/common_python.env
     environment:
       POSTGRES_DB: swh-scheduler
-      SWH_CONFIG_FILENAME: /scheduler.yml
-      SWH_SCHEDULER_CONFIG_FILE: /scheduler.yml
+      SWH_SCHEDULER_CONFIG_FILE: /srv/softwareheritage/config.yml
       BROKER_URL: amqp://amqp/
       WORKER_INSTANCES: listers, loader
       APP: swh.scheduler.celery_backend.config.app
-    entrypoint: /entrypoint.sh
     command: worker start-runner --period 10 --with-priority
     depends_on:
       - swh-scheduler
       - amqp
       - prometheus-statsd-exporter
     volumes:
-      - "./conf/scheduler.yml:/scheduler.yml:ro"
-      - "./services/swh-scheduler/entrypoint.sh:/entrypoint.sh:ro"
+      - "./conf/scheduler.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-scheduler/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   swh-scheduler-schedule-recurrent:
     image: swh/stack
@@ -223,12 +216,10 @@ services:
       - ./env/common_python.env
     environment:
       POSTGRES_DB: swh-scheduler
-      SWH_CONFIG_FILENAME: /scheduler.yml
-      SWH_SCHEDULER_CONFIG_FILE: /scheduler.yml
+      SWH_SCHEDULER_CONFIG_FILE: /srv/softwareheritage/config.yml
       BROKER_URL: amqp://amqp/
       WORKER_INSTANCES: listers, loader
       APP: swh.scheduler.celery_backend.config.app
-    entrypoint: /entrypoint.sh
     command: worker schedule-recurrent
     depends_on:
       - swh-scheduler
@@ -236,8 +227,8 @@ services:
       - amqp
       - prometheus-statsd-exporter
     volumes:
-      - "./conf/scheduler.yml:/scheduler.yml:ro"
-      - "./services/swh-scheduler/entrypoint.sh:/entrypoint.sh:ro"
+      - "./conf/scheduler.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-scheduler/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   swh-scheduler-update-metrics:
     image: swh/stack
@@ -246,15 +237,13 @@ services:
       - ./env/common_python.env
     environment:
       POSTGRES_DB: swh-scheduler
-      SWH_CONFIG_FILENAME: /scheduler.yml
-      SWH_SCHEDULER_CONFIG_FILE: /scheduler.yml
-    entrypoint: /entrypoint.sh
+      SWH_SCHEDULER_CONFIG_FILE: /srv/softwareheritage/config.yml
     command: update-metrics
     depends_on:
       - swh-scheduler-db
     volumes:
-      - "./conf/scheduler.yml:/scheduler.yml:ro"
-      - "./services/swh-scheduler/entrypoint.sh:/entrypoint.sh:ro"
+      - "./conf/scheduler.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-scheduler/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   # Graph storage
 
@@ -280,16 +269,14 @@ services:
       - ./env/common_python.env
     environment:
       POSTGRES_DB: swh-storage
-      SWH_CONFIG_FILENAME: /storage.yml
       RPC_PORT: 5002
-    entrypoint: /entrypoint.sh
     command: rpc
     healthcheck:
       test: curl -f http://localhost:5002 || exit 1
       retries: 6
     volumes:
-      - "./conf/storage.yml:/storage.yml:ro"
-      - "./services/swh-storage/entrypoint.sh:/entrypoint.sh:ro"
+      - "./conf/storage.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-storage/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   # Object storage
 
@@ -301,16 +288,14 @@ services:
     env_file:
       - ./env/common_python.env
     environment:
-      SWH_CONFIG_FILENAME: /objstorage.yml
       RPC_PORT: 5003
-    entrypoint: /entrypoint.sh
     command: rpc
     healthcheck:
       test: curl -f http://localhost:5003 || exit 1
       retries: 6
     volumes:
-      - "./conf/objstorage.yml:/objstorage.yml:ro"
-      - "./services/swh-objstorage/entrypoint.sh:/entrypoint.sh:ro"
+      - "./conf/objstorage.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-objstorage/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
       - objstorage-data:/srv/softwareheritage/objects
 
   # Indexer storage
@@ -333,16 +318,14 @@ services:
       - ./env/common_python.env
     environment:
       POSTGRES_DB: swh-idx-storage
-      SWH_CONFIG_FILENAME: /indexer_storage.yml
       RPC_PORT: 5007
-    entrypoint: /entrypoint.sh
     command: rpc
     healthcheck:
       test: curl -f http://localhost:5007 || exit 1
       retries: 6
     volumes:
-      - "./conf/indexer_storage.yml:/indexer_storage.yml:ro"
-      - "./services/swh-indexer/entrypoint.sh:/entrypoint.sh:ro"
+      - "./conf/indexer_storage.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-indexer/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   # Web interface
   swh-web-db:
@@ -371,14 +354,12 @@ services:
       POSTGRES_DB: swh-web
       VERBOSITY: 3
       DJANGO_SETTINGS_MODULE: swh.web.settings.production
-      SWH_CONFIG_FILENAME: /web.yml
-    entrypoint: /entrypoint.sh
     healthcheck:
       test: curl -f http://localhost:5004 || exit 1
       retries: 6
     volumes:
-      - "./conf/web.yml:/web.yml:ro"
-      - "./services/swh-web/entrypoint.sh:/entrypoint.sh:ro"
+      - "./conf/web.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-web/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   swh-web-cron:
     build: ./
@@ -392,12 +373,10 @@ services:
       POSTGRES_DB: swh-web
       VERBOSITY: 2
       DJANGO_SETTINGS_MODULE: swh.web.settings.production
-      SWH_CONFIG_FILENAME: /web.yml
-    entrypoint: /entrypoint.sh
     command: cron
     volumes:
-      - "./conf/web.yml:/web.yml:ro"
-      - "./services/swh-web/entrypoint.sh:/entrypoint.sh:ro"
+      - "./conf/web.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-web/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   # Lister Celery workers
 
@@ -411,7 +390,6 @@ services:
     user: swh
     environment:
       SWH_WORKER_INSTANCE: listers
-      SWH_CONFIG_FILENAME: /lister.yml
       SWH_SCHEDULER_INSTANCE: http://nginx/scheduler
     depends_on:
       - swh-scheduler
@@ -420,11 +398,10 @@ services:
       - swh-lister-maven-nginx
       - prometheus-statsd-exporter
       - nginx
-    entrypoint: /entrypoint.sh
     command: worker
     volumes:
-      - "./conf/lister.yml:/lister.yml:ro"
-      - "./services/swh-worker/entrypoint.sh:/entrypoint.sh:ro"
+      - "./conf/lister.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-worker/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
 
   swh-lister-maven-nginx:
@@ -446,9 +423,7 @@ services:
     user: swh
     environment:
       SWH_WORKER_INSTANCE: loader
-      SWH_CONFIG_FILENAME: /loader.yml
       SWH_SCHEDULER_INSTANCE: http://nginx/scheduler
-    entrypoint: /entrypoint.sh
     command: worker
     depends_on:
       - swh-storage
@@ -457,8 +432,8 @@ services:
       - nginx
       - prometheus-statsd-exporter
     volumes:
-      - "./conf/loader.yml:/loader.yml:ro"
-      - "./services/swh-worker/entrypoint.sh:/entrypoint.sh:ro"
+      - "./conf/loader.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-worker/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   # Indexer workers
 
@@ -471,11 +446,9 @@ services:
       - ./env/workers.env
     environment:
       SWH_WORKER_INSTANCE: indexer
-      SWH_CONFIG_FILENAME: /indexer.yml
       CONCURRENCY: 4
       POSTGRES_DB: swh-idx-storage
       SWH_SCHEDULER_INSTANCE: http://nginx/scheduler
-    entrypoint: /entrypoint.sh
     command: journal-client
     depends_on:
       - kafka
@@ -484,18 +457,15 @@ services:
       - swh-objstorage
       - nginx
     volumes:
-      - "./conf/indexer.yml:/indexer.yml:ro"
-      - "./services/swh-indexer/entrypoint.sh:/entrypoint.sh:ro"
+      - "./conf/indexer.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-indexer/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   # Journal related
 
   swh-scheduler-journal-client:
     image: swh/stack
     build: ./
-    entrypoint: /entrypoint.sh
     command: journal-client
-    environment:
-      SWH_CONFIG_FILENAME: /scheduler.yml
     env_file:
       - ./env/common_python.env
     depends_on:
@@ -503,16 +473,14 @@ services:
       - swh-scheduler
       - nginx
     volumes:
-      - "./conf/scheduler_journal_client.yml:/scheduler.yml:ro"
-      - "./services/swh-scheduler/entrypoint.sh:/entrypoint.sh:ro"
+      - "./conf/scheduler_journal_client.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-scheduler/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   swh-counters:
     image: swh/stack
     build: ./
-    entrypoint: /entrypoint.sh
     command: rpc
     environment:
-      SWH_CONFIG_FILENAME: /counters.yml
       RPC_PORT: 5011
     env_file:
       - ./env/common_python.env
@@ -520,8 +488,8 @@ services:
       - redis
       - prometheus-statsd-exporter
     volumes:
-      - "./conf/counters.yml:/counters.yml:ro"
-      - "./services/swh-counters/entrypoint.sh:/entrypoint.sh:ro"
+      - "./conf/counters.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-counters/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
     healthcheck:
       test: curl -f http://localhost:5011 || exit 1
       interval: 10s
@@ -531,10 +499,7 @@ services:
   swh-counters-journal-client:
     image: swh/stack
     build: ./
-    entrypoint: /entrypoint.sh
     command: journal-client
-    environment:
-      SWH_CONFIG_FILENAME: /counters_journal_client.yml
     env_file:
       - ./env/common_python.env
     depends_on:
@@ -544,63 +509,55 @@ services:
       - prometheus-statsd-exporter
       - nginx
     volumes:
-      - "./conf/counters_journal_client.yml:/counters_journal_client.yml:ro"
-      - "./services/swh-counters/entrypoint.sh:/entrypoint.sh:ro"
+      - "./conf/counters_journal_client.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-counters/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   # Search related
 
   swh-search:
     image: swh/stack
     build: ./
-    entrypoint: /entrypoint.sh
     command: rpc
     healthcheck:
       test: curl -f http://localhost:5010 || exit 1
       retries: 6
     environment:
-      SWH_CONFIG_FILENAME: /search.yml
       RPC_PORT: 5010
     env_file:
       - ./env/common_python.env
     depends_on:
       - prometheus-statsd-exporter
     volumes:
-      - "./conf/search-memory.yml:/search.yml:ro"
-      - "./services/swh-search/entrypoint.sh:/entrypoint.sh:ro"
+      - "./conf/search-memory.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-search/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   swh-search-journal-client-objects:
     image: swh/stack
     build: ./
-    entrypoint: /entrypoint.sh
     env_file:
       - ./env/common_python.env
-    environment:
-      SWH_CONFIG_FILENAME: /search_journal_client.yml
     command: journal-client
     depends_on:
       - kafka
       - swh-search
       - nginx
     volumes:
-      - "./conf/search_journal_client_objects.yml:/search_journal_client.yml:ro"
-      - "./services/swh-search/entrypoint.sh:/entrypoint.sh:ro"
+      - "./conf/search_journal_client_objects.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-search/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   swh-search-journal-client-indexed:
     image: swh/stack
     build: ./
-    entrypoint: /entrypoint.sh
     command: journal-client
     env_file:
       - ./env/common_python.env
-    environment:
-      SWH_CONFIG_FILENAME: /search_journal_client.yml
     depends_on:
       - kafka
       - swh-search
       - nginx
     volumes:
-      - "./conf/search_journal_client_indexed.yml:/search_journal_client.yml:ro"
-      - "./services/swh-search/entrypoint.sh:/entrypoint.sh:ro"
+      - "./conf/search_journal_client_indexed.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-search/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   # GraphQL API
 
@@ -612,14 +569,12 @@ services:
       - prometheus-statsd-exporter
       - nginx
     environment:
-      SWH_CONFIG_FILENAME: /graphql.yml
       RPC_PORT: 5013
     env_file:
       - ./env/common_python.env
     volumes:
-      - "./conf/graphql.yml:/graphql.yml:ro"
-      - "./services/swh-graphql/entrypoint.sh:/entrypoint.sh:ro"
-    entrypoint: /entrypoint.sh
+      - "./conf/graphql.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-graphql/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
     command: rpc
     healthcheck:
       test: curl -f http://localhost:5013 || exit 1

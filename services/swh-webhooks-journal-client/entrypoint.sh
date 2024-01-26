@@ -15,7 +15,7 @@ case "$1" in
       echo "Setting up webhook for origin visits"
       wait-for-it svix:8071 -s --timeout=0
       swh -l DEBUG webhooks event-type register-defaults
-      secret=$(yq -r .save_code_now_webhook_secret /web.yml)
+      secret=$(yq -r .save_code_now_webhook_secret $SWH_CONFIG_FILENAME)
       swh -l DEBUG webhooks endpoint create origin.visit \
         http://swh-web:5004/save/origin/visit/webhook/ --secret $secret
 

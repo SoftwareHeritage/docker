@@ -16,9 +16,7 @@ services:
       - ./env/common_python.env
     environment:
       POSTGRES_DB: swh-vault
-      SWH_CONFIG_FILENAME: /vault.yml
       RPC_PORT: 5005
-    entrypoint: /entrypoint.sh
     command: rpc
     healthcheck:
       test: curl -f http://localhost:5005 || exit 1
@@ -31,19 +29,17 @@ services:
       - prometheus-statsd-exporter
       - nginx
     volumes:
-      - "./conf/vault.yml:/vault.yml:ro"
-      - "./services/swh-vault/entrypoint.sh:/entrypoint.sh:ro"
+      - "./conf/vault.yml:/srv/softwareheritage/config.yml.in:ro"
+      - "./services/swh-vault/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   swh-vault-worker:
     image: swh/stack
     build: ./
-    entrypoint: /entrypoint.sh
     command: worker
     env_file:
       - ./env/common_python.env
       - ./env/workers.env
     environment:
-      SWH_CONFIG_FILENAME: /cooker.yml
       SWH_SCHEDULER_HOST: swh-scheduler
       SWH_SCHEDULER_INSTANCE: http://nginx/scheduler
     depends_on:
@@ -51,8 +47,8 @@ services:
       - swh-storage
       - nginx
     volumes:
-      - "./conf/vault-worker.yml:/cooker.yml:ro"
-      - "./services/swh-vault/entrypoint.sh:/entrypoint.sh:ro"
+      - "./conf/vault-worker.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-vault/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   swh-scheduler-runner:
     environment:

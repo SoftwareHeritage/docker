@@ -32,7 +32,5 @@ services:
     depends_on:
       - azurite
       - azure-cli
-    environment:
-      SWH_CONFIG_FILENAME: /vault-azure.yml
     volumes:
-      - "./conf/vault-azure.yml:/vault-azure.yml:ro"
+      - "./conf/vault-azure.yml:/srv/softwareheritage/config.yml:ro"

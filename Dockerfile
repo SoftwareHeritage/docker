@@ -115,3 +115,6 @@ COPY utils/*.sh /srv/softwareheritage/utils/
 RUN mkdir -p /srv/softwareheritage/objects
 RUN mkdir -p /srv/softwareheritage/graph
 RUN rm -rd /srv/softwareheritage/.cache
+WORKDIR /srv/softwareheritage/
+ENV SWH_CONFIG_FILENAME=/srv/softwareheritage/config.yml
+ENTRYPOINT ["/srv/softwareheritage/entrypoint.sh"]

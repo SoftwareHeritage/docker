@@ -223,7 +223,7 @@ def test_fork_removed_in_kafka(docker_compose, fork_removed):
 def fork_restored(fork_removed, alter_host, docker_compose, kafka_api_url):
     alter_host.check_output(
         f"swh alter recovery-bundle restore '{fork_removed.bundle_path}' "
-        "--identity /age-identities.txt"
+        "--identity /srv/softwareheritage/age-identities.txt"
     )
     wait_for_replayer(docker_compose, kafka_api_url)
     return fork_removed

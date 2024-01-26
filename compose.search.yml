@@ -16,7 +16,7 @@ services:
     depends_on:
       - elasticsearch
     volumes:
-      - "./conf/search.yml:/search.yml:ro"
+      - "./conf/search.yml:/srv/softwareheritage/config.yml:ro"
 
 volumes:
   elasticsearch-data:

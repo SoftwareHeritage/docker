@@ -44,8 +44,8 @@ services:
 
   swh-storage:
     volumes:
-      - "./conf/storage_cassandra.yml:/storage.yml:ro"
-      - "./services/swh-storage/entrypoint.sh:/entrypoint.sh:ro"
+      - "./conf/storage_cassandra.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-storage/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
     depends_on:
       # beware swh-storage-db will remains a dependency; since compose does not
       # support !reset with replacement value, we cannot easily remove this

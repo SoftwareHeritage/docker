@@ -11,7 +11,6 @@ services:
   swh-scrubber:
     image: swh/stack
     build: ./
-    entrypoint: /entrypoint.sh
     command: scrubber snapshot 16
     depends_on:
       - prometheus-statsd-exporter
@@ -21,8 +20,6 @@ services:
     env_file:
       - ./env/common_python.env
       - ./env/scrubber.env
-    environment:
-      SWH_CONFIG_FILENAME: /scrubber.yml
     volumes:
-      - "./conf/scrubber.yml:/scrubber.yml:ro"
-      - "./services/swh-scrubber/entrypoint.sh:/entrypoint.sh:ro"
+      - "./conf/scrubber.yml:srv/softwareheritage/config.yml:ro"
+      - "./services/swh-scrubber/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
