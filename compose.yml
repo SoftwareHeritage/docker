@@ -29,8 +29,6 @@ services:
     depends_on:
       - prometheus-statsd-exporter
     command:
-      # Needed for the reverse-proxy
-      - "--web.external-url=/prometheus"
       - "--config.file=/etc/prometheus/prometheus.yml"
     volumes:
       - "./conf/prometheus.yml:/etc/prometheus/prometheus.yml:ro"
