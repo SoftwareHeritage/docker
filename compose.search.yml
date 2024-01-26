@@ -4,7 +4,7 @@ services:
   elasticsearch:
     env_file:
       - ./env/elasticsearch.env
-    image: elastic/elasticsearch:7.15.2
+    image: elastic/elasticsearch:7.17.17
     environment:
       - ingest.geoip.downloader.enabled=false
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
