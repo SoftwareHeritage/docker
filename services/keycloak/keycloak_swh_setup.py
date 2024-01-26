@@ -6,7 +6,6 @@
 # See top-level LICENSE file for more information
 
 import logging
-import os
 
 from keycloak import KeycloakAdmin
 import requests
@@ -25,23 +24,10 @@ logger = logging.getLogger(__name__)
 
 def get_frontend_url():
     # query the docker API to get the port of the edge router
-    compose_project_name = os.environ.get("COMPOSE_PROJECT_NAME", "docker")
-    containers = requests.get("http://docker-proxy:2375/containers/json").json()
-    containers = [
-        container
-        for container in containers
-        if container["Labels"].get("com.docker.compose.project") == compose_project_name
-        and container["Labels"].get("com.docker.compose.service") == "nginx"
-    ]
-    if len(containers) == 1:
-        edge_ports = [
-            p["PublicPort"]
-            for p in containers[0]["Ports"]
-            if p["IP"] == "0.0.0.0" and p["PrivatePort"] == 80
-        ]
-        if len(edge_ports) == 1:
-            port = edge_ports[0]
-            return f"http://localhost:{port}/keycloak/auth/"
+    resp = requests.get("http://docker-helper/public-port/")
+    if resp.status_code == 200:
+        port = resp.json()
+        return f"http://localhost:{port}/keycloak/auth/"
 
     return SERVER_URL
 

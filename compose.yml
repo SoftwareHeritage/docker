@@ -106,6 +106,19 @@ services:
     environment:
       CONTAINERS: 1
 
+  docker-helper:
+    image: swh/stack
+    environment:
+      COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
+    command: rpc
+    volumes:
+      - "./services/docker-helper/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
+      - "./services/docker-helper/app.py:/srv/softwareheritage/app.py:ro"
+    depends_on:
+      - docker-proxy
+    healthcheck:
+      test: curl -f http://localhost || exit 1
+      retries: 6
   # SMTP service (used by keycloak and vault)
   mailhog:
     image: mailhog/mailhog
