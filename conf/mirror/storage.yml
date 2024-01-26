@@ -5,6 +5,6 @@ storage:
     cls: filtered
     storage_conf:
       cls: remote
-      url: http://nginx-mirror/objstorage
+      url: http://nginx-mirror/rpc/objstorage/
     filters_conf:
       - type: readonly

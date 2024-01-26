@@ -1,9 +1,9 @@
 storage:
   cls: remote
-  url: http://nginx/storage
+  url: http://nginx/rpc/storage/
 scheduler:
   cls: remote
-  url: http://nginx/scheduler
+  url: http://nginx/rpc/scheduler/
 vault:
   cls: postgresql
   db: postgresql:///?service=swh-vault

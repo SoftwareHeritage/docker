@@ -1,9 +1,9 @@
 storage:
   cls: remote
-  url: http://nginx-mirror/storage
+  url: http://nginx-mirror/rpc/storage/
 scheduler:
   cls: remote
-  url: http://nginx-mirror/scheduler
+  url: http://nginx-mirror/rpc/scheduler/
 vault:
   cls: postgresql
   db: postgresql:///?service=swh-mirror-vault

@@ -1,6 +1,6 @@
 scheduler:
   cls: remote
-  url: http://nginx/scheduler
+  url: http://nginx/rpc/scheduler/
 
 celery:
   broker_heartbeat: null

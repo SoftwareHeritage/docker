@@ -130,7 +130,7 @@ def test_origin_metadata_search(origins, docker_compose, nginx_get, api_get):
     for url, pattern in metadata_patterns.items():
         for i in range(30):
             mds = nginx_get(
-                "search/origin/search",
+                "rpc/search/origin/search",
                 verb="POST",
                 json={"metadata_pattern": pattern},
             )
@@ -149,7 +149,7 @@ def test_origin_metadata_search(origins, docker_compose, nginx_get, api_get):
     # service instead for now...
     for i in range(30):
         imd = nginx_get(
-            "indexer-storage/origin_intrinsic_metadata",
+            "rpc/indexer-storage/origin_intrinsic_metadata",
             verb="POST",
             json={"urls": [url for _, url in origins]},
         )

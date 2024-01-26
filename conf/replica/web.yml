@@ -1,20 +1,20 @@
 storage:
   cls: remote
-  url: http://nginx-replica/storage
+  url: http://nginx-replica/rpc/storage/
   timeout: 1
 
 indexer_storage:
   cls: remote
-  url: http://nginx/indexer-storage
+  url: http://nginx/rpc/indexer-storage/
 
 scheduler:
   cls: remote
-  url: http://nginx-replica/scheduler
+  url: http://nginx-replica/rpc/scheduler/
 
 vault:
   cls: remote
   args:
-    url: http://nginx-replica/vault
+    url: http://nginx-replica/rpc/vault/
 
 deposit:
   private_api_url: http://nginx/deposit/1/private/
@@ -68,7 +68,7 @@ throttling:
 
 search:
   cls: remote
-  url: http://nginx/search
+  url: http://nginx/rpc/search/
 
 search_config:
   metadata_backend: swh-search

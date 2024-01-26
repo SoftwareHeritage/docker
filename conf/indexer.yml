@@ -1,15 +1,15 @@
 storage:
   cls: remote
-  url: http://nginx/storage
+  url: http://nginx/rpc/storage/
 objstorage:
   cls: remote
-  url: http://nginx/objstorage
+  url: http://nginx/rpc/objstorage/
 indexer_storage:
   cls: remote
-  url: http://nginx/indexer-storage
+  url: http://nginx/rpc/indexer-storage/
 scheduler:
   cls: remote
-  url: http://nginx/scheduler
+  url: http://nginx/rpc/scheduler/
 celery:
   broker_heartbeat: null
   task_broker: amqp://guest:guest@amqp//

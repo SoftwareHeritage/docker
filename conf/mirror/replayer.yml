@@ -13,7 +13,7 @@ storage:
         errors: 10
         window_size: 1000
     - cls: remote
-      url: http://nginx-mirror/storage
+      url: http://nginx-mirror/rpc/storage/
 
 journal_client:
   cls: kafka

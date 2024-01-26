@@ -40,7 +40,7 @@ services:
     user: swh
     environment:
       SWH_WORKER_INSTANCE: loader-deposit
-      SWH_SCHEDULER_INSTANCE: http://nginx/scheduler
+      SWH_SCHEDULER_INSTANCE: http://nginx/rpc/scheduler/
     command: worker
     depends_on:
       - swh-storage

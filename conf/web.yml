@@ -1,19 +1,19 @@
 storage:
   cls: remote
-  url: http://nginx/storage
+  url: http://nginx/rpc/storage/
   timeout: 5
 
 indexer_storage:
   cls: remote
-  url: http://nginx/indexer-storage
+  url: http://nginx/rpc/indexer-storage/
 
 scheduler:
   cls: remote
-  url: http://nginx/scheduler
+  url: http://nginx/rpc/scheduler/
 
 vault:
   cls: remote
-  url: http://nginx/vault
+  url: http://nginx/rpc/vault/
 
 deposit:
   private_api_url: http://nginx/deposit/1/private/
@@ -65,16 +65,16 @@ instance_name: archive-docker.softwareheritage.org
 
 search:
   cls: remote
-  url: http://nginx/search
+  url: http://nginx/rpc/search/
 
 search_config:
   metadata_backend: swh-search
 
 counters:
   cls: remote
-  url: http://nginx/counters
+  url: http://nginx/rpc/counters/
 counters_backend: swh-counters
-history_counters_url: http://nginx/counters/counters_history/history.json
+history_counters_url: http://nginx/rpc/counters/counters_history/history.json
 
 save_code_now_webhook_secret: whsec_QgEXGNJPBPjKsyBMPwtAkJpgVtA0g41A
 secret_key: some_very_secret_key

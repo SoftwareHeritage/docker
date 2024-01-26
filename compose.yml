@@ -390,7 +390,7 @@ services:
     user: swh
     environment:
       SWH_WORKER_INSTANCE: listers
-      SWH_SCHEDULER_INSTANCE: http://nginx/scheduler
+      SWH_SCHEDULER_INSTANCE: http://nginx/rpc/scheduler/
     depends_on:
       - swh-scheduler
       - swh-scheduler-runner
@@ -423,7 +423,7 @@ services:
     user: swh
     environment:
       SWH_WORKER_INSTANCE: loader
-      SWH_SCHEDULER_INSTANCE: http://nginx/scheduler
+      SWH_SCHEDULER_INSTANCE: http://nginx/rpc/scheduler/
     command: worker
     depends_on:
       - swh-storage
@@ -446,9 +446,8 @@ services:
       - ./env/workers.env
     environment:
       SWH_WORKER_INSTANCE: indexer
-      CONCURRENCY: 4
       POSTGRES_DB: swh-idx-storage
-      SWH_SCHEDULER_INSTANCE: http://nginx/scheduler
+      SWH_SCHEDULER_INSTANCE: http://nginx/rpc/scheduler/
     command: journal-client
     depends_on:
       - kafka

@@ -1,10 +1,10 @@
 objstorage:
   cls: remote
-  url: http://nginx/objstorage
+  url: http://nginx/rpc/objstorage/
 
 objstorage_dst:
   cls: remote
-  url: http://nginx-mirror/objstorage
+  url: http://nginx-mirror/rpc/objstorage/
 
 journal_client:
   cls: kafka

@@ -1,10 +1,10 @@
 search:
   cls: remote
-  url: http://nginx/search
+  url: http://nginx/rpc/search/
 
 storage:
   cls: remote
-  url: http://nginx/storage
+  url: http://nginx/rpc/storage/
 
 journal:
   brokers:

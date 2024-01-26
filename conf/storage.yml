@@ -3,7 +3,7 @@ storage:
   db: postgresql:///?service=swh-storage
   objstorage:
     cls: remote
-    url: http://nginx/objstorage
+    url: http://nginx/rpc/objstorage/
   journal_writer:
     cls: kafka
     brokers:

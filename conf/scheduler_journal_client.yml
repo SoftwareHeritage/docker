@@ -4,4 +4,4 @@ journal:
   group_id: swh.scheduler.journal_client
 scheduler:
   cls: remote
-  url: http://nginx/scheduler
+  url: http://nginx/rpc/scheduler/

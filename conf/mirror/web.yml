@@ -1,6 +1,6 @@
 storage:
   cls: remote
-  url: http://nginx-mirror/storage
+  url: http://nginx-mirror/rpc/storage/
   timeout: 1
 
 #indexer_storage:
@@ -9,12 +9,12 @@ storage:
 
 scheduler:
   cls: remote
-  url: http://nginx-mirror/scheduler
+  url: http://nginx-mirror/rpc/scheduler/
 
 vault:
   cls: remote
   args:
-    url: http://nginx-mirror/vault
+    url: http://nginx-mirror/rpc/vault/
 
 allowed_hosts:
   - "*"
@@ -64,7 +64,7 @@ throttling:
 # for now we use the main search service
 search:
   cls: remote
-  url: http://nginx/search
+  url: http://nginx/rpc/search/
 
 search_config:
   metadata_backend: swh-search

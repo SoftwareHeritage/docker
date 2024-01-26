@@ -1,14 +1,14 @@
 scheduler:
   cls: remote
-  url: http://nginx/scheduler
+  url: http://nginx/rpc/scheduler/
 
 storage:
   cls: remote
-  url: http://nginx/storage
+  url: http://nginx/rpc/storage/
 
 storage_metadata:
   cls: remote
-  url: http://nginx/storage
+  url: http://nginx/rpc/storage/
 
 allowed_hosts:
   - '*'

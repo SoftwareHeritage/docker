@@ -10,7 +10,7 @@ storage:
         revision: 1000
     - cls: filter
     - cls: remote
-      url: http://nginx/storage
+      url: http://nginx/rpc/storage/
 
 celery:
   broker_heartbeat: null
@@ -25,4 +25,4 @@ deposit:
     username: test
     password: test
 
-url: http://nginx/deposit
+url: http://nginx/deposit/

@@ -3,14 +3,14 @@ storage:
   db: postgresql:///?host=swh-storage-db&dbname=swh-storage&user=postgres&password=testpassword
   objstorage:
     cls: remote
-    url: http://nginx/objstorage
+    url: http://nginx/rpc/objstorage/
 
 graph:
   url: http://swh-alter:5009/
 
 restoration_storage:
   cls: remote
-  url: http://nginx:5080/storage
+  url: http://nginx/rpc/storage/
 
 removal_storages:
   postgresql:
@@ -25,7 +25,7 @@ removal_storages:
 removal_objstorages:
   primary:
     cls: remote
-    url: http://nginx:5080/objstorage
+    url: http://nginx/rpc/objstorage/
   extra:
     cls: remote
     url: http://swh-extra-objstorage:5003

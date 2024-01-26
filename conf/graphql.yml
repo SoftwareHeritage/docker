@@ -1,10 +1,10 @@
 storage:
   cls: remote
-  url: http://nginx/storage
+  url: http://nginx/rpc/storage/
 
 search:
   cls: remote
-  url: http://nginx/search
+  url: http://nginx/rpc/search/
 
 debug: yes
 

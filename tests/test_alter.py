@@ -189,7 +189,7 @@ def test_fork_removed_in_primary_objstorage(docker_compose, fork_removed, alter_
     # Ensure objects have been removed from primary objstorage
     docker_compose.check_compose_output(
         "exec swh-alter python /src/alter_companion.py query-objstorage "
-        "--objstorage-url http://nginx:5080/objstorage "
+        "--objstorage-url http://nginx/rpc/objstorage "
         f"{' '.join(fork_removed.get_removed_content_sha1s(alter_host))}"
     )
 
@@ -241,7 +241,7 @@ def test_fork_restored_in_primary_objstorage(docker_compose, fork_restored, alte
     # Ensure objects are back in primary objstorage
     docker_compose.check_compose_output(
         "exec swh-alter python /src/alter_companion.py query-objstorage --presence "
-        "--objstorage-url http://nginx:5080/objstorage "
+        "--objstorage-url http://nginx/rpc/objstorage "
         f"{' '.join(fork_restored.get_removed_content_sha1s(alter_host))}"
     )
 
