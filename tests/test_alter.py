@@ -58,27 +58,10 @@ def alter_host(docker_compose) -> Iterable[testinfra.host.Host]:
     yield host
 
 
-@pytest.fixture(scope="module")
-def verified_origins(alter_host, docker_compose, origins, kafka_api_url):
-    # Verify that our origins have properly been loaded in PostgreSQL
-    # and Cassandra
-    origin_swhids = {
-        f"swh:1:ori:{hashlib.sha1(url.encode('us-ascii')).hexdigest()}"
-        for _, url in origins
-    }
-    docker_compose.check_compose_output(
-        "exec swh-alter python /src/alter_companion.py "
-        f"query-postgresql --presence {' '.join(origin_swhids)}"
-    )
-
+def wait_for_replayer(docker_compose, kafka_api_url):
     # wait until the replayer is done
     print("Waiting for the replayer to be done")
     cluster = requests.get(kafka_api_url).json()["data"][0]["cluster_id"]
-
-    docker_compose.check_compose_output(
-        "exec swh-alter python /src/alter_companion.py "
-        f"query-kafka --presence {' '.join(origin_swhids)}"
-    )
 
     def kget(path):
         url = f"{kafka_api_url}/{cluster}/{path}"
@@ -100,6 +83,28 @@ def verified_origins(alter_host, docker_compose, origins, kafka_api_url):
         raise AssertionError(
             "Could not detect a condition where the replayer did its job"
         )
+
+
+@pytest.fixture(scope="module")
+def verified_origins(alter_host, docker_compose, origins, kafka_api_url):
+    # Verify that our origins have properly been loaded in PostgreSQL
+    # and Cassandra
+    origin_swhids = {
+        f"swh:1:ori:{hashlib.sha1(url.encode('us-ascii')).hexdigest()}"
+        for _, url in origins
+    }
+    docker_compose.check_compose_output(
+        "exec swh-alter python /src/alter_companion.py "
+        f"query-postgresql --presence {' '.join(origin_swhids)}"
+    )
+
+    docker_compose.check_compose_output(
+        "exec swh-alter python /src/alter_companion.py "
+        f"query-kafka --presence {' '.join(origin_swhids)}"
+    )
+
+    wait_for_replayer(docker_compose, kafka_api_url)
+
     return origins
 
 
@@ -164,11 +169,12 @@ def test_fork_removed_in_kafka(docker_compose, fork_removed):
 
 
 @pytest.fixture(scope="module")
-def fork_restored(fork_removed, alter_host):
+def fork_restored(fork_removed, alter_host, docker_compose, kafka_api_url):
     alter_host.check_output(
         f"swh alter recovery-bundle restore '{fork_removed.bundle_path}' "
         "--identity /age-identities.txt"
     )
+    wait_for_replayer(docker_compose, kafka_api_url)
     return fork_removed
 
 
