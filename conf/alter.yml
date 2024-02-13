@@ -4,30 +4,31 @@ storage:
   objstorage:
     cls: remote
     url: http://nginx:5080/objstorage
-  journal_writer:
-    cls: kafka
-    brokers:
-      - kafka
-    prefix: swh.journal.objects
-    client_id: swh.alter.additions
-    anonymize: true
 
-extra_storages:
+graph:
+  url: http://swh-alter:5009/
+
+restoration_storage:
+  cls: remote
+  url: http://nginx:5080/storage
+
+removal_storages:
+  postgresql:
+    cls: postgresql
+    db: postgresql:///?host=swh-storage-db&dbname=swh-storage&user=postgres&password=testpassword
   cassandra:
     cls: cassandra
     hosts:
     - cassandra-seed
     keyspace: swh
 
-journal_writer:
-  cls: kafka
-  brokers:
-    - kafka
-  prefix: swh.journal.objects
-  client_id: swh.alter.removals
-
-graph:
-  url: http://swh-alter:5009/
+removal_journals:
+  main:
+    cls: kafka
+    brokers:
+      - kafka
+    prefix: swh.journal.objects
+    client_id: swh.alter.removals
 
 recovery_bundles:
   secret_sharing:
