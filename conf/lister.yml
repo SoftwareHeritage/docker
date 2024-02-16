@@ -18,6 +18,8 @@ celery:
     - swh.lister.cran.tasks.CRANListerTask
     - swh.lister.crates.tasks.CratesListerTask
     - swh.lister.debian.tasks.DebianListerTask
+    - swh.lister.dlang.tasks.DlangListerTask
+    - swh.lister.elm.tasks.ElmListerTask
     - swh.lister.gitea.tasks.FullGiteaRelister
     - swh.lister.gitea.tasks.IncrementalGiteaLister
     - swh.lister.gitea.tasks.RangeGiteaLister
