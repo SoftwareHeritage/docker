@@ -1,8 +1,8 @@
 Docker environment
 ==================
 
-``swh-environment/docker/`` contains Dockerfiles to run a small Software Heritage
-instance on development machines. The end goal is to smooth the
+This ``docker`` repository contains Dockerfiles to run a small Software Heritage
+instance on a development machine. The end goal is to smooth the
 contributors/developers workflow. Focus on coding, not configuring!
 
 .. warning::
@@ -11,6 +11,8 @@ contributors/developers workflow. Focus on coding, not configuring!
    you try to list all GitHub repositories with the corresponding lister),
    you may fill your hard drive, and consume a lot of CPU, memory and
    network bandwidth.
+
+It is generally used as a subdirectory of the `swh-environment` (but not necessarily).
 
 Dependencies
 ------------
@@ -350,7 +352,7 @@ If you haven’t followed the
 `developer setup guide <https://docs.softwareheritage.org/devel/developer-setup.html>`__, you must clone the the [swh-environment] repo in your
 ``swh-environment`` directory::
 
-   ~/swh-environment$ git clone https://forge.softwareheritage.org/source/swh-environment.git .
+   ~/swh-environment$ git clone https://gitlab.softwareheritage.org/swh/devel/swh-environment.git .
 
 Note the ``.`` at the end of this command: we want the git repository to
 be cloned directly in the ``~/swh-environment`` directory, not in a sub
