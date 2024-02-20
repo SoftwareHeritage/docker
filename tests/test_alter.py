@@ -17,13 +17,16 @@ import yaml
 
 @pytest.fixture(scope="module")
 def compose_files() -> List[str]:
-    return ["compose.yml", "compose.alter.yml"]
+    return ["compose.yml", "compose.search.yml", "compose.alter.yml"]
 
 
 @pytest.fixture(scope="module")
 def compose_services() -> List[str]:
     return [
         "swh-alter",
+        "swh-search",
+        "swh-search-journal-client-objects",
+        "swh-search-journal-client-indexed",
         "swh-storage",
         "swh-objstorage",
         "swh-storage-replayer",
@@ -74,12 +77,14 @@ def wait_for_replayer(docker_compose, kafka_api_url):
             return resp.json()
         resp.raise_for_status()
 
-    for replayer_type in ("storage", "objstorage"):
+    for consumer in (
+        "swh.alter.storage.replayer",
+        "swh.alter.objstorage.replayer",
+        "swh.search.journal_client",
+    ):
         for _ in range(30):
             try:
-                lag_sum = kget(
-                    f"consumer-groups/swh.alter.{replayer_type}.replayer/lag-summary"
-                )
+                lag_sum = kget(f"consumer-groups/{consumer}/lag-summary")
             except requests.exceptions.HTTPError as exc:
                 print(f"Failed to retrieve consumer status: {exc}")
             else:
@@ -88,8 +93,8 @@ def wait_for_replayer(docker_compose, kafka_api_url):
             time.sleep(1)
         else:
             raise AssertionError(
-                "Could not detect a condition where the replayer "
-                f"for {replayer_type} did its job"
+                "Could not detect a condition where the consumer "
+                f"{consumer} did its job"
             )
 
 
@@ -219,6 +224,14 @@ def test_fork_removed_in_kafka(docker_compose, fork_removed):
     )
 
 
+def test_fork_removed_in_elasticsearch(docker_compose, fork_removed):
+    # Ensure the origins have been removed from ElasticSearch
+    docker_compose.check_compose_output(
+        "exec swh-alter python /src/alter_companion.py "
+        f"query-elasticsearch {' '.join(fork_removed.origins)}"
+    )
+
+
 @pytest.fixture(scope="module")
 def fork_restored(fork_removed, alter_host, docker_compose, kafka_api_url):
     alter_host.check_output(
@@ -268,4 +281,12 @@ def test_fork_restored_in_kafka(docker_compose, fork_restored):
     docker_compose.check_compose_output(
         "exec swh-alter python /src/alter_companion.py "
         f"query-kafka --presence {' '.join(fork_restored.removed_swhids)}"
+    )
+
+
+def test_fork_restored_in_elasticsearch(docker_compose, fork_restored):
+    # Ensure the origins have been restored in ElasticSearch
+    docker_compose.check_compose_output(
+        "exec swh-alter python /src/alter_companion.py "
+        f"query-elasticsearch --presence {' '.join(fork_restored.origins)}"
     )

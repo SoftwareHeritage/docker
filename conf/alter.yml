@@ -12,6 +12,11 @@ restoration_storage:
   cls: remote
   url: http://nginx/rpc/storage/
 
+removal_searches:
+  main:
+    cls: remote
+    url: http://nginx/rpc/search
+
 removal_storages:
   postgresql:
     cls: postgresql

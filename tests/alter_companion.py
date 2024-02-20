@@ -418,5 +418,47 @@ def query_objstorage(
             ctx.exit(1)
 
 
+########################################################################
+# ElasticSearch
+#
+@cli.command()
+@click.option(
+    "--presence",
+    is_flag=True,
+    show_default=True,
+    default=False,
+    help="Ensure the given URLs are present instead of absent",
+)
+@click.argument("urls", nargs=-1)
+@click.pass_context
+def query_elasticsearch(ctx: click.Context, presence: bool, urls: List[str]) -> None:
+    """Ensure that the given URLs are absent in ElasticSearch (swh-search)"""
+
+    from elasticsearch import Elasticsearch
+
+    searched_urls = set(urls)
+
+    es = Elasticsearch(hosts="elasticsearch:9200")
+    hits = es.search(index="origin").get("hits", {}).get("hits", [])
+    found_urls = {hit.get("_source", {}).get("url") for hit in hits}
+    found_urls.discard(None)
+    if presence:
+        if found_urls.issuperset(searched_urls):
+            ctx.exit(0)
+        else:
+            print("Not found:\n")
+            for url in sorted(searched_urls - found_urls):
+                click.echo(url)
+            ctx.exit(1)
+    else:
+        if found_urls.isdisjoint(searched_urls):
+            ctx.exit(0)
+        else:
+            print("Found nonetheless:\n")
+            for url in sorted(found_urls & searched_urls):
+                click.echo(url)
+            ctx.exit(1)
+
+
 if __name__ == "__main__":
     cli()
