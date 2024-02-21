@@ -13,8 +13,8 @@ case "$1" in
       ;;
     "replayer")
       shift
-      wait-for-it "$(yq -r '.objstorage.url' /content-replayer.yml | cut -d/ -f3)"
-      wait-for-it "$(yq -r '.objstorage_dst.url' /content-replayer.yml | cut -d/ -f3)"
+      wait-for-it $(host-port-from-url "$(yq -r '.objstorage.url' /content-replayer.yml)" )
+      wait-for-it $(host-port-from-url "$(yq -r '.objstorage_dst.url' /content-replayer.yml)" )
       wait-for-it kafka:9092 -s --timeout=0
       echo "Starting the SWH mirror content replayer"
       exec swh --log-level ${LOG_LEVEL:-WARNING} \
