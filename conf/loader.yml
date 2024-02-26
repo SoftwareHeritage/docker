@@ -40,7 +40,6 @@ celery:
     - swh.loader.package.golang.tasks.LoadGolang
     - swh.loader.package.hackage.tasks.LoadHackage
     - swh.loader.package.maven.tasks.LoadMaven
-    - swh.loader.package.nixguix.tasks.LoadNixguix
     - swh.loader.package.npm.tasks.LoadNpm
     - swh.loader.package.opam.tasks.LoadOpam
     - swh.loader.package.pubdev.tasks.LoadPubDev
