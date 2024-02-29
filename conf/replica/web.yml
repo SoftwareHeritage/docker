@@ -82,3 +82,5 @@ mirror_config:
   static_path: /replica/static
   partner_logo_static_path: logo.png
   templates_path: /replica/templates
+
+secret_key: some_very_secret_key

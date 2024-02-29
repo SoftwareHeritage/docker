@@ -73,3 +73,4 @@ keycloak:
 instance_name: archive-docker.softwareheritage.org
 
 save_code_now_webhook_secret: whsec_QgEXGNJPBPjKsyBMPwtAkJpgVtA0g41A
+secret_key: some_very_secret_key
