@@ -428,8 +428,6 @@ services:
   swh-loader:
     image: swh/stack
     build: ./
-    deploy:
-      replicas: 4
     env_file:
       - ./env/common_python.env
       - ./env/workers.env
