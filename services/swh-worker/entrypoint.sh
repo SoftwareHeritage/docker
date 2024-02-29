@@ -2,6 +2,7 @@
 
 set -e
 
+source /srv/softwareheritage/utils/swhutils.sh
 source /srv/softwareheritage/utils/pyutils.sh
 setup_pip
 
@@ -21,7 +22,7 @@ case "$1" in
 
     "worker")
         echo Register task types in scheduler database
-        wait-for-it swh-scheduler:5008 -s --timeout=0
+        wait-for-http ${SWH_SCHEDULER_INSTANCE}
         swh scheduler --url ${SWH_SCHEDULER_INSTANCE} task-type register
 
         echo Waiting for RabbitMQ to start

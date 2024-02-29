@@ -59,6 +59,15 @@ wait-for-topic() {
     done
 }
 
+wait-for-http() {
+    SECONDS=0
+    until curl --silent --output /dev/null --fail --location $1
+    do
+        sleep 1
+    done
+    echo "$1 is up after ${SECONDS}s"
+}
+
 host-port-from-url() {
     # extract the protocol
     proto="$(echo $1 | grep :// | sed -e's,^\(.*://\).*,\1,g')"
