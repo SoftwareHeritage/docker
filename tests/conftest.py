@@ -211,7 +211,6 @@ def scheduler_host(request, docker_compose):
     scheduler_host = compose_host_for_service(docker_compose, "swh-scheduler")
     assert scheduler_host
     scheduler_host.check_output(f"wait-for-it swh-storage:5002 -t {WFI_TIMEOUT}")
-
     # return a testinfra connection to the container
     yield scheduler_host
 

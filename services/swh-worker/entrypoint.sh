@@ -21,9 +21,8 @@ case "$1" in
         ;;
 
     "worker")
-        echo Register task types in scheduler database
+        echo Waiting for the scheduler
         wait-for-http ${SWH_SCHEDULER_INSTANCE}
-        swh scheduler --url ${SWH_SCHEDULER_INSTANCE} task-type register
 
         echo Waiting for RabbitMQ to start
         wait-for-it amqp:5672 -s --timeout=0

@@ -33,6 +33,8 @@ case "$1" in
 
     "rpc")
         swh_setup_db scheduler
+        echo "Register task types"
+        swh scheduler task-type register
         swh_start_rpc scheduler
         ;;
 
