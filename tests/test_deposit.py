@@ -8,9 +8,8 @@ import time
 from typing import List
 
 import pytest
-import testinfra
 
-from .conftest import WFI_TIMEOUT
+from .conftest import WFI_TIMEOUT, compose_host_for_service
 
 SAMPLE_METADATA = """\
 <?xml version="1.0" encoding="utf-8"?>
@@ -39,21 +38,21 @@ def compose_files() -> List[str]:
 # scope='module' so we use the same container for all the tests in a given test
 # file
 @pytest.fixture(scope="module")
-def deposit_host(request, docker_compose):
-    # run a container in which test commands are executed
-    docker_id = docker_compose.check_compose_output(
-        "run -d swh-deposit shell sleep 1h"
-    ).strip()
-    deposit_host = testinfra.get_host("docker://" + docker_id)
+def deposit_host(request, docker_compose, scheduler_host):
+    # ensure deposit tasks are registered
+    task_list = scheduler_host.check_output(
+        "swh scheduler task-type list"
+    )
+    assert "load-deposit:" in task_list
+    assert "check-deposit:" in task_list
+
+    deposit_host = compose_host_for_service(docker_compose, "swh-deposit")
     deposit_host.check_output("echo 'print(\"Hello World!\")\n' > /tmp/hello.py")
     deposit_host.check_output("tar -C /tmp -czf /tmp/archive.tgz /tmp/hello.py")
     deposit_host.check_output(f"echo '{SAMPLE_METADATA}' > /tmp/metadata.xml")
     deposit_host.check_output(f"wait-for-it swh-deposit:5006 -t {WFI_TIMEOUT}")
     # return a testinfra connection to the container
     yield deposit_host
-
-    # at the end of the test suite, destroy the container
-    docker_compose.check_output(f"docker rm -f {docker_id}")
 
 
 def test_admin_collection(deposit_host):
@@ -73,7 +72,6 @@ def test_create_deposit_simple(deposit_host):
         "--name test_deposit --author somebody"
     )
     deposit = json.loads(deposit)
-
     assert set(deposit.keys()) == {
         "deposit_id",
         "deposit_status",
