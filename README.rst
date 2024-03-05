@@ -30,27 +30,30 @@ on how to install Docker on your machine.
 Service "packs"
 ---------------
 
-The Software Heritage stack consists in many services running aong each other
+The Software Heritage stack consists in many services running along each other
 to implement the full feature set of the SWH platform.
 
 However not all these services are required all the time for someone playing
 with this toy, and launching the stack full blast can be pretty resource heavy
 on the user's machine.
 
-So we divides the services in several "sets" that can be enabled or not. Each
+So we divided the services in several "sets" that can be enabled or not. Each
 of these feature sets can be started by using the corresponding compose file,
 in addition to the main one. Provided compose files are:
 
-- `compose.yml`: the main compose file, firing basic (core) SWH services
-  (see below).
+- `compose.yml`: the main compose file, firing basic (core) SWH services (see
+  below). You can browse the archive using the URL http://localhost:<publicport>
+  (`<publicport>` being the port chosen by docker for the service
+  ``nginx``).
 
 - `compose.cassandra.yml`: replace the backend of the main `swh-storage`
-  service by Cassandra (instead of postgresql).
+  service by Cassandra (instead of Postgresql).
 
 - `compose.deposit.yml`: activate the swh-deposit_ feature set of the
   SWH stack.
 
-- `compose.graph.yml`: add the swh-graph_ feature.
+- `compose.graph.yml`: add the swh-graph_ feature. This may require some manual
+  commands to (re)generate the graph dataset used by swh-graph.
 
 - `compose.keycloak.yml`: activate the keycloak-based auhentication
   backend for the web frontend (without it, you only have the django-based
@@ -66,25 +69,31 @@ in addition to the main one. Provided compose files are:
   the mirror using the URL http://localhost:<publicport> (`<publicport>` being
   the port chosen by docker for the service ``nginx-replica``).
 
-- `compose.scrubber.yml`: deploy swh-scrubber_ services.
+- `compose.scrubber.yml`: deploy swh-scrubber_ services (scrubbing the
+  Postgresql storage only for now, so incompatible with the
+  `compose.cassandra.yml` override).
 
 - `compose.search.yml`: replace the in-memory search engine backend for
-  the SWH archive by and ElasticSearch based one.
+  the SWH archive by an ElasticSearch based one (see swh-search_).
 
-- `compose.vault.yml`: activate the swh-vault feature of the SWH stack.
+- `compose.vault.yml`: activate the swh-vault_ feature of the SWH stack.
 
 .. _`pglogical`: https://github.com/2ndQuadrant/pglogical
-.. _swh-deposit: https://docs.softwareheritage.org/devel/swh-deposit/index.html
-.. _swh-graph: https://docs.softwareheritage.org/devel/swh-graph/index.html
-.. _swh-web: https://docs.softwareheritage.org/devel/swh-web/index.html
-.. _swh-scrubber: https://docs.softwareheritage.org/devel/swh-scrubber/index.html
-
+.. _swh-deposit: https://docs.softwareheritage.org/devel/swh-deposit
+.. _swh-graph: https://docs.softwareheritage.org/devel/swh-graph
+.. _swh-graphql: https://docs.softwareheritage.org/devel/swh-graphql
+.. _swh-web: https://docs.softwareheritage.org/devel/swh-web
+.. _swh-scrubber: https://docs.softwareheritage.org/devel/swh-scrubber
+.. _swh-vault: https://docs.softwareheritage.org/devel/swh-vault
+.. _swh-search: https://docs.softwareheritage.org/devel/swh-search
 
 Activating one (or several) of these feature "packs" is a matter of either use
 the appropriate `--file` options of the `docker compose` command, or define the
 `COMPOSE_FILE` environment variable.
 
 For example:
+
+.. code-block:: console
 
    ~/swh-environment/docker$ export COMPOSE_FILE=compose.yml:compose.search.yml:compose.mirror.yml
    ~/swh-environment/docker$ docker compose up -d
@@ -94,31 +103,32 @@ For example:
 Details of the main service set
 -------------------------------
 
-The main `compose.yml` file defines the following services on their
-respectively standard ports, all of the following services are configured to
-communicate with each other:
+The main `compose.yml` file defines the following services (among others):
 
--  swh-storage-db: a ``softwareheritage`` instance db that stores the
-   Merkle DAG,
+- swh-storage-db: a ``softwareheritage`` instance db that stores the Merkle
+  DAG,
 
--  swh-objstorage: Content-addressable object storage,
+- swh-objstorage: Content-addressable object storage; it uses a docker volume
+  to store the objects using the pathslicer_ backend,
 
--  swh-storage: Abstraction layer over the archive, allowing to access
-   all stored source code artifacts as well as their metadata,
+- swh-storage: Abstraction layer over the archive, allowing to access all
+  stored source code artifacts as well as their metadata,
 
--  swh-web: the Software Heritage web user interface (with a default "admin"
-   account with password "admin"),
+- swh-web: the Software Heritage web user interface (with a default "admin"
+  account with password "admin"),
 
--  swh-scheduler: the API service as well as 2 utilities, the runner and
-   the listener,
+- swh-scheduler: the API service as well as a series of utilities (runner,
+  listener, metrics...),
 
--  swh-lister: celery workers dedicated to running lister tasks,
+- swh-lister: celery workers dedicated to running lister tasks,
 
--  swh-loaders: celery workers dedicated to importing/updating source
-   code content (VCS repos, source packages, etc.),
+- swh-loaders: celery workers dedicated to importing/updating source code
+  content (VCS repos, source packages, etc.),
 
--  swh-journal: Persistent logger of changes to the archive, with
-   publish-subscribe support.
+- swh-journal: Persistent logger of changes to the archive, with
+  publish-subscribe support. This consists in a Kafka journal and a series of
+  producers (typically the storage or indexers) and consumers (generally called
+  `xxx-journal-client`).
 
 That means you can start doing the ingestion using those services using
 the same setup described in the getting-started starting directly at
@@ -127,14 +137,18 @@ https://docs.softwareheritage.org/devel/getting-started.html#step-4-ingest-repos
 Note that in addition to these core SWH services, the main compose file also
 defines all the required backend services:
 
-- nginx
-- rabbitmq
-- kafka
-- prometheus (with several helper tools)
-- grafana
-- mailhog
-- redis
-- memcache
+- nginx, used as main edge proxy for all "public" services running in
+  the compose environment,
+- rabbitmq (amqp),
+- kafka (with a kafka-ui frontend),
+- prometheus (with several helper tools),
+- grafana,
+- mailhog,
+- redis,
+- memcache.
+
+
+.. _pathslicer: https://docs.softwareheritage.org/devel/apidoc/swh.objstorage.backends.pathslicing.html
 
 
 Exposed Ports
@@ -167,6 +181,39 @@ session. For example to show the Celery status::
    loader@61704103668c: OK
    [...]
 
+
+The services exposing internal ports on the host are:
+
+- ``nginx`` from the main ``compose.yml`` file,
+- ``nginx-replica`` from the ``compose.replica.yml`` file and
+- ``nginx-mirror`` from the ``compose.mirror.yml`` file.
+
+Useful services are then exposed by nginx via URL routing:
+
+- ``/``: main SWH archive web app,
+- ``/deposit``: swh-deposit_ public and private API
+- ``/grafana``: the Grafana dashboard for Prometheus
+- ``/kafka-ui``: the kafka-UI dashboard for kafka
+- ``/mailhog``: the mailhog dashboard
+- ``/prometheus``: the Prometheus monitoring service
+- ``/graphql``: swh-graphql_ public graphQL API (if available)
+- ``/keycloak``: the Keycloak service (if available)
+- ``/svix``: the weebook engine svix API (if available)
+- ``/azure``: the Azurite_-based Azure API (if available)
+- ``/es``: access the ElasticSearch service (if available)
+
+Software Heritage internal (RPC) APIs are exposed as well for testing purpose
+under the ``/rpc`` "namespace":
+
+- ``/rpc/scheduler``
+- ``/rpc/storage``
+- ``/rpc/objstorage``
+- ``/rpc/indexer-storage``
+- ``/rpc/search``
+- ``/rpc/vault``
+- ``/rpc/counters``
+
+.. _Azurite: https://github.com/Azure/Azurite
 
 .. _docker-manage-tasks:
 
@@ -378,115 +425,40 @@ If the application you play with has autoreload support, there is no
 need to restart the impacted container.)
 
 
-Using locally installed swh tools with docker
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+In a nutshell
+-------------
 
-In all examples above, we have executed swh commands from within a
-running container. Now we also have these swh commands locally available
-in our virtual env, we can use them to interact with swh services
-running in docker containers.
+-  Start the SWH platform:
 
-For this, we just need to configure a few environment variables. First,
-ensure your Software Heritage virtualenv is activated (here, using
-virtualenvwrapper)::
+   .. code-block:: console
 
-   ~$ workon swh
-   (swh) ~/swh-environment$ export SWH_SCHEDULER_URL=http://127.0.0.1:5008/
-   (swh) ~/swh-environment$ export BROKER_URL=amqp://127.0.0.1:5072/
-   (swh) ~/swh-environment$ export APP=swh.scheduler.celery_backend.config.app
-
-Now we can use the ``celery`` command directly to control the celery
-system running in the docker environment::
-
-   (swh) ~/swh-environment$ celery status
-   vault@c9fef1bbfdc1: OK
-   listers@ba66f18e7d02: OK
-   indexer@cb14c33cbbfb: OK
-   loader@61704103668c: OK
-
-   4 nodes online.
-   (swh) ~/swh-environment$ celery control -d loader@61704103668c pool_grow 3
-
-And we can use the ``swh-scheduler`` command all the same::
-
-   (swh) ~/swh-environment$ swh scheduler task-type list
-   Known task types:
-   index-fossology-license:
-     Fossology license indexer task
-   index-mimetype:
-     Mimetype indexer task
-   [...]
-
-Make your life a bit easier
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-When you use virtualenvwrapper, you can add postactivation commands::
-
-   (swh) ~/swh-environment$ cat >>$VIRTUAL_ENV/bin/postactivate <<'EOF'
-   # unfortunately, the interface cmd for the click autocompletion
-   # depends on the shell
-   # https://click.palletsprojects.com/en/7.x/bashcomplete/#activation
-
-   shell=$(basename $SHELL)
-   case "$shell" in
-       "zsh")
-           autocomplete_cmd=source_zsh
-           ;;
-       *)
-           autocomplete_cmd=source
-           ;;
-   esac
-
-   eval "$(_SWH_COMPLETE=$autocomplete_cmd swh)"
-   export SWH_SCHEDULER_URL=http://127.0.0.1:5008/
-   export BROKER_URL=amqp://127.0.0.1:5072/
-   export APP=swh.scheduler.celery_backend.config.app
-   export COMPOSE_FILE=~/swh-environment/docker/compose.yml:~/swh-environment/docker/compose.override.yml
-   alias doco="docker compose"
-
-   EOF
-
-This postactivate script does:
-
--  install a shell completion handler for the swh-scheduler command,
--  preset a bunch of environment variables
-
-   - ``SWH_SCHEDULER_URL`` so that you can just run ``swh scheduler`` against
-     the scheduler API instance running in docker, without having to specify
-     the endpoint URL,
-
-   - ``BROKER_URL`` and ``APP`` so you can execute the ``celery`` tool (without
-     cli options) against the rabbitmq server running in the docker environment
-     (see the `documentation of the celery command
-     <https://docs.celeryproject.org/en/latest/reference/cli.html>`_),
-
-   - ``COMPOSE_FILE`` so you can run ``docker compose`` from everywhere,
-
--  create an alias ``doco`` for ``docker compose`` because this is way
-   too long to type,
-
-So now you can easily:
-
--  Start the SWH platform::
-
-     (swh) ~/swh-environment$ doco up -d
+     (swh) ~/swh-environment$ docker compose up -d
      [...]
 
--  Check celery::
+-  Check celery:
 
-     (swh) ~/swh-environment$ celery status
+   .. code-block:: console
+
+     (swh) ~/swh-environment$ docker compose exec swh-scheduler \
+       celery status
      listers@50ac2185c6c9: OK
      loader@b164f9055637: OK
      indexer@33bc6067a5b8: OK
 
--  List task-types::
+-  List task-types:
 
-     (swh) ~/swh-environment$ swh scheduler task-type list
+   .. code-block:: console
+
+     (swh) ~/swh-environment$ docker compose exec swh-scheduler \
+       swh scheduler task-type list
      [...]
 
--  Get more info on a task type::
+-  Get more info on a task type:
 
-     (swh) ~/swh-environment$ swh scheduler task-type list -v -t load-hg
+   .. code-block:: console
+
+     (swh) ~/swh-environment$ docker compose exec swh-scheduler \
+       swh scheduler task-type list -v -t load-hg
      Known task types:
      load-hg: swh.loader.mercurial.tasks.LoadMercurial
        Loading mercurial repository swh-loader-mercurial
@@ -496,9 +468,12 @@ So now you can easily:
        num_retries: None
        retry_delay: None
 
--  Add a new task::
+-  Add a new task:
 
-     (swh) ~/swh-environment$ swh scheduler task add load-hg \
+   .. code-block:: console
+
+     (swh) ~/swh-environment$ docker compose exec swh-scheduler \
+       swh scheduler task add load-hg \
        url=https://www.mercurial-scm.org/repo/hello
      Created 1 tasks
      Task 1
@@ -510,9 +485,43 @@ So now you can easily:
         Keyword args:
           url: https://www.mercurial-scm.org/repo/hello
 
--  Respawn a task::
+-  Respawn a task:
 
-     (swh) ~/swh-environment$ swh scheduler task respawn 1
+   .. code-block:: console
+
+     (swh) ~/swh-environment$ docker compose exec swh-scheduler \
+       swh scheduler task respawn 1
+
+Using locally installed swh tools with docker
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In all examples above, we have executed swh commands from within a running
+container. It is sometimes easily possible to run them locally, in your virtual
+env. If you have a virtualenv with the swh stack properly installed, you can
+use them to interact with swh services running in docker containers.
+
+For this, we just need to configure a few environment variables. First,
+ensure your Software Heritage virtualenv is activated (here, using
+virtualenvwrapper):
+
+.. code-block:: console
+
+   ~$ workon swh
+   (swh) ~/swh-environment$ export NGINX_PORT=$(docker compose port nginx 80 | awk -F ':' '{print$2}')
+   (swh) ~/swh-environment$ export SWH_SCHEDULER_URL=http://127.0.0.1:${NGINX_PORT}/rpc/scheduler/
+
+You can now use the ``swh-scheduler`` command directly from your working venv:
+
+.. code-block:: console
+
+   (swh) ~/swh-environment$ swh scheduler task-type list
+   Known task types:
+   index-fossology-license:
+     Fossology license indexer task
+   index-mimetype:
+     Mimetype indexer task
+   [...]
+
 
 .. _docker-persistence:
 
