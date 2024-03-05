@@ -78,7 +78,8 @@ def test_create_deposit_simple(deposit_host):
         "deposit_status_detail",
         "deposit_date",
     }
-    assert deposit["deposit_status"] == "deposited"
+    # the deposit might be already verified byt the time the update query completed
+    assert deposit["deposit_status"] in ("deposited", "verified")
     deposit_id = deposit["deposit_id"]
 
     for _ in range(60):
@@ -110,7 +111,8 @@ def test_create_deposit_with_metadata(deposit_host):
         "deposit_status_detail",
         "deposit_date",
     }
-    assert deposit["deposit_status"] == "deposited"
+    # the deposit might be already verified byt the time the update query completed
+    assert deposit["deposit_status"] in ("deposited", "verified")
     deposit_id = deposit["deposit_id"]
 
     for _ in range(60):
@@ -152,7 +154,8 @@ def test_create_deposit_multipart(deposit_host):
         "--deposit-id %s" % deposit_id
     )
     deposit = json.loads(deposit)
-    assert deposit["deposit_status"] == "deposited"
+    # the deposit might be already verified byt the time the update query completed
+    assert deposit["deposit_status"] in ("deposited", "verified")
     assert deposit["deposit_id"] == deposit_id
 
     for _ in range(60):
