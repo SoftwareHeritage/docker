@@ -16,11 +16,16 @@ case "$backend" in
         ;;
     "cassandra")
         echo Waiting for Cassandra to start
-        wait-for-it ${CASSANDRA_SEED}:9042 -s --timeout=0
+        IFS=','
+        for CASSANDRA_SEED in ${CASSANDRA_SEEDS}; do
+            echo "   $CASSANDRA_SEED..."
+            wait-for-it ${CASSANDRA_SEED}:9042 -s --timeout=0
+        done
         echo Creating keyspace
         cat << EOF | python3
 from swh.storage.cassandra import create_keyspace
-create_keyspace(['${CASSANDRA_SEED}'], 'swh')
+seeds = [seed.strip() for seed in '${CASSANDRA_SEEDS}'.split(',')]
+create_keyspace(seeds, 'swh')
 EOF
 
         ;;

@@ -18,26 +18,20 @@ def compose_files() -> List[str]:
     return ["compose.yml", "compose.cassandra.yml"]
 
 
-@pytest.fixture(scope="module")
-def docker_compose(request, docker_compose):
-    # to make sure tests are not using the pg db as backend somehow, since we
-    # cannot easily "remove" the swh-storage-db dependency from the swh-storage
-    # declaration, we have to manually stop and remove it.
-    print("Stopping swh-storage-db")
-    docker_compose.check_compose_output("stop swh-storage-db")
-    docker_compose.check_compose_output("rm swh-storage-db")
-    print("swh-storage-db service deleted")
-    yield docker_compose
-
-
 def test_ensure_cassandra(docker_compose, origins):
     check_output = docker_compose.check_compose_output
     # ensure the cassandra-seed service is running
     assert check_output("ps -q cassandra-seed")
-    # ensure the swh-storage-db service is NOT running
-    assert not check_output("ps -q swh-storage-db")
+    # ensure the swh-storage-db service does NOT exists
+    services = check_output("ps")
+    assert "swh-storage-db" not in services
+
     cass_host = compose_host_for_service(docker_compose, "cassandra-seed")
     assert cass_host
+    # ensure the cassandra cluster consist in at least 2 nodes
+    status = cass_host.check_output("nodetool status")
+    upnodes = [row for row in status.splitlines() if row.startswith("UN")]
+    assert len(upnodes) >= 2
 
     # check we do have some archived content in cassandra
     orig_resp = cass_host.check_output("cqlsh -e 'SELECT url FROM swh.origin;'")

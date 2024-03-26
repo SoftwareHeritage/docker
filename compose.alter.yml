@@ -15,26 +15,28 @@ services:
     # discover other cassandra containers.
     # This container must not be scaled up; scale up th 'cassandra'
     # container instead.
-    image: cassandra
+    image: cassandra:4.1
     env_file:
       - ./env/cassandra.env
     entrypoint: /swh_entrypoint.sh
     volumes:
       - "./services/cassandra/swh_entrypoint.sh:/swh_entrypoint.sh:ro"
-      - "./conf/cassandra.yaml:/cassandra.yaml:ro"
+      - "./conf/cassandra-override.yaml:/cassandra-override.yaml:ro"
 
   cassandra:
     # Additional Cassandra instance(s), which may be scaled up, but not
     # down. They will automatically connect to 'cassandra-seed', and
     # 'cassandra-seed' will tell clients to connect to these 'cassandra'
     # containers to load-balance.
-    image: cassandra
+    image: cassandra:4.1
     entrypoint: /swh_entrypoint.sh
     volumes:
       - "./services/cassandra/swh_entrypoint.sh:/swh_entrypoint.sh:ro"
-      - "./conf/cassandra.yaml:/cassandra.yaml:ro"
+      - "./conf/cassandra-override.yaml:/cassandra-override.yaml:ro"
     env_file:
       - ./env/cassandra.env
+    environment:
+      CASSANDRA_SEEDS: cassandra-seed
 
   swh-cassandra-storage:
     image: swh/stack
@@ -47,10 +49,13 @@ services:
     env_file:
       - ./env/common_python.env
     environment:
-      RPC_PORT: 5002
-      CASSANDRA_SEED: cassandra-seed
+      CASSANDRA_SEEDS: cassandra-seed
       PYTHONUNBUFFERED: 1
+      RPC_PORT: 5002
     command: rpc
+    healthcheck:
+      test: curl -f http://localhost:5002 || exit 1
+      retries: 6
     volumes:
       - "./conf/alter/storage_cassandra.yml:/srv/softwareheritage/config.yml:ro"
       - "./services/swh-storage/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"

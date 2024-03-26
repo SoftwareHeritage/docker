@@ -17,12 +17,13 @@ It is generally used as a subdirectory of the `swh-environment` (but not necessa
 Dependencies
 ------------
 
-This uses Docker with `Compose`_, so ensure you have a working
-Docker environment and that the `docker compose plugin is installed <https://docs.docker.com/compose/install/>`_.
-
 We recommend using the latest version of docker, so please read
 https://docs.docker.com/install/linux/docker-ce/debian/ for more details
 on how to install Docker on your machine.
+
+This environment uses Docker `Compose`_, so ensure you have a working
+Docker environment and that the docker compose plugin (>= 2.24.4) `is installed
+<https://docs.docker.com/compose/install/>`_.
 
 .. _Compose: https://docs.docker.com/compose/
 
