@@ -7,8 +7,8 @@
 
 import os
 
-from flask import Flask, abort
 import requests
+from flask import Flask, abort
 
 app = Flask(__name__)
 

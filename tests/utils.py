@@ -4,8 +4,8 @@
 # See top-level LICENSE file for more information
 
 import itertools
-from os.path import join
 import time
+from os.path import join
 from typing import Generator, Mapping, Optional, Tuple
 from urllib.parse import urljoin
 

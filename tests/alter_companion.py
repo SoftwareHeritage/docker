@@ -3,12 +3,12 @@
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
 
-from http import HTTPStatus
 import http.server
 import itertools
 import json
-from socket import socket
 import sys
+from http import HTTPStatus
+from socket import socket
 from typing import Dict, Iterator, List, Tuple, Union
 
 import click

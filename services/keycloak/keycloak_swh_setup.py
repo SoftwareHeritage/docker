@@ -7,8 +7,8 @@
 
 import logging
 
-from keycloak import KeycloakAdmin
 import requests
+from keycloak import KeycloakAdmin
 
 SERVER_URL = "http://localhost:8080/keycloak/auth/"
 REALM_NAME = "SoftwareHeritage"
@@ -191,7 +191,7 @@ KEYCLOAK_ADMIN = KeycloakAdmin(
     SERVER_URL, ADMIN["username"], ADMIN["password"], REALM_NAME
 )
 
-for (client_name, redirect_uris) in [
+for client_name, redirect_uris in [
     (
         CLIENT_WEBAPP_NAME,
         [

@@ -5,8 +5,8 @@
 
 import hashlib
 import io
-from os.path import join
 import tarfile
+from os.path import join
 from typing import List
 from urllib.parse import quote_plus
 

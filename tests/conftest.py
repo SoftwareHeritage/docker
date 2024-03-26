@@ -4,12 +4,12 @@
 # See top-level LICENSE file for more information
 
 import atexit
-from functools import partial
 import os
 import re
 import shutil
-from subprocess import CalledProcessError, check_output
 import time
+from functools import partial
+from subprocess import CalledProcessError, check_output
 from typing import Iterable, List, Tuple, Union
 from urllib.parse import urlparse
 from uuid import uuid4 as uuid

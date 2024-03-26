@@ -40,9 +40,7 @@ def compose_files() -> List[str]:
 @pytest.fixture(scope="module")
 def deposit_host(request, docker_compose, scheduler_host):
     # ensure deposit tasks are registered
-    task_list = scheduler_host.check_output(
-        "swh scheduler task-type list"
-    )
+    task_list = scheduler_host.check_output("swh scheduler task-type list")
     assert "load-deposit:" in task_list
     assert "check-deposit:" in task_list
 
