@@ -5,6 +5,7 @@ repos:
       - id: trailing-whitespace
       - id: check-json
       - id: check-yaml
+        args: [--unsafe]
 
   - repo: https://github.com/pycqa/flake8
     rev: 6.1.0
