@@ -1,7 +1,4 @@
-version: "2.1"
-
 services:
-
   keycloak-db:
     image: postgres:11
     env_file:

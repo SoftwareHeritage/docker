@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   swh-deposit-db:
     image: postgres:16

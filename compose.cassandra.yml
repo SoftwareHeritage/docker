@@ -1,5 +1,3 @@
-version: "2.1"
-
 services:
   cassandra-seed:
     # This container starts a Cassandra instance that must be used as the
