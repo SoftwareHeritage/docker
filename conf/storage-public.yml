@@ -1,0 +1,14 @@
+storage:
+  cls: masking
+  masking_db: postgresql:///?service=swh-masking
+  max_pool_conns: 10
+  storage:
+    # Same as in conf/storage.yml
+    cls: postgresql
+    db: postgresql:///?dbname=swh-storage&host=swh-storage-db&user=postgres&password=testpassword
+    objstorage:
+      cls: remote
+      url: http://nginx/rpc/objstorage/
+
+masking_admin:
+  masking_db: postgresql:///?service=swh-masking

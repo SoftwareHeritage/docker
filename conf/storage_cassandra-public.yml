@@ -1,0 +1,13 @@
+storage:
+  cls: masking
+  masking_db: postgresql:///?service=swh-masking
+  max_pool_conns: 10
+  storage:
+    # Same as in conf/storage_cassandra.yml
+    cls: cassandra
+    hosts:
+      - cassandra-seed
+    keyspace: swh
+    objstorage:
+      cls: remote
+      url: http://swh-objstorage:5003/

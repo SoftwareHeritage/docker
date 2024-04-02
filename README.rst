@@ -113,7 +113,11 @@ The main `compose.yml` file defines the following services (among others):
   to store the objects using the pathslicer_ backend,
 
 - swh-storage: Abstraction layer over the archive, allowing to access all
-  stored source code artifacts as well as their metadata,
+  stored source code artifacts as well as their metadata, mostly used in write
+  scenarios or when full access is required,
+
+- swh-storage-public: Same as `swh-storage` but intended for public read
+  scenarios (e.g. swh-web, swh-vault) with the masking proxy enabled,
 
 - swh-web: the Software Heritage web user interface (with a default "admin"
   account with password "admin"),

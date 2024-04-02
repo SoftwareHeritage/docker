@@ -1,0 +1,3 @@
+storage:
+  cls: postgresql
+  db: postgresql:///?service=swh-masking

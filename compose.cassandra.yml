@@ -52,9 +52,16 @@ services:
     depends_on: !override
       - cassandra-seed
       - swh-objstorage
+      - kafka
       - kafka-create-topics
-      - prometheus-statsd-exporter
       - nginx
+      - prometheus-statsd-exporter
     environment:
       CASSANDRA_SEEDS: cassandra-seed
       PYTHONUNBUFFERED: 1
+
+  swh-storage-public:
+    volumes:
+      - "./conf/storage_cassandra-public.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-storage-public/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
+

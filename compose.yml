@@ -299,6 +299,7 @@ services:
     depends_on:
       - swh-storage-db
       - swh-objstorage
+      - kafka
       - kafka-create-topics
       - nginx
       - prometheus-statsd-exporter
@@ -314,6 +315,35 @@ services:
     volumes:
       - "./conf/storage.yml:/srv/softwareheritage/config.yml:ro"
       - "./services/swh-storage/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
+
+  # Storage for public access (masking applied)
+
+  swh-masking-db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: swh-masking
+      POSTGRES_PASSWORD: testpassword
+    volumes:
+      - "./services/initdb.d:/docker-entrypoint-initdb.d"
+      - masking-data:/var/lib/postgresql
+
+  swh-storage-public:
+    image: swh/stack
+    build: ./
+    depends_on:
+      - swh-storage
+      - swh-masking-db
+    command: rpc
+    environment:
+      POSTGRES_DB: swh-masking
+      RPC_PORT: 5002
+    healthcheck:
+      test: curl -f http://localhost:5002 || exit 1
+      retries: 6
+    volumes:
+      - "./conf/storage-public.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-storage-public/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
+      - "./services/swh-storage-public/config-create-db.yml:/srv/softwareheritage/config-create-db.yml:ro"
 
   # Object storage
 
@@ -379,7 +409,7 @@ services:
     depends_on:
       - swh-idx-storage
       - swh-scheduler
-      - swh-storage
+      - swh-storage-public
       - swh-web-db
       - swh-search
       - memcache
@@ -621,5 +651,6 @@ services:
 volumes:
   redis-data:
   storage-data:
+  masking-data:
   objstorage-data:
   kafka-data:

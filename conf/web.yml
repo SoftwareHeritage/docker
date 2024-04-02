@@ -1,6 +1,6 @@
 storage:
   cls: remote
-  url: http://nginx/rpc/storage/
+  url: http://nginx/rpc/storage-public/
   timeout: 5
 
 indexer_storage:
