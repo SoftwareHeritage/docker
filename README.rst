@@ -379,22 +379,25 @@ env based setup as described in the
 Software Heritage instance. The simplest way to achieve this is to use
 this docker-based environment.
 
-If you haven’t followed the
-`developer setup guide <https://docs.softwareheritage.org/devel/developer-setup.html>`__, you must clone the the [swh-environment] repo in your
-``swh-environment`` directory::
+If you haven’t followed the `developer setup guide
+<https://docs.softwareheritage.org/devel/developer-setup.html>`__, you must
+clone the the `swh-environment`_ repo::
 
-   ~/swh-environment$ git clone https://gitlab.softwareheritage.org/swh/devel/swh-environment.git .
+   ~$ git clone https://gitlab.softwareheritage.org/swh/devel/swh-environment.git
+   [...]
+   ~$ cd swh-environment
+   ~/swh-environment$
 
-Note the ``.`` at the end of this command: we want the git repository to
-be cloned directly in the ``~/swh-environment`` directory, not in a sub
-directory. Also note that if you haven’t done it yet and you want to
-hack the source code of one or more Software Heritage packages, you
-really should read the
-`developer setup guide <https://docs.softwareheritage.org/devel/developer-setup.html>`__.
-
-From there, we will checkout or update all the swh packages::
+From there, we will checkout or update all the ``swh`` packages::
 
    ~/swh-environment$ ./bin/update
+
+This later command will clone the ``docker`` repository in the
+``swh-environment/`` directory, as well as all the active swh package source
+repositories.
+
+.. _`swh-environment`: https://gitlab.softwareheritage.org/swh/devel/swh-environment
+
 
 Install a swh package from sources in a container
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -415,15 +418,16 @@ from pypi. To do this you must write a
        volumes:
          - "$HOME/swh-environment/swh-objstorage:/src/swh-objstorage:ro"
 
-The file named ``compose.override.yml`` will automatically be
-loaded by Docker Compose.
+The file named ``compose.override.yml`` will automatically be loaded by Docker
+Compose if no ``--file`` argument is set nor the ``COMPOSE_FILE`` environment
+variable is defined (otherwise you have to add it explicitly).
 
-This example shows the simplest case of the ``swh-objstorage`` package:
-you just have to mount it in the container in ``/src`` and the
-entrypoint will ensure every swh-\* package found in ``/src/`` is
-installed (using ``pip install -e`` so you can easily hack your code).
-If the application you play with has autoreload support, there is no
-need to restart the impacted container.)
+This example shows the simple case of the ``swh-objstorage`` package: the local
+``swh-objstorage`` source code repository is mounted in the container in
+``/src``. The entrypoint will detect this and install it using pip in editable
+mode (as well as any other swh-\* package found in ``/src/``) so you can easily
+hack your code. If the application you play with has autoreload support, there
+is no need to restart the impacted container (this may not always work).
 
 
 In a nutshell
