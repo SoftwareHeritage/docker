@@ -85,32 +85,8 @@ RUN pip install gunicorn httpie yq
 # cython and configjob are required to install the breeze (bzr) package
 RUN pip install cython configobj
 
-RUN pip install \
-  swh-alter \
-  swh-core[db,http] \
-  swh-counters \
-  swh-deposit[server] \
-  swh-graph \
-  swh-graphql \
-  swh-indexer \
-  swh-journal \
-  swh-lister \
-  swh-loader-core \
-  swh-loader-bzr \
-  swh-loader-cvs \
-  swh-loader-git \
-  swh-loader-mercurial \
-  swh-loader-metadata \
-  swh-loader-svn \
-  swh-storage \
-  swh-objstorage[azure] \
-  swh-objstorage-replayer \
-  swh-scheduler \
-  swh-scrubber \
-  swh-vault \
-  swh-web \
-  swh-webhooks
-
+COPY requirements-swh.txt /srv/softwareheritage/
+RUN pip install -r  /srv/softwareheritage/requirements-swh.txt
 RUN pip list > /srv/softwareheritage/pip-installed.txt
 COPY utils/*.sh /srv/softwareheritage/utils/
 RUN mkdir -p /srv/softwareheritage/objects
