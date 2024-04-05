@@ -128,7 +128,7 @@ def docker_compose(
     )
     failed_tests_count = request.node.session.testsfailed
     got_exception = False
-    print(f"Starting the compose session {project_name}...", end=" ", flush=True)
+    print(f"Starting the compose session {project_name} ...", end=" ", flush=True)
     try:
         # pull required docker images
         docker_host.check_output(f"{compose_cmd} pull --ignore-pull-failures")
