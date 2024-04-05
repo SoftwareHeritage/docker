@@ -1,7 +1,7 @@
 services:
   # For Celery
   amqp:
-    image: rabbitmq:3.6-management
+    image: rabbitmq:3.13-management
 
   # Kafka related
   kafka:
