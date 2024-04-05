@@ -37,6 +37,11 @@ def storage_service(docker_compose):
     return compose_host_for_service(docker_compose, "swh-storage")
 
 
+@pytest.fixture
+def objstorage_service(docker_compose):
+    return compose_host_for_service(docker_compose, "swh-objstorage")
+
+
 def create_scrubber_config(
     scrubber_service, backend, obj_type, nb_partitions=1, check_references=False
 ):
@@ -54,14 +59,22 @@ def create_scrubber_config(
 
 
 def run_scrubber_with_config(
-    scrubber_service, backend, config_name, obj_type, nb_partitions=None
+    scrubber_service,
+    backend,
+    config_name,
+    obj_type,
+    nb_partitions=1,
+    use_journal=False,
 ):
     # check we have the expected scrubbing configuration registered
     cfg_lst = scrubber_service.check_output("swh scrubber check list")
     assert f"{config_name}: {obj_type}, {nb_partitions}" in cfg_lst, cfg_lst
 
     print(f"Starting a SWH {backend} scrubber with config {config_name}")
-    scrubber_service.check_output(f"swh scrubber check run {config_name}")
+    run_cmd = f"swh scrubber check run {config_name}"
+    if use_journal:
+        run_cmd += " --use-journal"
+    scrubber_service.check_output(run_cmd)
 
     # return scrubbing stats
     return json.loads(
@@ -109,15 +122,15 @@ def deleted_contents(storage_service):
 
     assert nb_contents
 
-    run_storage_sql_query("CREATE TABLE content_cp AS TABLE content")
+    run_storage_sql_query("CREATE TABLE content_backup AS TABLE content")
 
     # remove all contents from storage
     run_storage_sql_query("TRUNCATE content")
 
     yield nb_contents
 
-    run_storage_sql_query("INSERT INTO content (SELECT * FROM content_cp)")
-    run_storage_sql_query("DROP TABLE content_cp")
+    run_storage_sql_query("INSERT INTO content (SELECT * FROM content_backup)")
+    run_storage_sql_query("DROP TABLE content_backup")
 
 
 def test_storage_scrubber_check_directory_missing_contents(
@@ -204,3 +217,95 @@ def test_journal_scrubber_check_corrupt_snapshot(scrubber_service):
     assert stats["config"]["object_type"] == obj_type
     assert stats["corrupt_object"] == 1
     assert stats["missing_object"] == 0
+
+
+@pytest.fixture
+def corrupted_objstorage(objstorage_service):
+    objects_dirs = objstorage_service.check_output(
+        "ls /srv/softwareheritage/objects | sort -R | head -2"
+    ).splitlines()
+
+    nb_missing_contents = int(
+        objstorage_service.check_output(
+            f"ls -1q /srv/softwareheritage/objects/{objects_dirs[0]} | wc -l"
+        )
+    )
+
+    objstorage_service.check_output(
+        f"mv /srv/softwareheritage/objects/{objects_dirs[0]} /tmp"
+    )
+
+    nb_corrupted_contents = int(
+        objstorage_service.check_output(
+            f"ls -1q /srv/softwareheritage/objects/{objects_dirs[1]} | wc -l"
+        )
+    )
+
+    objstorage_service.check_output(
+        f"cp -r /srv/softwareheritage/objects/{objects_dirs[1]} /tmp/{objects_dirs[1]}"
+    )
+
+    objstorage_service.check_output(
+        f"bash -c 'for f in /srv/softwareheritage/objects/{objects_dirs[1]}/*; "
+        "do echo foo > $f; done'"
+    )
+
+    yield nb_missing_contents, nb_corrupted_contents
+
+    objstorage_service.check_output(
+        f"cp -r /tmp/{objects_dirs[0]} /srv/softwareheritage/objects/{objects_dirs[0]}"
+    )
+    objstorage_service.check_output(
+        f"cp /tmp/{objects_dirs[1]}/* /srv/softwareheritage/objects/{objects_dirs[1]}/"
+    )
+    objstorage_service.check_output(f"rm -rf /tmp/{objects_dirs[0]}")
+    objstorage_service.check_output(f"rm -rf /tmp/{objects_dirs[1]}")
+
+
+def test_objstorage_partitions_scrubber_corrupted_and_missing_contents(
+    corrupted_objstorage, scrubber_service, origins
+):
+
+    nb_missing_contents, nb_corrupted_contents = corrupted_objstorage
+
+    obj_type = "content"
+    nb_partitions = 16
+
+    config_name = create_scrubber_config(
+        scrubber_service, "objstorage", obj_type, nb_partitions
+    )
+
+    stats = run_scrubber_with_config(
+        scrubber_service, "objstorage", config_name, obj_type, nb_partitions
+    )
+
+    assert stats["config"]["name"] == config_name
+    assert stats["config"]["object_type"] == obj_type
+    assert stats["config"]["nb_partitions"] == nb_partitions
+
+    assert stats["checked_partition"] == nb_partitions
+    assert stats["corrupt_object"] == nb_corrupted_contents
+    assert stats["missing_object"] == nb_missing_contents
+
+
+def test_objstorage_journal_scrubber_corrupted_and_missing_contents(
+    corrupted_objstorage, scrubber_service, origins
+):
+
+    nb_missing_contents, nb_corrupted_contents = corrupted_objstorage
+
+    obj_type = "content"
+
+    config_name = create_scrubber_config(scrubber_service, "objstorage", obj_type)
+
+    # in order for an objstorage scrubber to read content ids from a kafka topic,
+    # the --use-journal flag of the "swh scrubber check run" command must be used
+    stats = run_scrubber_with_config(
+        scrubber_service, "objstorage", config_name, obj_type, use_journal=True
+    )
+
+    assert stats["config"]["name"] == config_name
+    assert stats["config"]["object_type"] == obj_type
+
+    assert stats["corrupt_object"] == nb_corrupted_contents
+    assert stats["missing_object"] == nb_missing_contents
