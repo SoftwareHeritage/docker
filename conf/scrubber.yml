@@ -2,6 +2,14 @@ storage:
   cls: postgresql
   db: postgresql:///?service=swh-storage
 
+journal:
+  cls: kafka
+  brokers:
+    - kafka
+  group_id: swh.scrubber
+  prefix: swh.journal.objects
+  on_eof: stop
+
 scrubber:
   cls: postgresql
   db: postgresql:///?service=swh-scrubber

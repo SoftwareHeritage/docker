@@ -4,6 +4,7 @@
 # See top-level LICENSE file for more information
 
 import json
+import textwrap
 from typing import List
 
 import pytest
@@ -154,3 +155,52 @@ def test_storage_scrubber_check_directory_missing_contents(
     assert stats["checked_partition"] == nb_partitions
     assert stats["corrupt_object"] == 0
     assert stats["missing_object"] == deleted_contents
+
+
+def test_journal_scrubber_check_corrupt_snapshot(scrubber_service):
+
+    # add corrupted snapshot to kafka snapshot topic in SWH journal
+    script = """
+    import attr
+    import yaml
+    from swh.journal.writer import get_journal_writer
+    from swh.model.tests import swh_model_data
+    with open("/srv/softwareheritage/config.yml", "r") as f:
+        config = yaml.load(f.read(), yaml.SafeLoader)
+    writer = get_journal_writer(
+        cls="kafka", brokers=config["journal"]["brokers"],
+        client_id="kafka_writer", prefix=config["journal"]["prefix"],
+        anonymize=False
+    )
+    snapshot = list(swh_model_data.SNAPSHOTS)[0]
+    snapshot = attr.evolve(snapshot, id=b"\\x00" * 20)
+    writer.write_additions("snapshot", [snapshot])
+    """
+    scrubber_service.check_output(
+        "cat << EOF >> /tmp/produce_corrupted_snapshot.py\n"
+        f"{textwrap.dedent(script[1:])}\nEOF\n"
+    )
+    scrubber_service.check_output("python3 /tmp/produce_corrupted_snapshot.py")
+
+    obj_type = "snapshot"
+    nb_partitions = 1
+
+    config_name = create_scrubber_config(
+        scrubber_service,
+        backend="journal",
+        obj_type=obj_type,
+        nb_partitions=nb_partitions,
+    )
+
+    stats = run_scrubber_with_config(
+        scrubber_service,
+        backend="journal",
+        config_name=config_name,
+        obj_type=obj_type,
+        nb_partitions=nb_partitions,
+    )
+
+    assert stats["config"]["name"] == config_name
+    assert stats["config"]["object_type"] == obj_type
+    assert stats["corrupt_object"] == 1
+    assert stats["missing_object"] == 0
