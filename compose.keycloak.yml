@@ -11,10 +11,10 @@ services:
     build: services/keycloak
     env_file:
       - ./env/keycloak.env
-    entrypoint: /entrypoint.sh
+    entrypoint: /srv/softwareheritage/entrypoint.sh
     environment:
       JAVA_TOOL_OPTIONS: "-Dkeycloak.profile=preview
-                          -Dkeycloak.profile.feature.token_exchange=enabled"
+        -Dkeycloak.profile.feature.token_exchange=enabled"
     volumes:
       - "./services/keycloak/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
       - "./services/keycloak/keycloak_swh_setup.py:/keycloak_swh_setup.py:ro"

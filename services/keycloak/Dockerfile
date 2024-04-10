@@ -1,4 +1,4 @@
-FROM jboss/keycloak
+FROM quay.io/keycloak/keycloak:10.0.2
 
 USER root
 # install git to get custom keycloak theme in service entrypoint
