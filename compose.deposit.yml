@@ -22,8 +22,9 @@ services:
       VERBOSITY: 3
       DJANGO_SETTINGS_MODULE: swh.deposit.settings.production
       RPC_PORT: 5006
+      SCRIPT_NAME: /deposit
     healthcheck:
-      test: curl -f http://localhost:5006 || exit 1
+      test: curl -f http://localhost:5006/deposit || exit 1
       retries: 6
     volumes:
       - "./conf/deposit.yml:/srv/softwareheritage/config.yml:ro"
