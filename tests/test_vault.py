@@ -12,8 +12,6 @@ from urllib.parse import quote_plus
 
 import pytest
 
-from .conftest import service_url
-
 
 @pytest.fixture(
     scope="module",
@@ -60,16 +58,7 @@ def test_vault_directory(
         directory = api_get_directory(dir_id)
 
         # retrieve the cooked tar file
-        if "compose.vault-azure.yml" in compose_files:
-            # if we use azure, we need to hack the 301 handling to rewrite the
-            # Location url to get the artifact from. This is needed because the
-            # http://azurite:10000/ url serving as azure endpoint is only
-            # available from the compose network, not from the host.
-            azure_url = service_url(docker_compose, "azurite", 10000)
-            rewrite_redirect = ("http://azurite:10000/", f"{azure_url}/")
-        else:
-            rewrite_redirect = None
-        resp = api_poll(f"vault/flat/{swhid}/raw/", rewrite_redirect=rewrite_redirect)
+        resp = api_poll(f"vault/flat/{swhid}/raw/")
         tarf = tarfile.open(fileobj=io.BytesIO(resp.content))
 
         # and check the tarfile seems ok wrt. 'directory'
@@ -143,18 +132,7 @@ def test_vault_git_bare(
         directory = api_get_directory(dir_id)
 
         # retrieve the cooked tar file
-        if "compose.vault-azure.yml" in compose_files:
-            # if we use azure, we need to hack the 301 handling to rewrite the
-            # Location url to get the artifact from. This is needed because the
-            # http://azurite:10000/ url serving as azure endpoint is only
-            # available from the compose network, not from the host.
-            azure_url = service_url(docker_compose, "azurite", 10000)
-            rewrite_redirect = ("http://azurite:10000/", f"{azure_url}/")
-        else:
-            rewrite_redirect = None
-        resp = api_poll(
-            f"vault/git-bare/{swhid}/raw/", rewrite_redirect=rewrite_redirect
-        )
+        resp = api_poll(f"vault/git-bare/{swhid}/raw/")
         tarf = tarfile.open(fileobj=io.BytesIO(resp.content))
         assert tarf.getnames()[0] == f"{swhid}.git"
 

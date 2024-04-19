@@ -28,7 +28,11 @@ services:
 
   swh-vault:
     depends_on:
-      - azurite
-      - azure-cli
+      azurite:
+        condition: service_healthy
+      azure-cli:
+        condition: service_started
+      docker-helper:
+        condition: service_healthy
     volumes:
-      - "./conf/vault-azure.yml:/srv/softwareheritage/config.yml:ro"
+      - "./conf/vault-azure.yml:/srv/softwareheritage/config.yml.in:ro"

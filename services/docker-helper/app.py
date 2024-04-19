@@ -13,7 +13,7 @@ from flask import Flask, abort
 app = Flask(__name__)
 
 
-def get_public_port(service="nginx"):
+def get_public_port_and_gateway(service="nginx"):
     # query the docker API to get the port of the edge router
     compose_project_name = os.environ.get("COMPOSE_PROJECT_NAME", "docker")
     # we could think about accessing the docker socket directly here instead of
@@ -25,6 +25,8 @@ def get_public_port(service="nginx"):
         if container["Labels"].get("com.docker.compose.project") == compose_project_name
         and container["Labels"].get("com.docker.compose.service") == service
     ]
+    port = None
+    gateway = None
     if len(containers) == 1:
         edge_ports = [
             p["PublicPort"]
@@ -33,16 +35,32 @@ def get_public_port(service="nginx"):
         ]
         if len(edge_ports) >= 1:
             # return the first one...
-            return edge_ports[0]
+            port = edge_ports[0]
+        gateway = (
+            containers[0]
+            .get("NetworkSettings", {})
+            .get("Networks", {})
+            .get(f"{compose_project_name}_default", {})
+            .get("Gateway")
+        )
+    return port, gateway
 
 
 @app.route("/public-port/<service>/")
 @app.route("/public-port/")
 def port_for_service(service="nginx"):
-    port = get_public_port(service)
+    port, _ = get_public_port_and_gateway(service)
     if port is None:
         abort(404)
     return str(port)
+
+
+@app.route("/gateway/")
+def gateway():
+    _, gateway = get_public_port_and_gateway()
+    if gateway is None:
+        abort(500)
+    return gateway
 
 
 @app.route("/")

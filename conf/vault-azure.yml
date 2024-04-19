@@ -15,13 +15,13 @@ cache:
     AccountName=devstoreaccount1;\
     AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;\
     BlobEndpoint=http://azurite:10000/devstoreaccount1;\
-    BlobSecondaryEndpoint=localhost:${PUBLIC_PORT}/azure/devstoreaccount1;"
+    BlobSecondaryEndpoint=${GATEWAY}:${PUBLIC_PORT}/azure/devstoreaccount1;"
     # Use docker network default gateway IP to ensure azurite CDN is reachable
     # from the docker host.
     # Note the secondary endpoint does NOT come with the scheme (not sure if
     # it's a bug or a feature)
   container_name: contents
-  use_secondary: true
+  use_secondary_endpoint_for_downloads: true
 smtp:
   port: 1025
   host: mailhog

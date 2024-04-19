@@ -115,8 +115,9 @@ services:
     depends_on:
       - docker-proxy
     healthcheck:
-      test: curl -f http://localhost || exit 1
+      test: curl -f http://localhost/public-port/ || exit 1
       retries: 6
+
   # SMTP service (used by keycloak and vault)
   mailhog:
     image: mailhog/mailhog
@@ -131,7 +132,6 @@ services:
       - /home/mailhog
 
   # Scheduler
-
   swh-scheduler-db:
     image: postgres:16
     environment:

@@ -1,4 +1,4 @@
-# Copyright (C) 2019-2023  The Software Heritage developers
+# Copyright (C) 2019-2024  The Software Heritage developers
 # See the AUTHORS file at the top-level directory of this distribution
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
@@ -6,7 +6,7 @@
 import itertools
 import time
 from os.path import join
-from typing import Generator, Mapping, Optional, Tuple
+from typing import Generator, Mapping, Tuple
 from urllib.parse import urljoin
 
 import requests
@@ -39,24 +39,16 @@ def api_get(baseurl: str, path: str, verb: str = "GET", session=None, **kwargs):
 def api_poll(
     baseurl: str,
     path: str,
+    session: requests.Session,
     verb: str = "GET",
-    session=None,
-    rewrite_redirect: Optional[Tuple[str, str]] = None,
     **kwargs,
 ):
     """Poll the API at path until it returns an OK result"""
-    if session is None:
-        session = requests
     url = urljoin(baseurl, path)
-    if rewrite_redirect is not None:
-        kwargs["allow_redirects"] = False
     for _ in range(60):
         resp = session.request(verb, url, **kwargs)
         if resp.ok:
-            if rewrite_redirect and resp.status_code == 302:
-                url = resp.headers["Location"].replace(*rewrite_redirect)
-            else:
-                break
+            break
         time.sleep(1)
     else:
         raise AssertionError(f"Polling {url} failed")
