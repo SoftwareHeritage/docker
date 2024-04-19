@@ -23,6 +23,8 @@ def compose_files() -> List[str]:
 @pytest.fixture(scope="module")
 def compose_services() -> List[str]:
     return [
+        "docker-helper",
+        "docker-proxy",
         "swh-alter",
         "swh-search",
         "swh-search-journal-client-objects",

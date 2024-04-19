@@ -22,8 +22,6 @@ from .utils import api_get as api_get_func
 from .utils import api_get_directory as api_get_directory_func
 from .utils import api_poll as api_poll_func
 
-DOCKER_BRIDGE_NETWORK_GATEWAY_IP = "172.17.0.1"
-
 # wait-for-it timeout
 WFI_TIMEOUT = 120
 
@@ -175,16 +173,18 @@ def service_port(docker_compose_host, service, port=80) -> int:
     return int(port_output.split(":")[1])
 
 
-def service_url(docker_compose_host, service, port=80) -> str:
+def service_url(
+    docker_compose_host, service, docker_network_gateway_ip, port=80
+) -> str:
     bound_port = service_port(docker_compose_host, service, port)
     # as tests could be executed inside a container, we use the docker bridge
     # network gateway ip instead of localhost domain name
-    return f"http://{DOCKER_BRIDGE_NETWORK_GATEWAY_IP}:{bound_port}"
+    return f"http://{docker_network_gateway_ip}:{bound_port}"
 
 
 @pytest.fixture(scope="module")
-def nginx_url(docker_compose) -> str:
-    return service_url(docker_compose, "nginx")
+def nginx_url(docker_compose, docker_network_gateway_ip) -> str:
+    return service_url(docker_compose, "nginx", docker_network_gateway_ip)
 
 
 @pytest.fixture(scope="module")
@@ -203,6 +203,12 @@ def compose_host_for_service(docker_compose, service):
     )
     if docker_id:
         return testinfra.get_host("docker://" + docker_id)
+
+
+@pytest.fixture(scope="module")
+def docker_network_gateway_ip(docker_compose):
+    docker_helper = compose_host_for_service(docker_compose, "docker-helper")
+    return docker_helper.check_output("curl -s http://localhost/gateway/")
 
 
 @pytest.fixture(scope="module")

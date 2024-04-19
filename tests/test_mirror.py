@@ -11,19 +11,18 @@ from urllib.parse import quote_plus
 import pytest
 import requests
 
-from .conftest import DOCKER_BRIDGE_NETWORK_GATEWAY_IP
 from .test_vault import test_vault_directory, test_vault_git_bare  # noqa
 from .utils import api_get as api_get_func
 from .utils import api_get_directory as api_get_directory_func
 
 
 @pytest.fixture(scope="module")
-def nginx_mirror_url(docker_compose, compose_cmd) -> str:
+def nginx_mirror_url(docker_compose, compose_cmd, docker_network_gateway_ip) -> str:
     port_output = docker_compose.check_output(f"{compose_cmd} port nginx-mirror 80")
     bound_port = port_output.split(":")[1]
     # as tests could be executed inside a container, we use the docker bridge
     # network gateway ip instead of localhost domain name
-    return f"http://{DOCKER_BRIDGE_NETWORK_GATEWAY_IP}:{bound_port}"
+    return f"http://{docker_network_gateway_ip}:{bound_port}"
 
 
 @pytest.fixture(scope="module")
@@ -163,6 +162,7 @@ def test_mirror_replication(
     base_api_get_directory,
     api_get,
     api_get_directory,
+    docker_network_gateway_ip,
 ):
     # double check we do not query the same endpoint as the main archive one
     assert api_get.args != base_api_get.args
@@ -175,7 +175,7 @@ def test_mirror_replication(
                 for (k, v) in objd.items()
                 if not (
                     isinstance(v, str)
-                    and v.startswith(f"http://{DOCKER_BRIDGE_NETWORK_GATEWAY_IP}:")
+                    and v.startswith(f"http://{docker_network_gateway_ip}:")
                 )
             }
         elif isinstance(objd, list):
