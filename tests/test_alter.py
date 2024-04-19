@@ -1,4 +1,4 @@
-# Copyright (C) 2023  The Software Heritage developers
+# Copyright (C) 2023-2024  The Software Heritage developers
 # See the AUTHORS file at the top-level directory of this distribution
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
@@ -6,13 +6,14 @@
 import dataclasses
 import hashlib
 import random
-import time
 from typing import Iterable, List, Optional, Tuple
 
 import pytest
 import requests
 import testinfra
 import yaml
+
+from .utils import retry_until_success
 
 
 @pytest.fixture(scope="module")
@@ -84,20 +85,24 @@ def wait_for_replayer(docker_compose, kafka_api_url):
         "swh.alter.objstorage.replayer",
         "swh.search.journal_client",
     ):
-        for _ in range(30):
+
+        def check_consumer_finished_job():
             try:
                 lag_sum = kget(f"consumer-groups/{consumer}/lag-summary")
             except requests.exceptions.HTTPError as exc:
                 print(f"Failed to retrieve consumer status: {exc}")
+                return False
             else:
-                if lag_sum["total_lag"] == 0:
-                    break
-            time.sleep(1)
-        else:
-            raise AssertionError(
-                "Could not detect a condition where the consumer "
-                f"{consumer} did its job"
-            )
+                return lag_sum["total_lag"] == 0
+
+        retry_until_success(
+            check_consumer_finished_job,
+            error_message=(
+                "Could not detect a condition where the "
+                f"consumer {consumer} did its job"
+            ),
+            max_attempts=30,
+        )
 
 
 @pytest.fixture(scope="module")

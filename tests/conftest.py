@@ -21,6 +21,7 @@ import testinfra
 from .utils import api_get as api_get_func
 from .utils import api_get_directory as api_get_directory_func
 from .utils import api_poll as api_poll_func
+from .utils import retry_until_success
 
 # wait-for-it timeout
 WFI_TIMEOUT = 120
@@ -103,15 +104,12 @@ def stop_compose_session(docker_host, project_name, compose_cmd):
         # and gently stop the cluster
         docker_host.check_output(f"{compose_cmd} down --volumes --remove-orphans")
         print("OK")
-        for _ in range(30):
-            if not docker_host.check_output(f"{compose_cmd} ps -q"):
-                print("... All the services are stopped")
-                break
-            time.sleep(1)
-        else:
-            assert not docker_host.check_output(
-                f"{compose_cmd} ps -q"
-            ), "Failed to shut compose down"
+        retry_until_success(
+            lambda: not docker_host.check_output(f"{compose_cmd} ps -q"),
+            error_message="Failed to shut compose down",
+            max_attempts=30,
+        )
+        print("... All the services are stopped")
 
 
 # scope='module' so we use the same container for all the tests in a test file
@@ -311,9 +309,8 @@ def origins(docker_compose, scheduler_host, origin_urls: List[Tuple[str, str]]):
     # ids of the tasks still running
     ids = list(task_ids.values())
     t0 = time.time()
-    for _ in range(120):
-        if not ids:
-            break
+
+    def check_origins_load_statuses():
         taskid = ids.pop(0)
         origin_url = next(k for k, v in task_ids.items() if v == taskid)
         status = scheduler_host.check_output(
@@ -324,8 +321,6 @@ def origins(docker_compose, scheduler_host, origin_urls: List[Tuple[str, str]]):
                 print(f"Loading of {origin_url} is done (took {time.time()-t0:.2f}s)")
             elif "[started]" in status or "[scheduled]" in status:
                 ids.append(taskid)
-                time.sleep(1)
-                continue
             elif "[failed]" in status:
                 loader_logs = docker_compose.check_compose_output("logs swh-loader")
                 raise AssertionError(
@@ -339,6 +334,9 @@ def origins(docker_compose, scheduler_host, origin_urls: List[Tuple[str, str]]):
                 )
         else:
             ids.append(taskid)
-            time.sleep(1)
+
+        return not ids
+
+    retry_until_success(check_origins_load_statuses)
 
     return origin_urls

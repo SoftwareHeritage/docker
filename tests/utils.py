@@ -4,8 +4,9 @@
 # See top-level LICENSE file for more information
 
 import itertools
+import time
 from os.path import join
-from typing import Generator, Mapping, Tuple
+from typing import Callable, Generator, Mapping, Tuple
 from urllib.parse import urljoin
 
 import requests
@@ -35,6 +36,19 @@ def api_get(baseurl: str, path: str, verb: str = "GET", session=None, **kwargs):
         return resp
     else:
         return resp.json()
+
+
+def retry_until_success(
+    operation: Callable[..., bool],
+    error_message="Operation did not succeed after multiple retries",
+    max_attempts: int = 120,
+) -> None:
+    for _ in range(max_attempts):
+        if operation():
+            break
+        time.sleep(1)
+    else:
+        raise AssertionError(error_message)
 
 
 def api_poll(

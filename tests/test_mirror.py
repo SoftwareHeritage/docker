@@ -1,4 +1,4 @@
-# Copyright (C) 2023  The Software Heritage developers
+# Copyright (C) 2023-2024  The Software Heritage developers
 # See the AUTHORS file at the top-level directory of this distribution
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
@@ -14,6 +14,7 @@ import requests
 from .test_vault import test_vault_directory, test_vault_git_bare  # noqa
 from .utils import api_get as api_get_func
 from .utils import api_get_directory as api_get_directory_func
+from .utils import retry_until_success
 
 
 @pytest.fixture(scope="module")
@@ -120,39 +121,36 @@ def origins(docker_compose, origins, base_api_get, api_get, kafka_api_url):
             return resp.json()
         resp.raise_for_status()
 
+    def check_replayer_done(consumer_group):
+        lag_sum = kget(f"consumer-groups/{consumer_group}/lag-summary")
+        return lag_sum["total_lag"] == 0
+
     # wait until the replayer is done
     print("Waiting for the replayer to be done")
-    for _ in range(30):
-        lag_sum = kget("consumer-groups/swh.storage.mirror.replayer/lag-summary")
-        if lag_sum["total_lag"] == 0:
-            break
-        sleep(1)
-    else:
-        raise AssertionError(
-            "Could not detect a condition where the replayer did its job"
-        )
+    retry_until_success(
+        partial(check_replayer_done, "swh.storage.mirror.replayer"),
+        error_message="Could not detect a condition where the replayer did its job",
+        max_attempts=30,
+    )
 
     print("Checking we have origins in the mirror")
     # at this point, origins should be in the mirror storage...
-    for _ in range(30):
-        m_origins = set(x["url"] for x in api_get("origins/"))
-        if m_origins == expected_urls:
-            break
-        sleep(1)
-    else:
-        assert m_origins == expected_urls, "not all origins have been replicated"
+    retry_until_success(
+        lambda: {x["url"] for x in api_get("origins/")} == expected_urls,
+        error_message="not all origins have been replicated",
+        max_attempts=30,
+    )
 
     print("Waiting for the content replayer to be done")
     # wait until the content replayer is done
-    for _ in range(30):
-        lag_sum = kget("consumer-groups/swh.objstorage.mirror.replayer/lag-summary")
-        if lag_sum["total_lag"] == 0:
-            break
-        sleep(1)
-    else:
-        raise AssertionError(
+    retry_until_success(
+        partial(check_replayer_done, "swh.objstorage.mirror.replayer"),
+        error_message=(
             "Could not detect a condition where the content replayer did its job"
-        )
+        ),
+        max_attempts=30,
+    )
+
     return origins
 
 

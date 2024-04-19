@@ -4,11 +4,12 @@
 # See top-level LICENSE file for more information
 
 import re
-import time
 from typing import List
 from urllib.parse import quote_plus
 
 import pytest
+
+from .utils import retry_until_success
 
 
 @pytest.fixture(scope="module")
@@ -97,13 +98,15 @@ def test_origin_metadata_search(origins, docker_compose, nginx_get, api_get):
         "https://github.com/rdicosmo/parmap.git": "roberto",
     }
     imd_urls = set(metadata_patterns)
+
     # 4. Wait for the swh-search journal client to have processed the intrinsic MD.
     # For this, we just scrape the logs of the
     # swh-search-journal-client-indexed service to look for log entries showing
     # the origins have been indexed. The service NEEDS to be executed with
     # DEBUG log level.
-    matcher = re.compile(r"'id': '(?P<url>[^']+)'")
-    for i in range(120):
+    def check_intrinsic_metadata_processed():
+        matcher = re.compile(r"'id': '(?P<url>[^']+)'")
+
         logs = docker_compose.check_compose_output(
             "logs swh-search-journal-client-indexed"
         )
@@ -115,52 +118,56 @@ def test_origin_metadata_search(origins, docker_compose, nginx_get, api_get):
         urls = [
             m.group("url") for m in (matcher.search(row) for row in omd_proc_raws) if m
         ]
-        if set(urls) == imd_urls:
-            break
-        time.sleep(1)
-    else:
-        print(logs)
-        assert False, (
+        return set(urls) == imd_urls
+
+    retry_until_success(
+        check_intrinsic_metadata_processed,
+        error_message=(
             "swh-search journal client did not process "
             "intrinsic metadata in a timely manner"
-        )
+        ),
+    )
 
     # 5. query swh-search directly with metadata_pattern=fulltext to check
     # these iMD have been indexed in ES.
     for url, pattern in metadata_patterns.items():
-        for i in range(30):
+
+        def check_metadata_search_result():
             mds = nginx_get(
                 "rpc/search/origin/search",
                 verb="POST",
                 json={"metadata_pattern": pattern},
             )
-            if set(x["url"] for x in mds["d"]["results"]) == {url}:
-                break
-            time.sleep(0.5)
-        else:
-            assert False, (
+            return {x["url"] for x in mds["d"]["results"]} == {url}
+
+        retry_until_success(
+            check_metadata_search_result,
+            error_message=(
                 "swh-indexer-worker-journal(?) did not process origins with "
                 "intrinsic metadata in a timely manner"
-            )
+            ),
+            max_attempts=30,
+        )
 
     # 6. Check the metadata indexer storage (!) have them indexed. Unfortunately
     # we do not have an easy way to figure if the indexer-worker-journal-client
     # service did process said origins (not enough logging), so just poll the
     # service instead for now...
-    for i in range(30):
+    def check_metadata_in_indexer_storage():
         imd = nginx_get(
             "rpc/indexer-storage/origin_intrinsic_metadata",
             verb="POST",
             json={"urls": [url for _, url in origins]},
         )
-        if set(x["d"]["id"] for x in imd) == imd_urls:
-            break
-        time.sleep(0.5)
-    else:
-        assert False, (
+        return {x["d"]["id"] for x in imd} == imd_urls
+
+    retry_until_success(
+        check_metadata_in_indexer_storage,
+        error_message=(
             "swh-indexer-worker-journal did not process origins with "
             "intrinsic metadata in a timely manner"
-        )
+        ),
+    )
 
     # Check the metadata can be queried via the public API
     # Note that this actually does 2 things: ask ES for origins matching the

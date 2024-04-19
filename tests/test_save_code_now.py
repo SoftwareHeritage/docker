@@ -1,11 +1,12 @@
-# Copyright (C) 2023  The Software Heritage developers
+# Copyright (C) 2023-2024  The Software Heritage developers
 # See the AUTHORS file at the top-level directory of this distribution
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
 
-from time import sleep
 
 import pytest
+
+from .utils import retry_until_success
 
 # small git repository that takes a couple of seconds to load into the archive
 ORIGIN_URL = "https://github.com/anlambert/highlightjs-line-numbers.js"
@@ -32,10 +33,8 @@ def test_save_code_now(webapp_host, api_get):
     # create save request
     api_get(api_path, verb="POST")
     # wait until it was successfully processed
-    for _ in range(60):
-        response = api_get(api_path)
-        if response and response[0].get("save_task_status") == "succeeded":
-            break
-        sleep(1)
-    else:
-        raise AssertionError("Save Code Now request did not succeed")
+    retry_until_success(
+        lambda: api_get(api_path)[0].get("save_task_status") == "succeeded",
+        error_message="Save Code Now request did not succeed",
+        max_attempts=60,
+    )
