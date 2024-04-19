@@ -4,12 +4,13 @@
 # See top-level LICENSE file for more information
 
 import itertools
-import time
 from os.path import join
 from typing import Generator, Mapping, Tuple
 from urllib.parse import urljoin
 
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 
 def grouper(iterable, n):
@@ -44,13 +45,20 @@ def api_poll(
     **kwargs,
 ):
     """Poll the API at path until it returns an OK result"""
+    session.mount(
+        "http://",
+        HTTPAdapter(
+            max_retries=Retry(
+                total=60,
+                backoff_factor=0.1,
+                status_forcelist=[404, 413, 429, 502, 503, 504],
+            )
+        ),
+    )
     url = urljoin(baseurl, path)
-    for _ in range(60):
-        resp = session.request(verb, url, **kwargs)
-        if resp.ok:
-            break
-        time.sleep(1)
-    else:
+    resp = session.request(verb, url, **kwargs)
+    session.mount("http://", HTTPAdapter())
+    if not resp.ok:
         raise AssertionError(f"Polling {url} failed")
     return resp
 
