@@ -52,6 +52,17 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(skipper)
 
 
+def pytest_addoption(parser):
+    parser.addoption(
+        "--use-compose-override",
+        action="store_true",
+        help=(
+            "Include compose.override.yml file in each compose files list "
+            "used by tests, useful for tests development"
+        ),
+    )
+
+
 @pytest.fixture(scope="module")
 def docker_host():
     return testinfra.get_host("local://")
@@ -78,7 +89,14 @@ def project_name() -> str:
 
 
 @pytest.fixture(scope="module")
-def compose_cmd(docker_host, project_name, compose_files):
+def compose_cmd(docker_host, project_name, compose_files, pytestconfig):
+    compose_override = "compose.override.yml"
+    if (
+        pytestconfig.getoption("--use-compose-override")
+        and compose_override not in compose_files
+        and os.path.isfile(compose_override)
+    ):
+        compose_files.append(compose_override)
     print(f"COMPOSE_PROJECT_NAME={project_name}")
     print(f"COMPOSE_FILE={':'.join(compose_files)}")
     compose_file_cmd = "".join(f" -f {fname} " for fname in compose_files)
