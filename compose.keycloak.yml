@@ -25,9 +25,14 @@ services:
 
   swh-web:
     depends_on:
-      - keycloak
+      keycloak:
+        condition: service_started
+      docker-helper:
+        condition: service_healthy
+    environment:
+      SWH_CONFIG_FILENAME: /srv/softwareheritage/config-kc.yml
     volumes:
-      - "./conf/web-keycloak.yml:/srv/softwareheritage/config.yml:ro"
+      - "./conf/web-keycloak.yml:/srv/softwareheritage/config-kc.yml.in:ro"
 
   swh-deposit:
     depends_on:

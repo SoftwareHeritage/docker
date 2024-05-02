@@ -18,6 +18,7 @@ source /srv/softwareheritage/utils/pyutils.sh
 setup_pip
 
 source /srv/softwareheritage/utils/swhutils.sh
+setup_config_file
 
 case "$1" in
     "noop")

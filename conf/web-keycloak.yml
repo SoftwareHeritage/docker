@@ -68,7 +68,7 @@ search_config:
   metadata_backend: swh-search
 
 keycloak:
-  server_url: http://nginx/keycloak/auth/
+  server_url: http://${GATEWAY}:${PUBLIC_PORT}/keycloak/auth/
   realm_name: SoftwareHeritage
 instance_name: archive-docker.softwareheritage.org
 
