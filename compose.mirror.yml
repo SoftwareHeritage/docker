@@ -81,8 +81,8 @@ services:
       VERBOSITY: 3
       DJANGO_SETTINGS_MODULE: swh.web.settings.production
     healthcheck:
-      test: curl -f http://localhost:5004 || exit 1
-      retries: 6
+      test: wait-for-it swh-web:5004 -s --timeout=0
+      timeout: 120s
     volumes:
       - "./conf/mirror/web.yml:/srv/softwareheritage/config.yml:ro"
       - "./services/swh-web/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
@@ -107,8 +107,8 @@ services:
       - "./conf/mirror/replayer.yml:/srv/softwareheritage/config.yml:ro"
       - "./services/swh-storage/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
     deploy:
-       mode: replicated
-       replicas: 2
+      mode: replicated
+      replicas: 2
 
   swh-mirror-objstorage-replayer:
     image: swh/stack
@@ -129,8 +129,8 @@ services:
       - "./conf/mirror/content-replayer.yml:/srv/softwareheritage/config.yml:ro"
       - "./services/swh-objstorage/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
     deploy:
-       mode: replicated
-       replicas: 4
+      mode: replicated
+      replicas: 4
 
   # and a vault full-stack
   swh-mirror-vault-db:

@@ -366,10 +366,8 @@ services:
       VERBOSITY: 3
       DJANGO_SETTINGS_MODULE: swh.web.settings.production
     healthcheck:
-      # use curl retry with exponential backoff in case service initialization takes too
-      # much time (when static assets must be downloaded and compiled for instance)
-      test: curl --retry 5 -f http://localhost:5004 || exit 1
-      retries: 6
+      test: wait-for-it swh-web:5004 -s --timeout=0
+      timeout: 120s
     volumes:
       - "./conf/web.yml:/srv/softwareheritage/config.yml:ro"
       - "./services/swh-web/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"

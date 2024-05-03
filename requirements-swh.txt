@@ -1,13 +1,13 @@
 swh-alter
 swh-core[db,http]
 swh-counters
-swh-deposit[server]
+swh-deposit[server] @ git+https://gitlab.softwareheritage.org/swh/devel/swh-deposit.git@refs/merge-requests/432/head
 swh-graph
 swh-graphql
 swh-indexer
 swh-journal
-swh-lister
-swh-loader-core
+swh-lister @ git+https://gitlab.softwareheritage.org/swh/devel/swh-lister.git@refs/merge-requests/526/head
+swh-loader-core @ git+https://gitlab.softwareheritage.org/swh/devel/swh-loader-core.git@refs/merge-requests/524/head
 swh-loader-bzr
 swh-loader-cvs
 swh-loader-git
@@ -17,9 +17,9 @@ swh-loader-svn
 swh-storage
 swh-objstorage[azure]
 swh-objstorage-replayer
-swh-scheduler
+swh.scheduler @ git+https://gitlab.softwareheritage.org/swh/devel/swh-scheduler.git@refs/merge-requests/378/head
 swh-scrubber
 swh-search
-swh-vault
-swh-web
+swh-vault @ git+https://gitlab.softwareheritage.org/swh/devel/swh-vault.git@refs/merge-requests/203/head
+-e git+https://gitlab.softwareheritage.org/swh/devel/swh-web.git@refs/merge-requests/1282/head#egg=swh.web
 swh-webhooks
