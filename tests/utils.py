@@ -6,7 +6,7 @@
 import itertools
 import time
 from os.path import join
-from typing import Callable, Generator, Mapping, Tuple
+from typing import Any, Callable, Generator, Mapping, Tuple
 from urllib.parse import urljoin
 
 import requests
@@ -42,10 +42,11 @@ def retry_until_success(
     operation: Callable[..., bool],
     error_message="Operation did not succeed after multiple retries",
     max_attempts: int = 120,
-) -> None:
+) -> Any:
     for _ in range(max_attempts):
-        if operation():
-            break
+        ret = operation()
+        if ret:
+            return ret
         time.sleep(1)
     else:
         raise AssertionError(error_message)
@@ -93,3 +94,13 @@ def api_get_directory(
             yield from api_get_directory(
                 apiurl, direntry["target"], path, session=session
             )
+
+
+def generate_bearer_token(webapp_host, username, password):
+    try:
+        return webapp_host.check_output(
+            f"swh auth -u http://nginx/keycloak/auth/ generate-token {username} "
+            f"-p {password}"
+        )
+    except AssertionError:
+        return False
