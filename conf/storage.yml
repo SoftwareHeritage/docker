@@ -1,13 +1,16 @@
 storage:
-  cls: postgresql
-  db: postgresql:///?service=swh-storage
-  objstorage:
-    cls: remote
-    url: http://nginx/rpc/objstorage/
-  journal_writer:
-    cls: kafka
-    brokers:
-      - kafka
-    prefix: swh.journal.objects
-    client_id: swh.storage.master
-    anonymize: true
+  cls: pipeline
+  steps:
+    - cls: record_references
+    - cls: postgresql
+      db: postgresql:///?service=swh-storage
+      objstorage:
+        cls: remote
+        url: http://nginx/rpc/objstorage/
+      journal_writer:
+        cls: kafka
+        brokers:
+          - kafka
+        prefix: swh.journal.objects
+        client_id: swh.storage.master
+        anonymize: true

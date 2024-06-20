@@ -10,6 +10,17 @@ setup_pip
 
 backend=$(yq -r .storage.cls $SWH_CONFIG_FILENAME)
 
+if [ "$backend" = "pipeline" ]; then
+        eval $(cat <<END_OF_PYTHON | python
+import yaml
+conf = yaml.safe_load(open("$SWH_CONFIG_FILENAME"))
+print("backend=" + conf["storage"]["steps"][-1]["cls"])
+if any(step["cls"] == "record_references" for step in conf["storage"]["steps"]):
+    print("record_references=1")
+END_OF_PYTHON
+)
+fi
+
 case "$backend" in
     "postgresql")
         setup_pgsql
@@ -27,8 +38,13 @@ from swh.storage.cassandra import create_keyspace
 seeds = [seed.strip() for seed in '${CASSANDRA_SEEDS}'.split(',')]
 create_keyspace(seeds, 'swh')
 EOF
-
         ;;
+    remote)
+        # No extra setup needed
+        ;;
+    *)
+        echo Unsupported backend "$backend" >&2
+        exit 1
 esac
 
 
@@ -48,6 +64,10 @@ case "$1" in
             if [[ -n $REPLICA_SRC ]]; then
                 swh_setup_dbreplica
             fi
+        fi
+
+        if [ "$record_references" ]; then
+            swh storage create-object-reference-partitions "$(date -I)" "$(date -I -d "next week")"
         fi
 
         cmd=$1
