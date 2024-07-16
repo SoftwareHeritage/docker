@@ -3,7 +3,7 @@ ARG RSVNDUMP=/usr/local/bin/rsvndump
 FROM ${REGISTRY}rsvndump-base:latest AS rsvndump_image
 
 # build rage (for swh-alter)
-FROM rust:slim-bookworm as build_rage
+FROM rust:slim-bookworm AS build_rage
 RUN cargo install rage
 
 FROM python:3.11
