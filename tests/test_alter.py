@@ -5,6 +5,7 @@
 
 import dataclasses
 import hashlib
+import logging
 import random
 from typing import Iterable, List, Optional, Tuple
 
@@ -14,6 +15,8 @@ import testinfra
 import yaml
 
 from .utils import retry_until_success
+
+logger = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="module")
@@ -150,13 +153,18 @@ class RemovalOperation:
                 ],
                 k=5,
             )
+            logger.debug(
+                "random content sha1s picked %s", ", ".join(some_content_swhids)
+            )
             for swhid in some_content_swhids:
-                content = host.run(
+                cmd = host.run(
                     f"swh alter recovery-bundle extract-content "
-                    "--identity /age-identities.txt --output - "
+                    "--identity /srv/softwareheritage/age-identities.txt --output - "
                     f"'{self.bundle_path}' '{swhid}'"
-                ).stdout_bytes
-                sha1 = hashlib.sha1(content).hexdigest()
+                )
+                assert cmd.succeeded, f"extract-content failed! {cmd.stderr}"
+                sha1 = hashlib.sha1(cmd.stdout_bytes).hexdigest()
+                logger.debug("%s data SHA1: %s", swhid, sha1)
                 self._removed_content_sha1s.append(sha1)
         return self._removed_content_sha1s
 
