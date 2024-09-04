@@ -275,6 +275,7 @@ WEB_API_THROTTLING_EXEMPTED_ROLE_NAME = "swh.web.api.throttling_exempted"
 WEB_API_GRAPH_ROLE_NAME = "swh.web.api.graph"
 VAULT_GIT_BARE_UI_ROLE_NAME = "swh.vault.git_bare.ui"
 WEB_ADMIN_LIST_DEPOSITS_ROLE_NAME = "swh.web.admin.list_deposits"
+WEB_API_SAVE_BULK = "swh.web.api.save_bulk"
 
 create_client_roles(
     KEYCLOAK_ADMIN,
@@ -284,6 +285,7 @@ create_client_roles(
         WEB_API_GRAPH_ROLE_NAME,
         VAULT_GIT_BARE_UI_ROLE_NAME,
         WEB_ADMIN_LIST_DEPOSITS_ROLE_NAME,
+        WEB_API_SAVE_BULK,
     ],
 )
 
@@ -349,6 +351,9 @@ assign_client_roles_to_user(
 )
 assign_client_roles_to_user(
     KEYCLOAK_ADMIN, CLIENT_WEBAPP_NAME, [WEB_ADMIN_LIST_DEPOSITS_ROLE_NAME], "test"
+)
+assign_client_roles_to_user(
+    KEYCLOAK_ADMIN, CLIENT_WEBAPP_NAME, [WEB_API_SAVE_BULK], "johndoe"
 )
 
 AMBASSADOR_ROLE_NAME = "swh.ambassador"

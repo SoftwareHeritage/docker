@@ -60,3 +60,9 @@ celery:
     - save_code_now:swh.loader.package.archive.tasks.LoadTarball
     - add_forge_now:swh.loader.git.tasks.UpdateGitRepository
     - add_forge_now:swh.loader.mercurial.tasks.LoadMercurial
+    - save_bulk:swh.loader.bzr.tasks.LoadBazaar
+    - save_bulk:swh.loader.cvs.tasks.LoadCvsRepository
+    - save_bulk:swh.loader.git.tasks.UpdateGitRepository
+    - save_bulk:swh.loader.mercurial.tasks.LoadMercurial
+    - save_bulk:swh.loader.svn.tasks.DumpMountAndLoadSvnRepository
+    - save_bulk:swh.loader.core.tasks.LoadTarballDirectory

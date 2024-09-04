@@ -9,6 +9,18 @@ source /srv/softwareheritage/utils/swhutils.sh
 setup_pgsql
 setup_pip
 
+wait_task_types() {
+    echo "Waiting for loader task types to be registered in scheduler db"
+    until python3 -c "
+from celery import Celery
+app = Celery('swh', broker='$BROKER_URL')
+for worker_instance in '$WORKER_INSTANCES'.split(','):
+    assert any(worker_name.startswith(f'{worker_instance.strip()}@')
+            for worker_name in app.control.inspect().active())" 2>/dev/null
+    do
+        sleep 1
+    done
+}
 
 case "$1" in
     "shell")
@@ -43,16 +55,7 @@ case "$1" in
         wait-for-it swh-scheduler:5008 -s --timeout=0
         wait-for-it amqp:5672 -s --timeout=0
 
-        echo "Waiting for loader task types to be registered in scheduler db"
-        until python3 -c "
-from celery import Celery
-app = Celery('swh', broker='$BROKER_URL')
-for worker_instance in '$WORKER_INSTANCES'.split(','):
-    assert any(worker_name.startswith(f'{worker_instance.strip()}@')
-               for worker_name in app.control.inspect().active())" 2>/dev/null
-        do
-            sleep 1
-        done
+        wait_task_types
 
         echo "Starting swh scheduler $1"
         exec swh scheduler -C $SWH_CONFIG_FILENAME $@
@@ -67,4 +70,15 @@ for worker_instance in '$WORKER_INSTANCES'.split(','):
            scheduler --config-file $SWH_CONFIG_FILENAME \
            journal-client
       ;;
+
+    "schedule-high-priority-first-visits")
+        wait_task_types
+        exec bash -c 'trap exit TERM INT; while :; do
+        (date &&
+         swh scheduler origin schedule-high-priority-first-visits)
+        sleep 60 &
+        wait ${!}
+        done'
+        ;;
+
 esac

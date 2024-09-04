@@ -245,6 +245,28 @@ services:
       - "./conf/scheduler.yml:/srv/softwareheritage/config.yml:ro"
       - "./services/swh-scheduler/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
+  swh-scheduler-schedule-high-priority-first-visits:
+    image: swh/stack
+    build: ./
+    env_file:
+      - ./env/common_python.env
+    environment:
+      POSTGRES_DB: swh-scheduler
+      SWH_LOG_LEVELS: info
+      SWH_SCHEDULER_CONFIG_FILE: /srv/softwareheritage/config.yml
+      BROKER_URL: amqp://amqp/
+      WORKER_INSTANCES: listers, loader
+      APP: swh.scheduler.celery_backend.config.app
+    command: schedule-high-priority-first-visits
+    depends_on:
+      - swh-scheduler
+      - swh-loader
+      - amqp
+      - prometheus-statsd-exporter
+    volumes:
+      - "./conf/scheduler.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-scheduler/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
+
   swh-scheduler-update-metrics:
     image: swh/stack
     build: ./
