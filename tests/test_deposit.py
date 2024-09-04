@@ -36,6 +36,21 @@ def compose_files() -> List[str]:
     return ["compose.yml", "compose.deposit.yml"]
 
 
+@pytest.fixture(scope="module")
+def compose_services():
+    return [
+        "docker-helper",
+        "docker-proxy",
+        "swh-deposit",
+        "swh-lister",  # required for the scheduler runner to start
+        "swh-loader",
+        "swh-loader-deposit",
+        "swh-scheduler-journal-client",
+        "swh-scheduler-listener",
+        "swh-scheduler-runner",
+    ]
+
+
 # scope='module' so we use the same container for all the tests in a given test
 # file
 @pytest.fixture(scope="module")

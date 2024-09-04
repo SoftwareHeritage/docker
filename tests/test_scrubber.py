@@ -18,6 +18,20 @@ def compose_files() -> List[str]:
     return ["compose.yml", "compose.scrubber.yml"]
 
 
+@pytest.fixture(scope="module")
+def compose_services():
+    return [
+        "docker-helper",
+        "docker-proxy",
+        "swh-lister",  # required for the scheduler runner to start
+        "swh-loader",
+        "swh-scheduler-journal-client",
+        "swh-scheduler-listener",
+        "swh-scheduler-runner",
+        "swh-scrubber",
+    ]
+
+
 @pytest.fixture(autouse=True)
 def scrubber_service_init(docker_compose):
     # start the scrubber service (the compose file does not start it up, it
@@ -114,7 +128,6 @@ def test_storage_scrubber_check_snapshots_no_corruption(scrubber_service, origin
 
 @pytest.fixture
 def deleted_contents(storage_service):
-
     def run_storage_sql_query(query):
         return storage_service.check_output(f'psql service=swh-storage -t -c "{query}"')
 
@@ -171,7 +184,6 @@ def test_storage_scrubber_check_directory_missing_contents(
 
 
 def test_journal_scrubber_check_corrupt_snapshot(scrubber_service):
-
     # add corrupted snapshot to kafka snapshot topic in SWH journal
     script = """
     import attr
@@ -265,7 +277,6 @@ def corrupted_objstorage(objstorage_service):
 def test_objstorage_partitions_scrubber_corrupted_and_missing_contents(
     corrupted_objstorage, scrubber_service, origins
 ):
-
     nb_missing_contents, nb_corrupted_contents = corrupted_objstorage
 
     obj_type = "content"
@@ -291,7 +302,6 @@ def test_objstorage_partitions_scrubber_corrupted_and_missing_contents(
 def test_objstorage_journal_scrubber_corrupted_and_missing_contents(
     corrupted_objstorage, scrubber_service, origins
 ):
-
     nb_missing_contents, nb_corrupted_contents = corrupted_objstorage
 
     obj_type = "content"

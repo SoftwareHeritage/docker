@@ -29,6 +29,22 @@ def compose_files(request) -> List[str]:
     return request.param
 
 
+@pytest.fixture(scope="module")
+def compose_services():
+    return [
+        "docker-helper",
+        "docker-proxy",
+        "swh-lister",  # required for the scheduler runner to start
+        "swh-loader",
+        "swh-scheduler-journal-client",
+        "swh-scheduler-listener",
+        "swh-scheduler-runner",
+        "swh-vault",
+        "swh-vault-worker",
+        "swh-web",
+    ]
+
+
 def test_vault_directory(
     docker_compose, origins, compose_files, api_get, api_poll, api_get_directory
 ):

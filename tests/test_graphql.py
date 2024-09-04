@@ -8,14 +8,29 @@ import requests
 
 
 @pytest.fixture(scope="module")
+def compose_services():
+    return [
+        "docker-helper",
+        "docker-proxy",
+        "swh-graphql",
+        "swh-lister",  # required for the scheduler runner to start
+        "swh-loader",
+        "swh-scheduler-journal-client",
+        "swh-scheduler-listener",
+        "swh-scheduler-runner",
+        "swh-web",
+    ]
+
+
+@pytest.fixture(scope="module")
 def graphql_url(nginx_url) -> str:
     return f"{nginx_url}/graphql/"
 
 
 @pytest.fixture(scope="module")
-def origin_urls():
+def origin_urls(tiny_git_repo, small_git_repo):
     return [
-        ("git", "https://gitlab.softwareheritage.org/swh/devel/swh-core.git"),
+        tiny_git_repo,
         (
             "hg",
             [
@@ -23,7 +38,7 @@ def origin_urls():
                 "https://hg.sr.ht/~douardda/pygpibtoolkit",
             ],
         ),
-        ("git", "https://gitlab.softwareheritage.org/swh/devel/swh-model.git"),
+        small_git_repo,
     ]
 
 

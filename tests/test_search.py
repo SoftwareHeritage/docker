@@ -18,10 +18,28 @@ def compose_files() -> List[str]:
 
 
 @pytest.fixture(scope="module")
-def origin_urls():
+def compose_services():
     return [
-        ("git", "https://gitlab.softwareheritage.org/swh/devel/swh-core.git"),
-        ("git", "https://gitlab.softwareheritage.org/swh/devel/swh-model.git"),
+        "docker-helper",
+        "docker-proxy",
+        "swh-indexer-worker-journal",
+        "swh-lister",  # required for the scheduler runner to start
+        "swh-loader",
+        "swh-scheduler-journal-client",
+        "swh-scheduler-listener",
+        "swh-scheduler-runner",
+        "swh-search",
+        "swh-search-journal-client-objects",
+        "swh-search-journal-client-indexed",
+        "swh-web",
+    ]
+
+
+@pytest.fixture(scope="module")
+def origin_urls(small_git_repo, tiny_git_repo):
+    return [
+        small_git_repo,
+        tiny_git_repo,
         ("git", "https://github.com/rdicosmo/parmap.git"),
         ("pypi", "https://pypi.org/project/swh.core/"),
         ("pypi", "https://pypi.org/project/swh.model/"),

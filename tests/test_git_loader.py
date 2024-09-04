@@ -5,10 +5,25 @@
 
 from urllib.parse import quote_plus
 
+import pytest
 from dulwich import porcelain
 from dulwich.repo import MemoryRepo
 
 from .utils import grouper
+
+
+@pytest.fixture(scope="module")
+def compose_services():
+    return [
+        "docker-helper",
+        "docker-proxy",
+        "swh-lister",  # required for the scheduler runner to start
+        "swh-loader",
+        "swh-scheduler-journal-client",
+        "swh-scheduler-listener",
+        "swh-scheduler-runner",
+        "swh-web",
+    ]
 
 
 def test_git_loader(scheduler_host, origins, api_get):

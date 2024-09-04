@@ -18,6 +18,21 @@ def compose_files() -> List[str]:
     return ["compose.yml", "compose.cassandra.yml"]
 
 
+@pytest.fixture(scope="module")
+def compose_services():
+    return [
+        "cassandra",
+        "docker-helper",
+        "docker-proxy",
+        "swh-lister",  # required for the scheduler runner to start
+        "swh-loader",
+        "swh-scheduler-journal-client",
+        "swh-scheduler-listener",
+        "swh-scheduler-runner",
+        "swh-web",
+    ]
+
+
 def test_ensure_cassandra(docker_compose, origins):
     check_output = docker_compose.check_compose_output
     # ensure the cassandra-seed service is running

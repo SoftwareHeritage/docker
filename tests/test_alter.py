@@ -48,9 +48,9 @@ def compose_services() -> List[str]:
 
 
 @pytest.fixture(scope="module")
-def origin_urls() -> List[Tuple[str, str]]:
+def origin_urls(tiny_git_repo) -> List[Tuple[str, str]]:
     return [
-        ("git", "https://gitlab.softwareheritage.org/swh/devel/swh-py-template.git"),
+        tiny_git_repo,
         ("git", "https://gitlab.softwareheritage.org/lunar/swh-py-template.git"),
     ]
 
@@ -276,18 +276,16 @@ def test_fork_restored_in_elasticsearch(docker_compose, fork_restored):
     )
 
 
-INITIAL_REMOVAL_OP = RemovalOperation(
-    identifier="integration-test-initial",
-    bundle_path="/tmp/integration-test-initial.swh-recovery-bundle",
-    origins=["https://gitlab.softwareheritage.org/swh/devel/swh-py-template.git"],
-)
-
-
 @pytest.fixture(scope="module")
-def initial_removed(alter_host, verified_origins, fork_restored):
-    INITIAL_REMOVAL_OP.run_in(alter_host)
-    assert len(INITIAL_REMOVAL_OP.removed_swhids) > 0
-    return INITIAL_REMOVAL_OP
+def initial_removed(alter_host, verified_origins, fork_restored, tiny_git_repo):
+    initial_removal_op = RemovalOperation(
+        identifier="integration-test-initial",
+        bundle_path="/tmp/integration-test-initial.swh-recovery-bundle",
+        origins=[tiny_git_repo[1]],
+    )
+    initial_removal_op.run_in(alter_host)
+    assert len(initial_removal_op.removed_swhids) > 0
+    return initial_removal_op
 
 
 def test_initial_removed_in_primary_objstorage(
@@ -372,21 +370,21 @@ def test_initial_restored_in_extra_objstorage(
     )
 
 
-BOTH_REMOVAL_OP = RemovalOperation(
-    identifier="integration-test-both",
-    bundle_path="/tmp/integration-test-both.swh-recovery-bundle",
-    origins=[
-        "https://gitlab.softwareheritage.org/swh/devel/swh-py-template.git",
-        "https://gitlab.softwareheritage.org/lunar/swh-py-template.git",
-    ],
-)
-
-
 @pytest.fixture(scope="module")
-def both_removed(alter_host, verified_origins, fork_restored, initial_restored):
-    BOTH_REMOVAL_OP.run_in(alter_host)
-    assert len(BOTH_REMOVAL_OP.removed_swhids) > 0
-    return BOTH_REMOVAL_OP
+def both_removed(
+    alter_host, verified_origins, fork_restored, initial_restored, tiny_git_repo
+):
+    both_removal_op = RemovalOperation(
+        identifier="integration-test-both",
+        bundle_path="/tmp/integration-test-both.swh-recovery-bundle",
+        origins=[
+            tiny_git_repo[1],
+            "https://gitlab.softwareheritage.org/lunar/swh-py-template.git",
+        ],
+    )
+    both_removal_op.run_in(alter_host)
+    assert len(both_removal_op.removed_swhids) > 0
+    return both_removal_op
 
 
 def test_remove_both_forks(

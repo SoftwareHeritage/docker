@@ -28,6 +28,24 @@ def compose_files(request):
     return request.param
 
 
+@pytest.fixture(scope="module")
+def compose_services(compose_files):
+    common_services = [
+        "docker-helper",
+        "docker-proxy",
+        "swh-lister",  # required for the scheduler runner to start
+        "swh-loader",
+        "swh-scheduler-journal-client",
+        "swh-scheduler-listener",
+        "swh-scheduler-runner-priority",
+        "swh-web",
+    ]
+    if "compose.webhooks.yml" in compose_files:
+        return common_services + ["swh-webhooks-journal-client"]
+    else:
+        return common_services + ["swh-web-cron"]
+
+
 def test_save_code_now(webapp_host, api_get):
     api_path = f"origin/save/{VISIT_TYPE}/url/{ORIGIN_URL}/"
     # create save request
