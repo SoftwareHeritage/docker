@@ -51,3 +51,10 @@ services:
     volumes:
       - "./conf/loader-deposit.yml:/srv/softwareheritage/config.yml:ro"
       - "./services/swh-worker/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
+
+  # To validate COAR Notify calls http://localhost:30800/inbox/
+  coar-notity-inbox:
+    image: antleaf/notify_ldn_inbox:1.2
+    command: notify_ldn_inbox -host=http://localhost -port=30800 -debug=true
+    ports:
+      - "30800:30800"
