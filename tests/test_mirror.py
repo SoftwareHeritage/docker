@@ -85,7 +85,7 @@ def compose_files() -> List[str]:
 
 @pytest.fixture(scope="module")
 def origins(docker_compose, origins, base_api_get, api_get, kafka_api_url):
-    # this fixture ensures the origins have been loaded in the prinmary
+    # this fixture ensures the origins have been loaded in the primary
     # storage, the mirror is up, and the replayers are done
     check_output = docker_compose.check_compose_output
     while check_output("ps --quiet --status created"):
