@@ -71,14 +71,4 @@ case "$1" in
            journal-client
       ;;
 
-    "schedule-high-priority-first-visits")
-        wait_task_types
-        exec bash -c 'trap exit TERM INT; while :; do
-        (date &&
-         swh scheduler origin schedule-high-priority-first-visits)
-        sleep 60 &
-        wait ${!}
-        done'
-        ;;
-
 esac

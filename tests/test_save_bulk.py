@@ -31,7 +31,7 @@ def compose_services() -> List[str]:
         "swh-scheduler-journal-client",
         "swh-scheduler-runner",
         "swh-scheduler-listener",
-        "swh-scheduler-schedule-high-priority-first-visits",
+        "swh-scheduler-runner-first-visits",
         "swh-web",
         "swh-loader",
         "swh-lister",
