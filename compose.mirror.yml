@@ -37,6 +37,35 @@ services:
       - "./conf/mirror/storage.yml:/srv/softwareheritage/config.yml:ro"
       - "./services/swh-storage/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
+  # Mirror storage for public access (masking applied)
+  swh-mirror-masking-db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: swh-mirror-masking
+      POSTGRES_PASSWORD: testpassword
+    volumes:
+      - "./services/initdb.d:/docker-entrypoint-initdb.d"
+      - mirror-masking-data:/var/lib/postgresql
+
+  swh-mirror-storage-public:
+    image: swh/stack
+    build: ./
+    depends_on:
+      - swh-mirror-storage
+      - swh-mirror-masking-db
+    command: rpc
+    environment:
+      MASKING_DBNAME: postgresql:///?service=swh-mirror-masking
+      POSTGRES_DB: swh-mirror-masking
+      RPC_PORT: 5002
+    healthcheck:
+      test: curl -f http://localhost:5002 || exit 1
+      retries: 6
+    volumes:
+      - "./conf/mirror/storage-public.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-storage-public/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
+      - "./conf/mirror/create-mirror-masking-db.yml:/srv/softwareheritage/config-create-db.yml:ro"
+
   # Object storage
   swh-mirror-objstorage:
     build: ./
@@ -70,7 +99,7 @@ services:
     build: ./
     image: swh/stack:${SWH_IMAGE_TAG:-latest}
     depends_on:
-      - swh-mirror-storage
+      - swh-mirror-storage-public
       - swh-mirror-web-db
       - prometheus-statsd-exporter
       - nginx-mirror
@@ -156,7 +185,7 @@ services:
     depends_on:
       - swh-mirror-vault-db
       - swh-mirror-objstorage
-      - swh-mirror-storage
+      - swh-mirror-storage-public
       - swh-mirror-scheduler
       - prometheus-statsd-exporter
       - nginx-mirror
@@ -259,3 +288,5 @@ services:
 
   amqp-mirror:
     image: rabbitmq:3.13-management
+volumes:
+  mirror-masking-data:

@@ -336,6 +336,7 @@ services:
     command: rpc
     environment:
       POSTGRES_DB: swh-masking
+      MASKING_DBNAME: postgresql:///?service=swh-masking
       RPC_PORT: 5002
     healthcheck:
       test: curl -f http://localhost:5002 || exit 1

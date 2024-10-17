@@ -1,6 +1,7 @@
+# If you update what follows, you should probably update conf/mirror/storage-public.yml
 storage:
   cls: postgresql
-  db: postgresql:///?service=swh-mirror-storage
+  db: postgresql:///?dbname=swh-mirror-storage&host=swh-mirror-storage-db&user=postgres&password=testpassword
   objstorage:
     cls: filtered
     storage_conf:
