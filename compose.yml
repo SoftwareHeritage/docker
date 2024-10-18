@@ -22,7 +22,7 @@ services:
 
   kafka-create-topics:
     # this is a short-lived service, it creates kafka topics and exits
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     depends_on:
       - kafka
     restart: on-failure
@@ -105,7 +105,7 @@ services:
       CONTAINERS: 1
 
   docker-helper:
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     environment:
       COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
     command: rpc
@@ -142,7 +142,7 @@ services:
       - "./services/initdb.d:/docker-entrypoint-initdb.d"
 
   swh-scheduler:
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     build: ./
     env_file:
       - ./env/common_python.env
@@ -162,7 +162,7 @@ services:
       - "./services/swh-scheduler/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   swh-scheduler-listener:
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     build: ./
     env_file:
       - ./env/common_python.env
@@ -183,7 +183,7 @@ services:
       - "./services/swh-scheduler/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   swh-scheduler-runner:
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     build: ./
     env_file:
       - ./env/common_python.env
@@ -204,7 +204,7 @@ services:
       - "./services/swh-scheduler/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   swh-scheduler-runner-priority:
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     build: ./
     env_file:
       - ./env/common_python.env
@@ -225,7 +225,7 @@ services:
       - "./services/swh-scheduler/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   swh-scheduler-runner-first-visits:
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     build: ./
     env_file:
       - ./env/common_python.env
@@ -246,7 +246,7 @@ services:
       - "./services/swh-scheduler/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   swh-scheduler-schedule-recurrent:
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     build: ./
     env_file:
       - ./env/common_python.env
@@ -268,7 +268,7 @@ services:
       - "./services/swh-scheduler/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   swh-scheduler-update-metrics:
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     build: ./
     env_file:
       - ./env/common_python.env
@@ -294,7 +294,7 @@ services:
       - storage-data:/var/lib/postgresql
 
   swh-storage:
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     build: ./
     depends_on:
       - swh-storage-db
@@ -319,7 +319,7 @@ services:
 
   swh-objstorage:
     build: ./
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     depends_on:
       - prometheus-statsd-exporter
     env_file:
@@ -346,7 +346,7 @@ services:
       - "./services/initdb.d:/docker-entrypoint-initdb.d"
 
   swh-idx-storage:
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     build: ./
     depends_on:
       - swh-idx-storage-db
@@ -375,7 +375,7 @@ services:
 
   swh-web:
     build: ./
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     depends_on:
       - swh-idx-storage
       - swh-scheduler
@@ -402,7 +402,7 @@ services:
 
   swh-web-cron:
     build: ./
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     depends_on:
       - swh-web
       - nginx
@@ -420,7 +420,7 @@ services:
   # Lister Celery workers
 
   swh-lister:
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     build: ./
     env_file:
       - ./env/common_python.env
@@ -451,7 +451,7 @@ services:
   # Loader + deposit checker Celery workers
 
   swh-loader:
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     build: ./
     env_file:
       - ./env/common_python.env
@@ -474,7 +474,7 @@ services:
   # Indexer workers
 
   swh-indexer-worker-journal:
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     build: ./
     user: swh
     env_file:
@@ -499,7 +499,7 @@ services:
   # Journal related
 
   swh-scheduler-journal-client:
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     build: ./
     command: journal-client
     environment:
@@ -515,7 +515,7 @@ services:
       - "./services/swh-scheduler/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   swh-counters:
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     build: ./
     command: rpc
     environment:
@@ -535,7 +535,7 @@ services:
       retries: 10
 
   swh-counters-journal-client:
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     build: ./
     command: journal-client
     env_file:
@@ -553,7 +553,7 @@ services:
   # Search related
 
   swh-search:
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     build: ./
     command: rpc
     healthcheck:
@@ -570,7 +570,7 @@ services:
       - "./services/swh-search/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   swh-search-journal-client-objects:
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     build: ./
     env_file:
       - ./env/common_python.env
@@ -584,7 +584,7 @@ services:
       - "./services/swh-search/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   swh-search-journal-client-indexed:
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     build: ./
     command: journal-client
     env_file:
@@ -600,7 +600,7 @@ services:
   # GraphQL API
 
   swh-graphql:
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     build: ./
     depends_on:
       - swh-storage

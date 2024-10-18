@@ -15,7 +15,7 @@ services:
 
   # and an RPC server
   swh-mirror-storage:
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     build: ./
     depends_on:
       - swh-mirror-storage-db
@@ -40,7 +40,7 @@ services:
   # Object storage
   swh-mirror-objstorage:
     build: ./
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     env_file:
       - ./env/common_python.env
     depends_on:
@@ -68,7 +68,7 @@ services:
   # a dedicated swh-web
   swh-mirror-web:
     build: ./
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     depends_on:
       - swh-mirror-storage
       - swh-mirror-web-db
@@ -91,7 +91,7 @@ services:
   # and the background processes that keeps the mirror in sync with the
   # main graph
   swh-mirror-storage-replayer:
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     build: ./
     depends_on:
       - kafka
@@ -111,7 +111,7 @@ services:
        replicas: 2
 
   swh-mirror-objstorage-replayer:
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     build: ./
     depends_on:
       - kafka
@@ -142,7 +142,7 @@ services:
       - "./services/initdb.d:/docker-entrypoint-initdb.d"
 
   swh-mirror-vault:
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     build: ./
     env_file:
       - ./env/common_python.env
@@ -165,7 +165,7 @@ services:
       - "./services/swh-vault/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   swh-mirror-vault-worker:
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     build: ./
     command: worker
     env_file:
@@ -192,7 +192,7 @@ services:
       - "./services/initdb.d:/docker-entrypoint-initdb.d"
 
   swh-mirror-scheduler:
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     build: ./
     env_file:
       - ./env/common_python.env
@@ -216,7 +216,7 @@ services:
       - "./services/swh-scheduler/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   swh-mirror-scheduler-listener:
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     build: ./
     env_file:
       - ./env/common_python.env
@@ -237,7 +237,7 @@ services:
       - "./services/swh-scheduler/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   swh-mirror-scheduler-runner:
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     build: ./
     env_file:
       - ./env/common_python.env

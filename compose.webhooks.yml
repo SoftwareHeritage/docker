@@ -19,7 +19,7 @@ services:
       - svix-db
 
   swh-webhooks-journal-client:
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     build: ./
     env_file:
       - ./env/common_python.env

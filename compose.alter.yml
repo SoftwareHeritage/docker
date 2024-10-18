@@ -1,6 +1,6 @@
 services:
   swh-alter:
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     build: ./
     command: mock-graph
     volumes:
@@ -39,7 +39,7 @@ services:
       CASSANDRA_SEEDS: cassandra-seed
 
   swh-cassandra-storage:
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     build: ./
     depends_on:
       - cassandra-seed
@@ -62,7 +62,7 @@ services:
 
   swh-extra-objstorage:
     build: ./
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     depends_on:
       - prometheus-statsd-exporter
     env_file:
@@ -78,7 +78,7 @@ services:
       - "./services/swh-objstorage/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   swh-storage-replayer:
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     build: ./
     depends_on:
       - kafka
@@ -95,7 +95,7 @@ services:
       - "./services/swh-storage/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   swh-objstorage-replayer:
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     build: ./
     depends_on:
       - kafka

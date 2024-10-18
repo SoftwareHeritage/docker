@@ -1,6 +1,6 @@
 services:
   swh-graph:
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     build: ./
     depends_on:
       - kafka

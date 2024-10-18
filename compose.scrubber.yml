@@ -9,7 +9,7 @@ services:
     # this service is a kind of scrubber "worker"; it will setup the db, then
     # wait forever; scrubbing session must then be created and executed via
     # `docker compose exec' commands
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     build: ./
     command: init
     depends_on:

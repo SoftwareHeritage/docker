@@ -8,7 +8,7 @@ services:
       - "./services/initdb.d:/docker-entrypoint-initdb.d"
 
   swh-deposit:
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     build: ./
     depends_on:
       - swh-deposit-db
@@ -31,7 +31,7 @@ services:
       - "./services/swh-deposit/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   swh-loader-deposit:
-    image: swh/stack
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
     build: ./
     env_file:
       - ./env/common_python.env
