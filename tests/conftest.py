@@ -4,24 +4,31 @@
 # See top-level LICENSE file for more information
 
 import atexit
+import dataclasses
+import hashlib
+import logging
 import os
+import random
 import re
 import shutil
 import time
 from functools import partial
 from subprocess import CalledProcessError, check_output
-from typing import Iterable, List, Tuple, Union
+from typing import Iterable, List, Optional, Tuple, Union
 from urllib.parse import urlparse
 from uuid import uuid4 as uuid
 
 import pytest
 import requests
 import testinfra
+import yaml
 
 from .utils import api_get as api_get_func
 from .utils import api_get_directory as api_get_directory_func
 from .utils import api_poll as api_poll_func
 from .utils import retry_until_success
+
+logger = logging.getLogger(__name__)
 
 # wait-for-it timeout
 WFI_TIMEOUT = 120
@@ -380,3 +387,84 @@ def origins(docker_compose, scheduler_host, origin_urls: List[Tuple[str, str]]):
 def smtp_port(docker_compose):
     """Get the port exposed by our smtp server."""
     return service_port(docker_compose, "smtp", 1025)
+
+
+@pytest.fixture(scope="module")
+def alter_host(docker_compose) -> Iterable[testinfra.host.Host]:
+    # Getting a compressed graph with swh-graph is not stable enough
+    # so we use a mock server for the time being that starts
+    # by default when running the swh-alter container.
+    docker_services = docker_compose.check_compose_output(
+        "ps --status running --format '{{.Service}} {{.Name}}'"
+    )
+    docker_id = dict(line.split(" ") for line in docker_services.split("\n"))[
+        "swh-alter"
+    ]
+    host = testinfra.get_host("docker://" + docker_id)
+    host.check_output("wait-for-it --timeout=60 swh-alter:5009")
+    yield host
+
+
+@dataclasses.dataclass
+class RemovalOperation:
+    identifier: str
+    bundle_path: str
+    origins: List[str]
+    removed_swhids: List[str] = dataclasses.field(default_factory=list)
+    referencing: List[str] = dataclasses.field(default_factory=list)
+    _removed_content_sha1s: Optional[List[bytes]] = None
+
+    def get_removed_content_sha1s(self, host):
+        if self._removed_content_sha1s is None:
+            self._removed_content_sha1s = []
+            # Computing the SHA1 of content objects from the recovery bundle
+            # is a very slow operation. So let’s only take a random sample
+            # of the content SWHIDS.
+            some_content_swhids = random.sample(
+                [
+                    swhid
+                    for swhid in self.removed_swhids
+                    if swhid.startswith("swh:1:cnt:")
+                ],
+                k=5,
+            )
+            logger.debug(
+                "random content sha1s picked %s", ", ".join(some_content_swhids)
+            )
+            for swhid in some_content_swhids:
+                cmd = host.run(
+                    f"swh alter recovery-bundle extract-content "
+                    "--identity /srv/softwareheritage/age-identities.txt --output - "
+                    f"'{self.bundle_path}' '{swhid}'"
+                )
+                assert cmd.succeeded, f"extract-content failed! {cmd.stderr}"
+                sha1 = hashlib.sha1(cmd.stdout_bytes).hexdigest()
+                logger.debug("%s data SHA1: %s", swhid, sha1)
+                self._removed_content_sha1s.append(sha1)
+        return self._removed_content_sha1s
+
+    def run_in(self, host):
+        remove_output = host.check_output(
+            "echo y | swh alter remove "
+            f"--identifier '{self.identifier}' "
+            f"--recovery-bundle '{self.bundle_path}' "
+            f"{' '.join(self.origins)}"
+        )
+        logger.debug(remove_output)
+        dump = host.check_output(
+            f"swh alter recovery-bundle info --dump-manifest '{self.bundle_path}'"
+        )
+        manifest = yaml.safe_load(dump)
+        logger.debug("%s manifest %s", self.identifier, manifest)
+        self.removed_swhids = manifest["swhids"]
+        if int(manifest["version"]) >= 3:
+            assert self.origins == manifest["requested"]
+            self.referencing = manifest["referencing"]
+
+
+@pytest.fixture(scope="session")
+def make_removal_operation():
+    def _make_removal_operation(*args, **kwargs):
+        return RemovalOperation(*args, **kwargs)
+
+    return _make_removal_operation

@@ -215,3 +215,32 @@ def test_mirror_replication(
                 target = e1["target"]
                 base_api_get(f"content/sha1_git:{target}/raw/", verb="HEAD")
                 api_get(f"content/sha1_git:{target}/raw/", verb="HEAD")
+
+
+def tiny_git_removed_from_main_archive(
+    make_removal_operation, tiny_git_repo, alter_host, origins
+):
+    removal_op = make_removal_operation(
+        identifier="tiny-git",
+        bundle_path="/tmp/tiny-git.swh-recovery-bundle",
+        origins=[tiny_git_repo[1]],
+    )
+    removal_op.run_in(alter_host)
+    assert len(removal_op.removed_swhids) > 0
+    return removal_op
+
+
+def test_mail_sent_to_mirror_operator_on_removal_from_the_main_archive():
+    ...
+
+
+def test_handle_removal_notification_remove():
+    ...
+
+
+def test_handle_removal_notification_restrict_permanently():
+    ...
+
+
+def test_handle_removal_notification_dismiss():
+    ...

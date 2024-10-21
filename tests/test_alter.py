@@ -3,16 +3,12 @@
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
 
-import dataclasses
 import hashlib
 import logging
-import random
-from typing import Iterable, List, Optional, Tuple
+from typing import List, Tuple
 
 import pytest
 import requests
-import testinfra
-import yaml
 
 from .utils import retry_until_success
 
@@ -53,22 +49,6 @@ def origin_urls(tiny_git_repo) -> List[Tuple[str, str]]:
         tiny_git_repo,
         ("git", "https://gitlab.softwareheritage.org/lunar/swh-py-template.git"),
     ]
-
-
-@pytest.fixture(scope="module")
-def alter_host(docker_compose) -> Iterable[testinfra.host.Host]:
-    # Getting a compressed graph with swh-graph is not stable enough
-    # so we use a mock server for the time being that starts
-    # by default when running the swh-alter container.
-    docker_services = docker_compose.check_compose_output(
-        "ps --status running --format '{{.Service}} {{.Name}}'"
-    )
-    docker_id = dict(line.split(" ") for line in docker_services.split("\n"))[
-        "swh-alter"
-    ]
-    host = testinfra.get_host("docker://" + docker_id)
-    host.check_output("wait-for-it --timeout=60 swh-alter:5009")
-    yield host
 
 
 def wait_for_replayer(docker_compose, kafka_api_url):
@@ -131,75 +111,16 @@ def verified_origins(alter_host, docker_compose, origins, kafka_api_url):
     return origins
 
 
-@dataclasses.dataclass
-class RemovalOperation:
-    identifier: str
-    bundle_path: str
-    origins: List[str]
-    removed_swhids: List[str] = dataclasses.field(default_factory=list)
-    referencing: List[str] = dataclasses.field(default_factory=list)
-    _removed_content_sha1s: Optional[List[bytes]] = None
-
-    def get_removed_content_sha1s(self, host):
-        if self._removed_content_sha1s is None:
-            self._removed_content_sha1s = []
-            # Computing the SHA1 of content objects from the recovery bundle
-            # is a very slow operation. So let’s only take a random sample
-            # of the content SWHIDS.
-            some_content_swhids = random.sample(
-                [
-                    swhid
-                    for swhid in self.removed_swhids
-                    if swhid.startswith("swh:1:cnt:")
-                ],
-                k=5,
-            )
-            logger.debug(
-                "random content sha1s picked %s", ", ".join(some_content_swhids)
-            )
-            for swhid in some_content_swhids:
-                cmd = host.run(
-                    f"swh alter recovery-bundle extract-content "
-                    "--identity /srv/softwareheritage/age-identities.txt --output - "
-                    f"'{self.bundle_path}' '{swhid}'"
-                )
-                assert cmd.succeeded, f"extract-content failed! {cmd.stderr}"
-                sha1 = hashlib.sha1(cmd.stdout_bytes).hexdigest()
-                logger.debug("%s data SHA1: %s", swhid, sha1)
-                self._removed_content_sha1s.append(sha1)
-        return self._removed_content_sha1s
-
-    def run_in(self, host):
-        remove_output = host.check_output(
-            "echo y | swh alter remove "
-            f"--identifier '{self.identifier}' "
-            f"--recovery-bundle '{self.bundle_path}' "
-            f"{' '.join(self.origins)}"
-        )
-        logger.debug(remove_output)
-        dump = host.check_output(
-            f"swh alter recovery-bundle info --dump-manifest '{self.bundle_path}'"
-        )
-        manifest = yaml.safe_load(dump)
-        logger.debug("%s manifest %s", self.identifier, manifest)
-        self.removed_swhids = manifest["swhids"]
-        if int(manifest["version"]) >= 3:
-            assert self.origins == manifest["requested"]
-            self.referencing = manifest["referencing"]
-
-
-FORK_REMOVAL_OP = RemovalOperation(
-    identifier="integration-test-fork",
-    bundle_path="/tmp/integration-test-fork.swh-recovery-bundle",
-    origins=["https://gitlab.softwareheritage.org/lunar/swh-py-template.git"],
-)
-
-
 @pytest.fixture(scope="module")
-def fork_removed(alter_host, verified_origins):
-    FORK_REMOVAL_OP.run_in(alter_host)
-    assert len(FORK_REMOVAL_OP.removed_swhids) > 0
-    return FORK_REMOVAL_OP
+def fork_removed(make_removal_operation, alter_host, verified_origins):
+    op = make_removal_operation(
+        identifier="integration-test-fork",
+        bundle_path="/tmp/integration-test-fork.swh-recovery-bundle",
+        origins=["https://gitlab.softwareheritage.org/lunar/swh-py-template.git"],
+    )
+    op.run_in(alter_host)
+    assert len(op.removed_swhids) > 0
+    return op
 
 
 def test_fork_removed_in_postgresql(docker_compose, fork_removed):
@@ -277,8 +198,10 @@ def test_fork_restored_in_elasticsearch(docker_compose, fork_restored):
 
 
 @pytest.fixture(scope="module")
-def initial_removed(alter_host, verified_origins, fork_restored, tiny_git_repo):
-    initial_removal_op = RemovalOperation(
+def initial_removed(
+    make_removal_operation, alter_host, verified_origins, fork_restored, tiny_git_repo
+):
+    initial_removal_op = make_removal_operation(
         identifier="integration-test-initial",
         bundle_path="/tmp/integration-test-initial.swh-recovery-bundle",
         origins=[tiny_git_repo[1]],
@@ -372,9 +295,14 @@ def test_initial_restored_in_extra_objstorage(
 
 @pytest.fixture(scope="module")
 def both_removed(
-    alter_host, verified_origins, fork_restored, initial_restored, tiny_git_repo
+    make_removal_operation,
+    alter_host,
+    verified_origins,
+    fork_restored,
+    initial_restored,
+    tiny_git_repo,
 ):
-    both_removal_op = RemovalOperation(
+    both_removal_op = make_removal_operation(
         identifier="integration-test-both",
         bundle_path="/tmp/integration-test-both.swh-recovery-bundle",
         origins=[
