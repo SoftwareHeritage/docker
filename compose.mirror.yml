@@ -288,5 +288,22 @@ services:
 
   amqp-mirror:
     image: rabbitmq:3.13-management
+
+  swh-mirror-notification-watcher:
+    image: swh/stack
+    build: ./
+    env_file:
+      - ./env/common_python.env
+    environment:
+      SWH_LOG_LEVELS: info
+    command: run-mirror-notification-watcher
+    depends_on:
+      - kafka
+      - swh-mirror-storage
+      - smtp
+    volumes:
+      - "./conf/mirror/alter.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-alter/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
+
 volumes:
   mirror-masking-data:

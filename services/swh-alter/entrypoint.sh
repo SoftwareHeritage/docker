@@ -11,7 +11,9 @@ case "$1" in
     "shell")
       exec bash -i
       ;;
-
+    "run-mirror-notification-watcher")
+      exec swh alter run-mirror-notification-watcher "$@"
+      ;;
     *)
       exec python /src/alter_companion.py "$@"
       ;;
