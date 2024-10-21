@@ -17,6 +17,7 @@ TOPICS = [
     "swh.journal.objects_privileged.release",
     "swh.journal.objects_privileged.revision",
     "swh.journal.indexed.origin_intrinsic_metadata",
+    "swh.journal.mirror-notifications.removal_notification",
 ]
 
 

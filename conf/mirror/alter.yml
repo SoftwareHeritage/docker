@@ -1,6 +1,6 @@
 storage:
   cls: postgresql
-  db: postgresql:///?service=swh-mirror-storage
+  db: postgresql:///?host=swh-mirror-storage-db&dbname=swh-mirror-storage&user=postgres&password=testpassword
   objstorage:
     cls: remote
     url: http://nginx-mirror/rpc/objstorage/
@@ -53,12 +53,12 @@ recovery_bundles:
 
 journal_client:
   brokers: kafka
-  prefix: swh.journal
+  prefix: swh.journal.mirror-notifications
   group_id: swh.mirror-notification-watcher
 
 masking_admin:
   cls: postgresql
-  db: postgresql:///?service=swh-mirror-masking
+  db: postgresql:///?host=swh-mirror-masking-db&dbname=swh-mirror-masking&user=postgres&password=testpassword
 
 emails:
   from: swh-mirror@example.org

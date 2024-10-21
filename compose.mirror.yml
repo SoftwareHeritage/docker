@@ -299,7 +299,9 @@ services:
     command: run-mirror-notification-watcher
     depends_on:
       - kafka
+      - kafka-create-topics
       - swh-mirror-storage
+      - swh-mirror-masking-db
       - smtp
     volumes:
       - "./conf/mirror/alter.yml:/srv/softwareheritage/config.yml:ro"

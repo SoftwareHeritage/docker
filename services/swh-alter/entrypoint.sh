@@ -12,6 +12,7 @@ case "$1" in
       exec bash -i
       ;;
     "run-mirror-notification-watcher")
+      shift
       exec swh alter run-mirror-notification-watcher "$@"
       ;;
     *)
