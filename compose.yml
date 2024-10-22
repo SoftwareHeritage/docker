@@ -84,7 +84,7 @@ services:
       - "60"
       - "1" # flush every minutes
     healthcheck:
-      test: ["CMD", "redis-cli", "PING"]
+      test: [ "CMD", "redis-cli", "PING" ]
       interval: 1s
       timeout: 5s
       retries: 10
@@ -119,17 +119,18 @@ services:
       retries: 6
 
   # SMTP service (used by keycloak and vault)
-  mailhog:
-    image: mailhog/mailhog
+  smtp:
+    image: axllent/mailpit
+    # https://mailpit.axllent.org/docs/configuration/runtime-options/
     environment:
-      MH_UI_WEB_PATH: mailhog
-      MH_STORAGE: maildir
-      MH_MAILDIR_PATH: /home/mailhog/maildir
-    # use /home/mailhog as volume because it's an existing directory with
-    # proper ownership in the mailhog image, so the mounted volume is properly
-    # owned by the mailhog user
+      MP_DATABASE: /srv/mailpit.db
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+      MP_WEBROOT: mail
+    ports:
+      - "1025"
     volumes:
-      - /home/mailhog
+      - /srv
 
   # Scheduler
   swh-scheduler-db:

@@ -24,4 +24,4 @@ cache:
   use_secondary_endpoint_for_downloads: true
 smtp:
   port: 1025
-  host: mailhog
+  host: smtp

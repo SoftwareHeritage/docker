@@ -334,7 +334,7 @@ def origins(docker_compose, scheduler_host, origin_urls: List[Tuple[str, str]]):
         )
         if "Executions:" in status:
             if "[eventful]" in status:
-                print(f"Loading of {origin_url} is done (took {time.time()-t0:.2f}s)")
+                print(f"Loading of {origin_url} is done (took {time.time() - t0:.2f}s)")
             elif "[started]" in status or "[scheduled]" in status:
                 ids.append(taskid)
             elif "[failed]" in status:
@@ -356,3 +356,9 @@ def origins(docker_compose, scheduler_host, origin_urls: List[Tuple[str, str]]):
     retry_until_success(check_origins_load_statuses)
 
     return origin_urls
+
+
+@pytest.fixture
+def smtp_port(docker_compose):
+    """Get the port exposed by our smtp server."""
+    return service_port(docker_compose, "smtp", 1025)

@@ -144,7 +144,7 @@ defines all the required backend services:
 - kafka (with a kafka-ui frontend),
 - prometheus (with several helper tools),
 - grafana,
-- mailhog,
+- mailpit,
 - redis,
 - memcache.
 
@@ -195,7 +195,7 @@ Useful services are then exposed by nginx via URL routing:
 - ``/deposit``: swh-deposit_ public and private API
 - ``/grafana``: the Grafana dashboard for Prometheus
 - ``/kafka-ui``: the kafka-UI dashboard for kafka
-- ``/mailhog``: the mailhog dashboard
+- ``/mail``: the mailpit dashboard
 - ``/prometheus``: the Prometheus monitoring service
 - ``/graphql``: swh-graphql_ public graphQL API (if available)
 - ``/keycloak``: the Keycloak service (if available)
@@ -736,8 +736,8 @@ User registration in Keycloak database is available by following the Register li
 in the page located at http://localhost:<publicport>/oidc/login/.
 
 Please note that email verification is required to properly register an account.
-As we are in a testing environment, we use a MailHog instance as a fake SMTP server.
-All emails sent by Keycloak can be easily read from the MailHog Web UI located
+As we are in a testing environment, we use a Mailpit instance as a fake SMTP server.
+All emails sent by Keycloak can be easily read from the Mailpit Web UI located
 at http://localhost:8025/.
 
 
