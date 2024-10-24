@@ -65,11 +65,6 @@ in addition to the main one. Provided compose files are:
   http://localhost:<publicport> (`<publicport>` being the port chosen by docker
   for the service ``nginx-mirror``).
 
-- `compose.replica.yml`: deploy a partial SWH stack using a postgresal
-  storage filled using the `pglogical`_ replication mechanism. You can browse
-  the mirror using the URL http://localhost:<publicport> (`<publicport>` being
-  the port chosen by docker for the service ``nginx-replica``).
-
 - `compose.scrubber.yml`: deploy swh-scrubber_ services (scrubbing the
   Postgresql storage only for now, so incompatible with the
   `compose.cassandra.yml` override).
@@ -190,7 +185,6 @@ session. For example to show the Celery status::
 The services exposing internal ports on the host are:
 
 - ``nginx`` from the main ``compose.yml`` file,
-- ``nginx-replica`` from the ``compose.replica.yml`` file and
 - ``nginx-mirror`` from the ``compose.mirror.yml`` file.
 
 Useful services are then exposed by nginx via URL routing:

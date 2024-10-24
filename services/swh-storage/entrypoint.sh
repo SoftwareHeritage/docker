@@ -60,10 +60,6 @@ case "$1" in
     *)
         if [ "$backend" = "postgresql" ]; then
             swh_setup_db storage
-
-            if [[ -n $REPLICA_SRC ]]; then
-                swh_setup_dbreplica
-            fi
         fi
 
         if [ "$record_references" ]; then
