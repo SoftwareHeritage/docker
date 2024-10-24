@@ -37,12 +37,14 @@ def compose_services():
 
 @pytest.fixture(scope="module")
 def origin_urls(small_git_repo, tiny_git_repo):
+    # When changing this, beware of the 'metadata_patterns' below that probably
+    # needs updating...
     return [
         small_git_repo,
         tiny_git_repo,
         ("git", "https://github.com/rdicosmo/parmap.git"),
-        ("pypi", "https://pypi.org/project/swh.core/"),
-        ("pypi", "https://pypi.org/project/swh.model/"),
+        ("pypi", "https://pypi.org/project/swh.counters/"),
+        ("pypi", "https://pypi.org/project/swh.search/"),
     ]
 
 
@@ -111,8 +113,8 @@ def test_origin_metadata_search(origins, docker_compose, nginx_get, api_get):
     assert set(es_origins) == set(origins)
 
     metadata_patterns = {
-        "https://pypi.org/project/swh.core/": "Software Heritage core utilities",
-        "https://pypi.org/project/swh.model/": "Software Heritage data model",
+        "https://pypi.org/project/swh.counters/": "Software Heritage archive counters",
+        "https://pypi.org/project/swh.search/": "Software Heritage search service",
         "https://github.com/rdicosmo/parmap.git": "roberto",
     }
     imd_urls = set(metadata_patterns)
@@ -203,15 +205,19 @@ def test_origin_metadata_search(origins, docker_compose, nginx_get, api_get):
 
     mds = api_get(
         "origin/metadata-search",
-        params={"limit": 10, "fulltext": "Software Heritage core utilities"},
+        params={"limit": 10, "fulltext": "Software Heritage search service"},
     )
     assert len(mds) == 1
     md = mds[0]
-    assert md["metadata"]["mappings"] == ["pkg-info"]
-    assert md["metadata"]["metadata"]["name"] == "swh.core"
-    assert (
-        md["metadata"]["metadata"]["description"] == "Software Heritage core utilities"
-    )
+    assert md["metadata"]["mappings"] == ["npm", "pkg-info"]
+    assert md["metadata"]["metadata"]["name"] == [
+        "swh-search-query-language-parser",
+        "swh.search",
+    ]
+    assert md["metadata"]["metadata"]["description"] == [
+        "Parser for Software Heritage archive search query language",
+        "Software Heritage search service",
+    ]
     assert md["metadata"]["tool"]["name"] == "swh-metadata-detector"
     imd = api_get(f"origin/{quote_plus(md['url'])}/intrinsic-metadata")
     assert md["metadata"]["metadata"] == imd
