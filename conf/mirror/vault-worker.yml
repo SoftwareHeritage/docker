@@ -1,9 +1,10 @@
-storage:
-  cls: remote
-  url: http://nginx-mirror/rpc/storage/
 vault:
   cls: remote
   url: http://nginx-mirror/rpc/vault/
+  storage:
+    cls: remote
+    url: http://nginx-mirror/rpc/storage/
+
 celery:
   broker_heartbeat: null
   task_broker: amqp://guest:guest@amqp-mirror/

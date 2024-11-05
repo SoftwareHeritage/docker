@@ -1,27 +1,28 @@
-storage:
-  cls: remote
-  url: http://nginx/rpc/storage/
-scheduler:
-  cls: remote
-  url: http://nginx/rpc/scheduler/
 vault:
   cls: postgresql
   db: postgresql:///?service=swh-vault
-cache:
-  cls: azure
-  compression: none
-  # https://github.com/Azure/Azurite/blob/main/README.md#usage-with-azure-storage-sdks-or-tools
-  connection_string: "DefaultEndpointsProtocol=http;\
-    AccountName=devstoreaccount1;\
-    AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;\
-    BlobEndpoint=http://azurite:10000/devstoreaccount1;\
-    BlobSecondaryEndpoint=${GATEWAY}:${PUBLIC_PORT}/azure/devstoreaccount1;"
-    # Use docker network default gateway IP to ensure azurite CDN is reachable
-    # from the docker host.
-    # Note the secondary endpoint does NOT come with the scheme (not sure if
-    # it's a bug or a feature)
-  container_name: contents
-  use_secondary_endpoint_for_downloads: true
-smtp:
-  port: 1025
-  host: smtp
+
+  storage:
+    cls: remote
+    url: http://nginx/rpc/storage/
+  scheduler:
+    cls: remote
+    url: http://nginx/rpc/scheduler/
+  cache:
+    cls: azure
+    compression: none
+    # https://github.com/Azure/Azurite/blob/main/README.md#usage-with-azure-storage-sdks-or-tools
+    connection_string: "DefaultEndpointsProtocol=http;\
+      AccountName=devstoreaccount1;\
+      AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;\
+      BlobEndpoint=http://azurite:10000/devstoreaccount1;\
+      BlobSecondaryEndpoint=${GATEWAY}:${PUBLIC_PORT}/azure/devstoreaccount1;"
+      # Use docker network default gateway IP to ensure azurite CDN is reachable
+      # from the docker host.
+      # Note the secondary endpoint does NOT come with the scheme (not sure if
+      # it's a bug or a feature)
+    container_name: contents
+    use_secondary_endpoint_for_downloads: true
+  smtp:
+    port: 1025
+    host: smtp
