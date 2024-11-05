@@ -15,7 +15,7 @@ case "$1" in
         ;;
 
     "rpc")
-        swh_setup_db indexer
+        swh_setup_db indexer_storage
         swh_start_rpc indexer.storage
         ;;
 
