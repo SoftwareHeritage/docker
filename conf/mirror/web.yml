@@ -13,8 +13,7 @@ scheduler:
 
 vault:
   cls: remote
-  args:
-    url: http://nginx-mirror/rpc/vault/
+  url: http://nginx-mirror/rpc/vault/
 
 allowed_hosts:
   - "*"

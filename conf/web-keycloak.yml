@@ -17,8 +17,7 @@ scheduler:
 
 vault:
   cls: remote
-  args:
-    url: http://nginx/rpc/vault/
+  url: http://nginx/rpc/vault/
 
 deposit:
   private_api_url: http://nginx/deposit/1/private/
