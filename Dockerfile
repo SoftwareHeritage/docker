@@ -80,18 +80,21 @@ USER swh
 RUN python3 -m venv /srv/softwareheritage/venv
 ENV PATH="/srv/softwareheritage/venv/bin:${PATH}"
 
-RUN pip install --upgrade pip setuptools wheel
-RUN pip install gunicorn httpie yq
+RUN --mount=type=cache,uid=1000,target=/srv/softwareheritage/.cache \
+    pip install --upgrade pip setuptools wheel
+RUN --mount=type=cache,uid=1000,target=/srv/softwareheritage/.cache \
+    pip install gunicorn httpie yq
 # cython and configjob are required to install the breeze (bzr) package
-RUN pip install cython configobj
+RUN --mount=type=cache,uid=1000,target=/srv/softwareheritage/.cache \
+    pip install cython configobj
 
 COPY requirements-swh.txt /srv/softwareheritage/
-RUN pip install -r  /srv/softwareheritage/requirements-swh.txt
+RUN --mount=type=cache,uid=1000,target=/srv/softwareheritage/.cache \
+    pip install -r  /srv/softwareheritage/requirements-swh.txt
 RUN pip list > /srv/softwareheritage/pip-installed.txt
 COPY utils/*.sh /srv/softwareheritage/utils/
 RUN mkdir -p /srv/softwareheritage/objects
 RUN mkdir -p /srv/softwareheritage/graph
-RUN rm -rd /srv/softwareheritage/.cache
 WORKDIR /srv/softwareheritage/
 ENV SWH_CONFIG_FILENAME=/srv/softwareheritage/config.yml
 ENTRYPOINT ["/srv/softwareheritage/entrypoint.sh"]
