@@ -22,7 +22,7 @@ def compose_services():
     return [
         "docker-helper",
         "docker-proxy",
-        "swh-indexer-worker-journal",
+        "swh-indexer-journal-client-oimd",
         "swh-lister",  # required for the scheduler runner to start
         "swh-loader",
         "swh-scheduler-journal-client",

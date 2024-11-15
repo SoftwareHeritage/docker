@@ -51,3 +51,26 @@ services:
     volumes:
       - "./conf/loader-deposit.yml:/srv/softwareheritage/config.yml:ro"
       - "./services/swh-worker/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
+
+  swh-indexer-journal-client-remd:
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
+    build: ./
+    user: swh
+    env_file:
+      - ./env/common_python.env
+      - ./env/workers.env
+    environment:
+      SWH_WORKER_INSTANCE: indexer
+      SWH_LOG_LEVELS: info
+      POSTGRES_DB: swh-idx-storage
+      SWH_SCHEDULER_INSTANCE: http://nginx/rpc/scheduler/
+    command: journal-client extrinsic_metadata
+    depends_on:
+      - kafka
+      - swh-storage
+      - swh-idx-storage
+      - swh-objstorage
+      - nginx
+    volumes:
+      - "./conf/indexer.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-indexer/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"

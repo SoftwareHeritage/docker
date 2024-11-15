@@ -42,6 +42,7 @@ def compose_services():
         "docker-helper",
         "docker-proxy",
         "swh-deposit",
+        "swh-indexer-journal-client-remd",
         "swh-lister",  # required for the scheduler runner to start
         "swh-loader",
         "swh-loader-deposit",

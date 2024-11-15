@@ -503,7 +503,7 @@ services:
 
   # Indexer workers
 
-  swh-indexer-worker-journal:
+  swh-indexer-journal-client-oimd:
     image: swh/stack:${SWH_IMAGE_TAG:-latest}
     build: ./
     user: swh
@@ -515,7 +515,7 @@ services:
       SWH_LOG_LEVELS: info
       POSTGRES_DB: swh-idx-storage
       SWH_SCHEDULER_INSTANCE: http://nginx/rpc/scheduler/
-    command: journal-client
+    command: journal-client origin_intrinsic_metadata
     depends_on:
       - kafka
       - swh-storage
