@@ -22,10 +22,49 @@ SAMPLE_METADATA = """\
   <codemeta:author>
     <codemeta:name>No One</codemeta:name>
   </codemeta:author>
+  <codemeta:softwareVersion>v1.0.0</codemeta:softwareVersion>
   <swh:deposit>
     <swh:metadata-provenance>
         <schema:url>some-metadata-provenance-url</schema:url>
     </swh:metadata-provenance>
+  </swh:deposit>
+</entry>
+"""
+
+SAMPLE_METADATA_RELEASE_1 = """\
+<?xml version="1.0" encoding="utf-8"?>
+<entry xmlns="http://www.w3.org/2005/Atom"
+       xmlns:swh="https://www.softwareheritage.org/schema/2018/deposit"
+       xmlns:codemeta="https://doi.org/10.5063/SCHEMA/CODEMETA-2.0"
+       xmlns:schema="http://schema.org/">
+  <title>Test Software</title>
+  <codemeta:author>
+    <codemeta:name>No One</codemeta:name>
+  </codemeta:author>
+   <codemeta:softwareVersion>v1.0.0</codemeta:softwareVersion>
+  <swh:deposit>
+    <swh:create_origin>
+      <swh:origin url="https://softwareheritage.org/test-software" />
+    </swh:create_origin>
+  </swh:deposit>
+</entry>
+"""
+
+SAMPLE_METADATA_RELEASE_2 = """\
+<?xml version="1.0" encoding="utf-8"?>
+<entry xmlns="http://www.w3.org/2005/Atom"
+       xmlns:swh="https://www.softwareheritage.org/schema/2018/deposit"
+       xmlns:codemeta="https://doi.org/10.5063/SCHEMA/CODEMETA-2.0"
+       xmlns:schema="http://schema.org/">
+  <title>Test Software</title>
+  <codemeta:author>
+    <codemeta:name>No One</codemeta:name>
+  </codemeta:author>
+   <codemeta:softwareVersion>v2.0.0</codemeta:softwareVersion>
+  <swh:deposit>
+    <swh:create_origin>
+      <swh:origin url="https://softwareheritage.org/test-software" />
+    </swh:create_origin>
   </swh:deposit>
 </entry>
 """
@@ -49,6 +88,7 @@ def compose_services():
         "swh-scheduler-journal-client",
         "swh-scheduler-listener",
         "swh-scheduler-runner",
+        "swh-web",
     ]
 
 
@@ -65,6 +105,12 @@ def deposit_host(request, docker_compose, scheduler_host):
     deposit_host.check_output("echo 'print(\"Hello World!\")\n' > /tmp/hello.py")
     deposit_host.check_output("tar -C /tmp -czf /tmp/archive.tgz /tmp/hello.py")
     deposit_host.check_output(f"echo '{SAMPLE_METADATA}' > /tmp/metadata.xml")
+    deposit_host.check_output(
+        f"echo '{SAMPLE_METADATA_RELEASE_1}' > /tmp/metadata_release1.xml"
+    )
+    deposit_host.check_output(
+        f"echo '{SAMPLE_METADATA_RELEASE_2}' > /tmp/metadata_release2.xml"
+    )
     deposit_host.check_output(f"wait-for-it swh-deposit:5006 -t {WFI_TIMEOUT}")
     # return a testinfra connection to the container
     yield deposit_host
@@ -178,3 +224,62 @@ def test_create_deposit_multipart(deposit_host):
         error_message="Deposit loading failed",
         max_attempts=60,
     )
+
+
+def test_create_deposit_releases(deposit_host, api_get):
+    # deposit a first version
+    deposit = deposit_host.check_output(
+        "swh deposit upload --format json --username test --password test "
+        "--url http://nginx/deposit/1 "
+        "--archive /tmp/archive.tgz "
+        "--metadata /tmp/metadata_release1.xml "  # v1.0.0
+    )
+    deposit = json.loads(deposit)
+    deposit_id = deposit["deposit_id"]
+    retry_until_success(
+        functools.partial(check_deposit_done, deposit_host, deposit_id),
+        error_message="Deposit loading failed",
+        max_attempts=60,
+    )
+
+    # then another one
+    deposit = deposit_host.check_output(
+        "swh deposit upload --format json --username test --password test "
+        "--url http://nginx/deposit/1 "
+        "--archive /tmp/archive.tgz "
+        "--metadata /tmp/metadata_release2.xml "  # v2.0.0
+    )
+    deposit = json.loads(deposit)
+    deposit_id = deposit["deposit_id"]
+    retry_until_success(
+        functools.partial(check_deposit_done, deposit_host, deposit_id),
+        error_message="Deposit loading failed",
+        max_attempts=60,
+    )
+    status = json.loads(
+        deposit_host.check_output(
+            "swh deposit status --format json --username test --password test "
+            f"--url http://nginx/deposit/1 --deposit-id {deposit_id}"
+        )
+    )
+
+    deposit_swh_id_context = status["deposit_swh_id_context"]
+    for part in deposit_swh_id_context.split(";"):
+        if part.startswith("visit="):
+            snapshot_id = part.split(":")[-1]
+            break
+    snapshot = api_get(f"snapshot/{snapshot_id}/")
+    branches = snapshot["branches"]
+
+    assert len(branches) == 3
+    assert branches["HEAD"]["target_type"] == "alias"
+    assert branches["HEAD"]["target"] == "deposit/v2.0.0"
+    assert branches["deposit/v1.0.0"]["target_type"] == "release"
+    assert branches["deposit/v2.0.0"]["target_type"] == "release"
+
+    release_1_id = branches["deposit/v1.0.0"]["target"]
+    release_1 = api_get(f"release/{release_1_id}/")
+    assert release_1["name"] == "v1.0.0"
+    release_2_id = branches["deposit/v2.0.0"]["target"]
+    release_2 = api_get(f"release/{release_2_id}/")
+    assert release_2["name"] == "v2.0.0"
