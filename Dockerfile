@@ -6,6 +6,11 @@ FROM ${REGISTRY}rsvndump-base:latest AS rsvndump_image
 FROM rust:slim-bookworm AS build_rage
 RUN cargo install rage
 
+# build yq (stolen from https://github.com/mikefarah/yq/blob/master/Dockerfile)
+FROM golang:1.23 AS build_yq
+
+RUN CGO_ENABLED=0 go install -ldflags "-s" github.com/mikefarah/yq/v4@latest
+
 FROM python:3.11
 
 ARG PGDG_REPO=http://apt.postgresql.org/pub/repos/apt
@@ -69,6 +74,8 @@ COPY --from=rsvndump_image /usr/local/bin/rsvndump /usr/local/bin/rsvndump
 
 # Install rage (for swh-alter)
 COPY --from=build_rage /usr/local/cargo/bin/rage /usr/local/cargo/bin/rage-keygen /usr/local/bin
+# Install yq
+COPY --from=build_yq /go/bin/yq /usr/local/bin
 
 ENV JAVA_HOME=/opt/java/openjdk
 COPY --from=eclipse-temurin:11 $JAVA_HOME $JAVA_HOME
@@ -83,7 +90,7 @@ ENV PATH="/srv/softwareheritage/venv/bin:${PATH}"
 RUN --mount=type=cache,uid=1000,target=/srv/softwareheritage/.cache \
     pip install --upgrade pip setuptools wheel
 RUN --mount=type=cache,uid=1000,target=/srv/softwareheritage/.cache \
-    pip install gunicorn httpie yq
+    pip install gunicorn httpie
 # cython and configjob are required to install the breeze (bzr) package
 RUN --mount=type=cache,uid=1000,target=/srv/softwareheritage/.cache \
     pip install cython configobj
