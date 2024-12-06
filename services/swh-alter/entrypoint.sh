@@ -2,10 +2,12 @@
 
 set -e
 
+source /srv/softwareheritage/utils/pgsql.sh
 source /srv/softwareheritage/utils/pyutils.sh
 source /srv/softwareheritage/utils/swhutils.sh
 
 setup_pip
+setup_pgsql
 
 case "$1" in
     "shell")

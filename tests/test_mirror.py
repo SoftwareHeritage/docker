@@ -105,6 +105,17 @@ def origins(docker_compose, origins, base_api_get, api_get, kafka_api_url):
     assert check_output("ps --quiet --status running kafka")
     print("OK")
 
+    # check the mirror storage has the proper flavor
+    db_desc = check_output("exec -t swh-mirror-storage swh db version storage")
+    db_d = {
+        k: v
+        for k, v in (
+            row.strip().split(": ") for row in db_desc.splitlines() if row.strip()
+        )
+    }
+    assert db_d["module"] == "storage:postgresql"
+    assert db_d["flavor"] == "mirror"
+
     expected_urls = set(url for _, url in origins)
 
     print("Checking origins exists in the main storage")

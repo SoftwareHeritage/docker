@@ -48,7 +48,11 @@ case "$1" in
     *)
         # noop if not pg backend is configured
         swh db init-admin --all storage
-        swh db init --all storage
+        if [[ -n "$DB_FLAVOR" ]]; then
+            swh db init --all --flavor ${DB_FLAVOR} storage
+        else
+            swh db init --all storage
+        fi
         swh db upgrade --all storage
 
         if [ "$record_references" ]; then

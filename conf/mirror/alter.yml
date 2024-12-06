@@ -1,6 +1,6 @@
 storage:
   cls: postgresql
-  db: postgresql:///?host=swh-mirror-storage-db&dbname=swh-mirror-storage&user=postgres&password=testpassword
+  db: postgresql:///?service=swh-mirror-storage
   objstorage:
     cls: remote
     url: http://nginx-mirror/rpc/objstorage/
@@ -58,7 +58,7 @@ journal_client:
 
 masking_admin:
   cls: postgresql
-  db: postgresql:///?host=swh-mirror-masking-db&dbname=swh-mirror-masking&user=postgres&password=testpassword
+  db: postgresql:///?service=swh-mirror-masking
 
 emails:
   from: swh-mirror@example.org
@@ -68,4 +68,4 @@ emails:
 
 smtp:
   host: smtp
-  port: 25
+  port: 1025

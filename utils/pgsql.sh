@@ -43,15 +43,15 @@ EOF
       # There is probably a better way of doing this...
       NAME=${!CFG}
       PGHOST=PGHOST_$i
-      PGHOST=${!PGHOST}
+      PGHOST=${!PGHOST:-${NAME}-db}
       PGPORT=PGPORT_$i
       PGPORT=${!PGPORT:-5432}
       PGUSER=PGUSER_$i
-      PGUSER=${!PGUSER}
+      PGUSER=${!PGUSER:-postgres}
       POSTGRES_DB=POSTGRES_DB_$i
-      POSTGRES_DB=${!POSTGRES_DB}
+      POSTGRES_DB=${!POSTGRES_DB:-${NAME}}
       PGPASSWORD=PGPASSWORD_$i
-      PGPASSWORD=${!PGPASSWORD}
+      PGPASSWORD=${!PGPASSWORD:-testpassword}
 
       cat >> ~/.pgpass <<EOF
 ${PGHOST}:${PGPORT}:template1:${PGUSER}:${PGPASSWORD}

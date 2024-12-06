@@ -27,7 +27,6 @@ services:
     environment:
       DB_FLAVOR: mirror
       POSTGRES_DB: swh-mirror-storage
-      STORAGE_BACKEND: postgresql
       RPC_PORT: 5002
     command: rpc
     healthcheck:
@@ -55,7 +54,6 @@ services:
       - swh-mirror-masking-db
     command: rpc
     environment:
-      MASKING_DBNAME: postgresql:///?service=swh-mirror-masking
       POSTGRES_DB: swh-mirror-masking
       RPC_PORT: 5002
     healthcheck:
@@ -63,8 +61,7 @@ services:
       retries: 6
     volumes:
       - "./conf/mirror/storage-public.yml:/srv/softwareheritage/config.yml:ro"
-      - "./services/swh-storage-public/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
-      - "./conf/mirror/create-mirror-masking-db.yml:/srv/softwareheritage/config-create-db.yml:ro"
+      - "./services/swh-storage/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   # Object storage
   swh-mirror-objstorage:
@@ -165,8 +162,8 @@ services:
   swh-mirror-vault-db:
     image: postgres:16
     environment:
-      POSTGRES_PASSWORD: testpassword
       POSTGRES_DB: swh-mirror-vault
+      POSTGRES_PASSWORD: testpassword
     volumes:
       - "./services/initdb.d:/docker-entrypoint-initdb.d"
 
@@ -296,6 +293,8 @@ services:
       - ./env/common_python.env
     environment:
       SWH_LOG_LEVELS: info
+      PGCFG_0: swh-mirror-storage
+      PGCFG_1: swh-mirror-masking
     command: run-mirror-notification-watcher
     depends_on:
       - kafka
