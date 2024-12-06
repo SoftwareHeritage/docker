@@ -7,24 +7,15 @@ source /srv/softwareheritage/utils/swhutils.sh
 source /srv/softwareheritage/utils/pgsql.sh
 
 setup_pip
+# might not be needed, but makes no harm (noop)
+setup_pgsql
 
 backend=$(yq -r .storage.cls $SWH_CONFIG_FILENAME)
-
-if [ "$backend" = "pipeline" ]; then
-        eval $(cat <<END_OF_PYTHON | python
-import yaml
-conf = yaml.safe_load(open("$SWH_CONFIG_FILENAME"))
-print("backend=" + conf["storage"]["steps"][-1]["cls"])
-if any(step["cls"] == "record_references" for step in conf["storage"]["steps"]):
-    print("record_references=1")
-END_OF_PYTHON
-)
+if yq -e '.storage | .. | select(has("cls") and .cls == "record_references") | .cls' $SWH_CONFIG_FILENAME; then
+    record_references=1
 fi
 
 case "$backend" in
-    "postgresql")
-        setup_pgsql
-        ;;
     "cassandra")
         echo Waiting for Cassandra to start
         IFS=','
@@ -39,12 +30,9 @@ seeds = [seed.strip() for seed in '${CASSANDRA_SEEDS}'.split(',')]
 create_keyspace(seeds, 'swh')
 EOF
         ;;
-    remote)
+    *)
         # No extra setup needed
         ;;
-    *)
-        echo Unsupported backend "$backend" >&2
-        exit 1
 esac
 
 
@@ -58,9 +46,10 @@ case "$1" in
         exec swh $@
         ;;
     *)
-        if [ "$backend" = "postgresql" ]; then
-            swh_setup_db storage
-        fi
+        # noop if not pg backend is configured
+        swh db init-admin --all storage
+        swh db init --all storage
+        swh db upgrade --all storage
 
         if [ "$record_references" ]; then
             swh storage create-object-reference-partitions "$(date -I)" "$(date -I -d "next week")"

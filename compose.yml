@@ -342,8 +342,7 @@ services:
       retries: 6
     volumes:
       - "./conf/storage-public.yml:/srv/softwareheritage/config.yml:ro"
-      - "./services/swh-storage-public/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
-      - "./services/swh-storage-public/config-create-db.yml:/srv/softwareheritage/config-create-db.yml:ro"
+      - "./services/swh-storage/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   # Object storage
 
