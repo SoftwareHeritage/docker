@@ -27,7 +27,7 @@ services:
       - kafka
     restart: on-failure
     entrypoint: []
-    command: sh -c 'wait-for-it kafka:9092 -s --timeout=0 -- python /srv/softwareheritage/create_topics.py && echo OK && sleep 10m'
+    command: sh -c 'wait-for-it kafka:9092 -s --timeout=0 -- python /srv/softwareheritage/create_topics.py && echo OK && sleep inf'
     volumes:
       - "./utils/create_topics.py:/srv/softwareheritage/create_topics.py:ro"
 
