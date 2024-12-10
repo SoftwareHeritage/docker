@@ -5,7 +5,7 @@ services:
     # discover other cassandra containers.
     # This container must not be scaled up; scale up the 'cassandra'
     # container instead.
-    image: cassandra:4.1
+    image: cassandra:5.0
     env_file:
     - ./env/cassandra.env
     entrypoint: /swh_entrypoint.sh
@@ -18,7 +18,7 @@ services:
     # down. They will automatically connect to 'cassandra-seed', and
     # 'cassandra-seed' will tell clients to connect to these 'cassandra'
     # containers to load-balance.
-    image: cassandra:4.1
+    image: cassandra:5.0
     entrypoint: /swh_entrypoint.sh
     volumes:
         - "./services/cassandra/swh_entrypoint.sh:/swh_entrypoint.sh:ro"
