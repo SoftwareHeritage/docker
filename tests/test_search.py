@@ -40,8 +40,8 @@ def origin_urls(small_git_repo, tiny_git_repo):
     # When changing this, beware of the 'metadata_patterns' below that probably
     # needs updating...
     return [
-        small_git_repo,
-        tiny_git_repo,
+        ("git", small_git_repo),
+        ("git", tiny_git_repo),
         ("git", "https://github.com/rdicosmo/parmap.git"),
         ("pypi", "https://pypi.org/project/swh.counters/"),
         ("pypi", "https://pypi.org/project/swh.search/"),

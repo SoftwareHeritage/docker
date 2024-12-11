@@ -282,18 +282,12 @@ def webapp_host(docker_compose):
 
 @pytest.fixture(scope="module")
 def small_git_repo():
-    return (
-        "git",
-        "https://gitlab.softwareheritage.org/swh/devel/swh-counters.git",
-    )
+    return "https://gitlab.softwareheritage.org/swh/devel/swh-counters.git"
 
 
 @pytest.fixture(scope="module")
 def tiny_git_repo():
-    return (
-        "git",
-        "https://gitlab.softwareheritage.org/swh/devel/swh-py-template.git",
-    )
+    return "https://gitlab.softwareheritage.org/swh/devel/swh-py-template.git"
 
 
 @pytest.fixture(scope="module")
@@ -302,7 +296,7 @@ def origin_urls(tiny_git_repo) -> List[Tuple[str, Union[str, Iterable[str]]]]:
     # main storage with the content from the loading of the origins listed
     # here. By default we only load one git origin (to try to keep execution
     # time under control), but some tests may require more than that.
-    return [tiny_git_repo]
+    return [("git", tiny_git_repo)]
 
 
 def filter_origins(origin_urls: Iterable[str]) -> str:

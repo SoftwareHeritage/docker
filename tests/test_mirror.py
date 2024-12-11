@@ -66,8 +66,8 @@ def mirror_api_get_directory(mirror_api_url, http_session):
 @pytest.fixture(scope="module")
 def origin_urls(tiny_git_repo, small_git_repo):
     return [
-        tiny_git_repo,
-        small_git_repo,
+        ("git", tiny_git_repo),
+        ("git", small_git_repo),
         (
             "hg",
             [
@@ -234,7 +234,7 @@ def tiny_git_removed_from_main_archive(
     removal_op = make_removal_operation(
         identifier="tiny-git",
         bundle_path="/tmp/tiny-git.swh-recovery-bundle",
-        origins=[tiny_git_repo[1]],
+        origins=[tiny_git_repo],
     )
     removal_op.run_in(alter_host)
     assert len(removal_op.removed_swhids) > 0

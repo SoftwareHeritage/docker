@@ -30,7 +30,7 @@ def graphql_url(nginx_url) -> str:
 @pytest.fixture(scope="module")
 def origin_urls(tiny_git_repo, small_git_repo):
     return [
-        tiny_git_repo,
+        ("git", tiny_git_repo),
         (
             "hg",
             [
@@ -38,7 +38,7 @@ def origin_urls(tiny_git_repo, small_git_repo):
                 "https://hg.sr.ht/~douardda/pygpibtoolkit",
             ],
         ),
-        small_git_repo,
+        ("git", small_git_repo),
     ]
 
 

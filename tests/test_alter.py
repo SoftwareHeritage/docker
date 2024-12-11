@@ -44,9 +44,9 @@ def compose_services() -> List[str]:
 
 
 @pytest.fixture(scope="module")
-def origin_urls(tiny_git_repo) -> List[Tuple[str, str]]:
+def origin_urls() -> List[Tuple[str, str]]:
     return [
-        tiny_git_repo,
+        ("git", "https://gitlab.softwareheritage.org/swh/devel/swh-py-template.git"),
         ("git", "https://gitlab.softwareheritage.org/lunar/swh-py-template.git"),
     ]
 
@@ -204,7 +204,7 @@ def initial_removed(
     initial_removal_op = make_removal_operation(
         identifier="integration-test-initial",
         bundle_path="/tmp/integration-test-initial.swh-recovery-bundle",
-        origins=[tiny_git_repo[1]],
+        origins=[tiny_git_repo],
     )
     initial_removal_op.run_in(alter_host)
     assert len(initial_removal_op.removed_swhids) > 0
@@ -306,7 +306,7 @@ def both_removed(
         identifier="integration-test-both",
         bundle_path="/tmp/integration-test-both.swh-recovery-bundle",
         origins=[
-            tiny_git_repo[1],
+            tiny_git_repo,
             "https://gitlab.softwareheritage.org/lunar/swh-py-template.git",
         ],
     )
