@@ -26,7 +26,7 @@ import yaml
 from .utils import api_get as api_get_func
 from .utils import api_get_directory as api_get_directory_func
 from .utils import api_poll as api_poll_func
-from .utils import retry_until_success
+from .utils import compose_host_for_service, retry_until_success
 
 logger = logging.getLogger(__name__)
 
@@ -218,14 +218,6 @@ def api_url(nginx_url) -> str:
 @pytest.fixture(scope="module")
 def kafka_api_url(nginx_url) -> str:
     return f"{nginx_url}/kafka/v3/clusters"
-
-
-def compose_host_for_service(docker_compose, service):
-    docker_id = docker_compose.check_compose_output(
-        f"ps {service} --format '{{{{.ID}}}}'"
-    )
-    if docker_id:
-        return testinfra.get_host("docker://" + docker_id)
 
 
 @pytest.fixture(scope="module")

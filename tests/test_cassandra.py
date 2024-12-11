@@ -8,8 +8,8 @@ from typing import List
 
 import pytest
 
-from .conftest import compose_host_for_service
 from .test_git_loader import test_git_loader  # noqa
+from .utils import compose_host_for_service
 
 
 @pytest.fixture(scope="module")

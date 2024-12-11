@@ -9,7 +9,7 @@ from contextlib import contextmanager
 import pytest
 import requests
 
-from .conftest import compose_host_for_service
+from .utils import compose_host_for_service
 
 
 @pytest.fixture(scope="module")

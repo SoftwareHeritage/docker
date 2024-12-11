@@ -9,7 +9,7 @@ from typing import List
 
 import pytest
 
-from .conftest import compose_host_for_service
+from .utils import compose_host_for_service
 
 
 @pytest.fixture(scope="module")

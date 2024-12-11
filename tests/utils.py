@@ -10,6 +10,7 @@ from typing import Any, Callable, Generator, Mapping, Optional, Tuple
 from urllib.parse import urljoin
 
 import requests
+import testinfra
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
@@ -131,3 +132,11 @@ def generate_bearer_token(webapp_host, username, password):
         )
     except AssertionError:
         return False
+
+
+def compose_host_for_service(docker_compose, service):
+    docker_id = docker_compose.check_compose_output(
+        f"ps {service} --format '{{{{.ID}}}}'"
+    )
+    if docker_id:
+        return testinfra.get_host("docker://" + docker_id)

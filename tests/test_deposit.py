@@ -9,8 +9,8 @@ from typing import List
 
 import pytest
 
-from .conftest import WFI_TIMEOUT, compose_host_for_service
-from .utils import retry_until_success
+from .conftest import WFI_TIMEOUT
+from .utils import compose_host_for_service, retry_until_success
 
 SAMPLE_METADATA = """\
 <?xml version="1.0" encoding="utf-8"?>
