@@ -14,7 +14,7 @@ import requests
 from .test_vault import test_vault_directory, test_vault_git_bare  # noqa
 from .utils import api_get as api_get_func
 from .utils import api_get_directory as api_get_directory_func
-from .utils import retry_until_success
+from .utils import compose_host_for_service, retry_until_success
 
 
 @pytest.fixture(scope="module")
@@ -64,6 +64,11 @@ def mirror_api_get_directory(mirror_api_url, http_session):
 
 
 @pytest.fixture(scope="module")
+def mirror_public_storage(docker_compose):
+    return compose_host_for_service(docker_compose, "swh-mirror-storage-public")
+
+
+@pytest.fixture(scope="module")
 def origin_urls(tiny_git_repo, small_git_repo):
     return [
         ("git", tiny_git_repo),
@@ -80,7 +85,7 @@ def origin_urls(tiny_git_repo, small_git_repo):
 
 @pytest.fixture(scope="module")
 def compose_files() -> List[str]:
-    return ["compose.yml", "compose.mirror.yml"]
+    return ["compose.yml", "compose.mirror.yml", "compose.alter.yml"]
 
 
 @pytest.fixture(scope="module")
@@ -241,8 +246,60 @@ def tiny_git_removed_from_main_archive(
     return removal_op
 
 
-def test_mail_sent_to_mirror_operator_on_removal_from_the_main_archive():
-    ...
+def test_mail_sent_to_mirror_operator_on_removal_from_the_main_archive(
+    alter_host,
+    origins,
+    tiny_git_repo,
+    make_removal_operation,
+    nginx_get,
+    mirror_public_storage,
+    mirror_api_get,
+):
+    op = tiny_git_removed_from_main_archive(
+        make_removal_operation, tiny_git_repo, alter_host, origins
+    )
+    # ensure the email has been sent
+    received_msg = nginx_get("mail/api/v1/message/latest")
+    assert received_msg["From"]["Address"] == "swh-mirror@example.org"
+    assert {dst["Address"] for dst in received_msg["To"]} == {
+        "lucio@example.org",
+        "sofia@example.org",
+    }
+    assert (
+        received_msg["Subject"]
+        == "[Action needed] Removal from the main Software Heritage archive (tiny-git)"
+    )
+
+    # now check objects have been masked
+    requests = mirror_public_storage.check_output("swh storage masking list-requests")
+    assert "removal-from-main-archive-tiny-git" in requests
+    assert "Removal notification received from main archive (tiny-git)" in requests
+    assert "- swh:1:ori:33bf251c0937b1394bc2df185779a75ad0bf3d36" in requests
+
+    # check tiny_git_url is masked, but no other origins
+    for _, origin_url in origins:
+        if origin_url == tiny_git_repo:
+            mirror_api_get(
+                f"origin/{quote_plus(origin_url)}/visit/latest/", status_code=403
+            )
+        else:
+            mirror_api_get(f"origin/{quote_plus(origin_url)}/visit/latest/")
+    # check individual objects have been masked
+    for swhid in op.removed_swhids:
+        if swhid.startswith("swh:1:ori:"):
+            continue
+        resp = mirror_api_get(f"resolve/{swhid}/", status_code=403)
+        assert resp["exception"] == "MaskedObjectException"
+
+    # ensure the GPL license has not been removed
+    # the given SWHID is the LICENSE file within swh-py-template (aka tiny_git_repo)
+    # which is also in the other git repo (aka swh-counters)
+    assert "swh:1:cnt:94a9ed024d3859793618152ea559a168bbcbb5e2" not in op.removed_swhids
+    resp = mirror_api_get(
+        "resolve/swh:1:cnt:94a9ed024d3859793618152ea559a168bbcbb5e2/", raw=True
+    )
+    assert resp.status_code == 200
+    assert resp.json()["object_type"] == "content"
 
 
 def test_handle_removal_notification_remove():
