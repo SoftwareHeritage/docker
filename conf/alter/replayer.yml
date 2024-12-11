@@ -1,9 +1,6 @@
 storage:
   cls: remote
   url: http://swh-cassandra-storage:5002
-  objstorage:
-    cls: remote
-    url: http://swh-extra-objstorage:5003
 
 journal_client:
   cls: kafka
