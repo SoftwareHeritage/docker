@@ -388,12 +388,14 @@ def alter_host(docker_compose) -> Iterable[testinfra.host.Host]:
     # Getting a compressed graph with swh-graph is not stable enough
     # so we use a mock server for the time being that starts
     # by default when running the swh-alter container.
-    docker_services = docker_compose.check_compose_output(
-        "ps --status running --format '{{.Service}} {{.Name}}'"
-    )
-    docker_id = dict(line.split(" ") for line in docker_services.split("\n"))[
-        "swh-alter"
-    ]
+    for i in range(10):
+        docker_id = docker_compose.check_compose_output(
+            "ps --status running --format '{{.Name}}' swh-alter"
+        ).strip()
+        if docker_id:
+            break
+        time.sleep(5)
+
     host = testinfra.get_host("docker://" + docker_id)
     host.check_output("wait-for-it --timeout=60 swh-alter:5009")
     yield host
