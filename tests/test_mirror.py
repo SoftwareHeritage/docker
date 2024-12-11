@@ -224,8 +224,8 @@ def test_mirror_replication(
             if e1["type"] == "file":
                 # here we check the content object is known by both the objstorages
                 target = e1["target"]
-                base_api_get(f"content/sha1_git:{target}/raw/", verb="HEAD")
-                api_get(f"content/sha1_git:{target}/raw/", verb="HEAD")
+                base_api_get(f"content/sha1_git:{target}/raw/", verb="HEAD", raw=True)
+                api_get(f"content/sha1_git:{target}/raw/", verb="HEAD", raw=True)
 
 
 def tiny_git_removed_from_main_archive(

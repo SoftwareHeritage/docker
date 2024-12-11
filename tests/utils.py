@@ -6,7 +6,7 @@
 import itertools
 import time
 from os.path import join
-from typing import Any, Callable, Generator, Mapping, Tuple
+from typing import Any, Callable, Generator, Mapping, Optional, Tuple
 from urllib.parse import urljoin
 
 import requests
@@ -23,19 +23,46 @@ def grouper(iterable, n):
 
 
 # Utility functions
-def api_get(baseurl: str, path: str, verb: str = "GET", session=None, **kwargs):
-    """Query the API at path and return the json result or raise an
-    AssertionError"""
+def api_get(
+    baseurl: str,
+    path: str,
+    verb: str = "GET",
+    session: Optional[requests.Session] = None,
+    status_code: int = 200,
+    raw: Optional[bool] = None,
+    **kwargs,
+):
+    """Query the API at path and return the json result or raise an AssertionError
+
+    args:
+        baseurl: the base URL to query
+
+        path: the path of the query
+
+        verb: the HTTP verb of the query
+
+        session: an optional requests.Session
+
+        status_code: the expected status code (AssertionError will be raised if
+            the response code is different from this status_code).
+
+        raw: if True, return the Response object; if False, return the json
+            structures (aka response.json()); if not given, its value will be
+            set accurding the verb: True for a HEAD, False otherwise.
+
+        **kwargs: Any other named argument will be passes to session.request().
+    """
     if session is None:
-        session = requests
+        session = requests.Session()
     assert path[0] != "/", "you probably do not want that..."
     url = urljoin(baseurl, path)
     resp = session.request(verb, url, **kwargs)
-    assert resp.status_code == 200, f"failed to retrieve {url}: {resp.text}"
-    if verb.lower() == "head":
+    assert resp.status_code == status_code, f"failed to retrieve {url}: {resp.text}"
+    if raw is None:
+        raw = verb.upper() in ("HEAD",)
+    if raw:
         return resp
-    else:
-        return resp.json()
+    return resp.json()
 
 
 def retry_until_success(

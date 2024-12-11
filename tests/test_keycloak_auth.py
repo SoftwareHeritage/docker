@@ -36,6 +36,7 @@ def test_keycloak_authentication(webapp_host, api_get):
         "origins/",
         verb="HEAD",
         headers={"Authorization": f"Bearer {bearer_token}"},
+        raw=True,
     )
 
     # Web API authentication with invalid bearer token should fail
@@ -44,4 +45,5 @@ def test_keycloak_authentication(webapp_host, api_get):
             "origins/",
             verb="HEAD",
             headers={"Authorization": f"Bearer {bearer_token[1:-1]}"},
+            raw=True,
         )
