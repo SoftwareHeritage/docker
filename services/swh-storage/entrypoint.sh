@@ -11,7 +11,8 @@ setup_pip
 setup_pgsql
 
 backend=$(yq -r .storage.cls $SWH_CONFIG_FILENAME)
-if yq -e '.storage | .. | select(has("cls") and .cls == "record_references") | .cls' $SWH_CONFIG_FILENAME; then
+if yq -e '.storage | .. | select(has("cls") and .cls == "record_references") | .cls' \
+      $SWH_CONFIG_FILENAME >/dev/null 2>&1 ; then
     record_references=1
 fi
 
@@ -25,9 +26,22 @@ case "$backend" in
         done
         echo Creating keyspace
         cat << EOF | python3
+import time
 from swh.storage.cassandra import create_keyspace
 seeds = [seed.strip() for seed in '${CASSANDRA_SEEDS}'.split(',')]
-create_keyspace(seeds, 'swh')
+for i in range(9):
+  try:
+    print(f"Attempt {i+1} to create keyspace")
+    create_keyspace(seeds, 'swh')
+    print("Success!")
+    break
+  except:
+    print("Failed!")
+    time.sleep(5)
+else:
+  print(f"Last attempt to create keyspace")
+  create_keyspace(seeds, 'swh')
+  print("Success!")
 EOF
         ;;
     *)
