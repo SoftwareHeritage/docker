@@ -70,6 +70,11 @@ def mirror_public_storage(docker_compose):
 
 
 @pytest.fixture(scope="module")
+def mirror_alter_host(docker_compose):
+    return compose_host_for_service(docker_compose, "swh-mirror-notification-watcher")
+
+
+@pytest.fixture(scope="module")
 def origin_urls(tiny_git_repo, small_git_repo):
     return [
         ("git", tiny_git_repo),
@@ -298,8 +303,58 @@ def test_mail_sent_to_mirror_operator_on_removal_from_the_main_archive(
     assert resp.json()["object_type"] == "content"
 
 
-def test_handle_removal_notification_remove():
-    ...
+def test_handle_removal_notification_remove(
+    alter_host,
+    origins,
+    tiny_git_repo,
+    nginx_get,
+    mirror_alter_host,
+    mirror_public_storage,
+    mirror_api_get,
+):
+    op = tiny_git_removed_from_main_archive(tiny_git_repo, alter_host, origins)
+    # ensure the email has been sent
+    received_msg = nginx_get("mail/api/v1/message/latest")
+    assert received_msg["From"]["Address"] == "swh-mirror@example.org"
+    assert {dst["Address"] for dst in received_msg["To"]} == {
+        "lucio@example.org",
+        "sofia@example.org",
+    }
+    assert (
+        received_msg["Subject"]
+        == "[Action needed] Removal from the main Software Heritage archive (tiny-git)"
+    )
+
+    # now apply the removal in the mirror
+    resp = mirror_alter_host.check_output(
+        "swh alter handle-removal-notification remove tiny-git "
+        "--no-recompute "
+        "--recovery-bundle=/tmp/tiny-git.recovery.bundle"
+    )
+
+    # check tiny_git_url is 404, but no other origins
+    for _, origin_url in origins:
+        if origin_url == tiny_git_repo:
+            mirror_api_get(
+                f"origin/{quote_plus(origin_url)}/visit/latest/", status_code=404
+            )
+        else:
+            mirror_api_get(f"origin/{quote_plus(origin_url)}/visit/latest/")
+    # check individual objects have been removed
+    for swhid in op.removed_swhids:
+        if swhid.startswith("swh:1:ori:"):
+            continue
+        resp = mirror_api_get(f"resolve/{swhid}/", status_code=404)
+
+    # ensure the GPL license has not been removed
+    # the given SWHID is the LICENSE file within swh-py-template (aka tiny_git_repo)
+    # which is also in the other git repo (aka swh-counters)
+    assert "swh:1:cnt:94a9ed024d3859793618152ea559a168bbcbb5e2" not in op.removed_swhids
+    resp = mirror_api_get(
+        "resolve/swh:1:cnt:94a9ed024d3859793618152ea559a168bbcbb5e2/", raw=True
+    )
+    assert resp.status_code == 200
+    assert resp.json()["object_type"] == "content"
 
 
 def test_handle_removal_notification_restrict_permanently():

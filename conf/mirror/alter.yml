@@ -5,17 +5,9 @@ storage:
     cls: remote
     url: http://nginx-mirror/rpc/objstorage/
 
-graph:
-  url: http://swh-alter:5009/
-
 restoration_storage:
   cls: remote
   url: http://nginx-mirror/rpc/storage/
-
-removal_searches:
-  main:
-    cls: remote
-    url: http://nginx-mirror/rpc/search
 
 removal_storages:
   postgresql:
@@ -26,14 +18,6 @@ removal_objstorages:
   primary:
     cls: remote
     url: http://nginx-mirror/rpc/objstorage/
-
-removal_journals:
-  main:
-    cls: kafka
-    brokers:
-      - kafka
-    prefix: swh.journal.objects
-    client_id: swh.alter.removals
 
 recovery_bundles:
   secret_sharing:
