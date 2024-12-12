@@ -10,7 +10,7 @@ from typing import List, Tuple
 import pytest
 import requests
 
-from .utils import retry_until_success
+from .utils import RemovalOperation, retry_until_success
 
 logger = logging.getLogger(__name__)
 
@@ -112,8 +112,8 @@ def verified_origins(alter_host, docker_compose, origins, kafka_api_url):
 
 
 @pytest.fixture(scope="module")
-def fork_removed(make_removal_operation, alter_host, verified_origins):
-    op = make_removal_operation(
+def fork_removed(alter_host, verified_origins):
+    op = RemovalOperation(
         identifier="integration-test-fork",
         bundle_path="/tmp/integration-test-fork.swh-recovery-bundle",
         origins=["https://gitlab.softwareheritage.org/lunar/swh-py-template.git"],
@@ -198,10 +198,8 @@ def test_fork_restored_in_elasticsearch(docker_compose, fork_restored):
 
 
 @pytest.fixture(scope="module")
-def initial_removed(
-    make_removal_operation, alter_host, verified_origins, fork_restored, tiny_git_repo
-):
-    initial_removal_op = make_removal_operation(
+def initial_removed(alter_host, verified_origins, fork_restored, tiny_git_repo):
+    initial_removal_op = RemovalOperation(
         identifier="integration-test-initial",
         bundle_path="/tmp/integration-test-initial.swh-recovery-bundle",
         origins=[tiny_git_repo],
@@ -295,14 +293,13 @@ def test_initial_restored_in_extra_objstorage(
 
 @pytest.fixture(scope="module")
 def both_removed(
-    make_removal_operation,
     alter_host,
     verified_origins,
     fork_restored,
     initial_restored,
     tiny_git_repo,
 ):
-    both_removal_op = make_removal_operation(
+    both_removal_op = RemovalOperation(
         identifier="integration-test-both",
         bundle_path="/tmp/integration-test-both.swh-recovery-bundle",
         origins=[

@@ -12,6 +12,7 @@ import pytest
 import requests
 
 from .test_vault import test_vault_directory, test_vault_git_bare  # noqa
+from .utils import RemovalOperation
 from .utils import api_get as api_get_func
 from .utils import api_get_directory as api_get_directory_func
 from .utils import compose_host_for_service, retry_until_success
@@ -233,10 +234,8 @@ def test_mirror_replication(
                 api_get(f"content/sha1_git:{target}/raw/", verb="HEAD", raw=True)
 
 
-def tiny_git_removed_from_main_archive(
-    make_removal_operation, tiny_git_repo, alter_host, origins
-):
-    removal_op = make_removal_operation(
+def tiny_git_removed_from_main_archive(tiny_git_repo, alter_host, origins):
+    removal_op = RemovalOperation(
         identifier="tiny-git",
         bundle_path="/tmp/tiny-git.swh-recovery-bundle",
         origins=[tiny_git_repo],
@@ -250,14 +249,11 @@ def test_mail_sent_to_mirror_operator_on_removal_from_the_main_archive(
     alter_host,
     origins,
     tiny_git_repo,
-    make_removal_operation,
     nginx_get,
     mirror_public_storage,
     mirror_api_get,
 ):
-    op = tiny_git_removed_from_main_archive(
-        make_removal_operation, tiny_git_repo, alter_host, origins
-    )
+    op = tiny_git_removed_from_main_archive(tiny_git_repo, alter_host, origins)
     # ensure the email has been sent
     received_msg = nginx_get("mail/api/v1/message/latest")
     assert received_msg["From"]["Address"] == "swh-mirror@example.org"

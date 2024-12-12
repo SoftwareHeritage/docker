@@ -3,16 +3,23 @@
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
 
+import dataclasses
+import hashlib
 import itertools
+import logging
+import random
 import time
 from os.path import join
-from typing import Any, Callable, Generator, Mapping, Optional, Tuple
+from typing import Any, Callable, Generator, List, Mapping, Optional, Tuple
 from urllib.parse import urljoin
 
 import requests
 import testinfra
+import yaml
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+
+logger = logging.getLogger(__name__)
 
 
 def grouper(iterable, n):
@@ -140,3 +147,60 @@ def compose_host_for_service(docker_compose, service):
     )
     if docker_id:
         return testinfra.get_host("docker://" + docker_id)
+
+
+@dataclasses.dataclass
+class RemovalOperation:
+    identifier: str
+    bundle_path: str
+    origins: List[str]
+    removed_swhids: List[str] = dataclasses.field(default_factory=list)
+    referencing: List[str] = dataclasses.field(default_factory=list)
+    _removed_content_sha1s: Optional[List[bytes]] = None
+
+    def get_removed_content_sha1s(self, host):
+        if self._removed_content_sha1s is None:
+            self._removed_content_sha1s = []
+            # Computing the SHA1 of content objects from the recovery bundle
+            # is a very slow operation. So let’s only take a random sample
+            # of the content SWHIDS.
+            some_content_swhids = random.sample(
+                [
+                    swhid
+                    for swhid in self.removed_swhids
+                    if swhid.startswith("swh:1:cnt:")
+                ],
+                k=5,
+            )
+            logger.debug(
+                "random content sha1s picked %s", ", ".join(some_content_swhids)
+            )
+            for swhid in some_content_swhids:
+                cmd = host.run(
+                    f"swh alter recovery-bundle extract-content "
+                    "--identity /srv/softwareheritage/age-identities.txt --output - "
+                    f"'{self.bundle_path}' '{swhid}'"
+                )
+                assert cmd.succeeded, f"extract-content failed! {cmd.stderr}"
+                sha1 = hashlib.sha1(cmd.stdout_bytes).hexdigest()
+                logger.debug("%s data SHA1: %s", swhid, sha1)
+                self._removed_content_sha1s.append(sha1)
+        return self._removed_content_sha1s
+
+    def run_in(self, host):
+        remove_output = host.check_output(
+            "echo y | swh alter remove "
+            f"--identifier '{self.identifier}' "
+            f"--recovery-bundle '{self.bundle_path}' "
+            f"{' '.join(self.origins)}"
+        )
+        logger.debug(remove_output)
+        dump = host.check_output(
+            f"swh alter recovery-bundle info --dump-manifest '{self.bundle_path}'"
+        )
+        manifest = yaml.safe_load(dump)
+        logger.debug("%s manifest %s", self.identifier, manifest)
+        self.removed_swhids = manifest["swhids"]
+        if int(manifest["version"]) >= 3:
+            assert self.origins == manifest["requested"]
+            self.referencing = manifest["referencing"]
