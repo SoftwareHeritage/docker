@@ -357,9 +357,90 @@ def test_handle_removal_notification_remove(
     assert resp.json()["object_type"] == "content"
 
 
-def test_handle_removal_notification_restrict_permanently():
-    ...
+def test_handle_removal_notification_restrict_permanently(
+    alter_host,
+    origins,
+    tiny_git_repo,
+    nginx_get,
+    mirror_alter_host,
+    mirror_public_storage,
+    mirror_api_get,
+):
+    op = tiny_git_removed_from_main_archive(tiny_git_repo, alter_host, origins)
+    # ensure the email has been sent
+    received_msg = nginx_get("mail/api/v1/message/latest")
+    assert received_msg["From"]["Address"] == "swh-mirror@example.org"
+    assert {dst["Address"] for dst in received_msg["To"]} == {
+        "lucio@example.org",
+        "sofia@example.org",
+    }
+    assert (
+        received_msg["Subject"]
+        == "[Action needed] Removal from the main Software Heritage archive (tiny-git)"
+    )
+
+    # now mark the removal in the mirror as permanently restricted
+    resp = mirror_alter_host.check_output(
+        "swh alter handle-removal-notification restrict-permanently tiny-git"
+    )
+
+    # check tiny_git_url is 403, but no other origins
+    for _, origin_url in origins:
+        if origin_url == tiny_git_repo:
+            mirror_api_get(
+                f"origin/{quote_plus(origin_url)}/visit/latest/", status_code=403
+            )
+        else:
+            mirror_api_get(f"origin/{quote_plus(origin_url)}/visit/latest/")
+    # check individual objects are masked
+    for swhid in op.removed_swhids:
+        if swhid.startswith("swh:1:ori:"):
+            continue
+        resp = mirror_api_get(f"resolve/{swhid}/", status_code=403)
+
+    # ensure the GPL license has not been masked
+    # the given SWHID is the LICENSE file within swh-py-template (aka tiny_git_repo)
+    # which is also in the other git repo (aka swh-counters)
+    assert "swh:1:cnt:94a9ed024d3859793618152ea559a168bbcbb5e2" not in op.removed_swhids
+    resp = mirror_api_get(
+        "resolve/swh:1:cnt:94a9ed024d3859793618152ea559a168bbcbb5e2/", raw=True
+    )
+    assert resp.status_code == 200
+    assert resp.json()["object_type"] == "content"
 
 
-def test_handle_removal_notification_dismiss():
-    ...
+def test_handle_removal_notification_dismiss(
+    alter_host,
+    origins,
+    tiny_git_repo,
+    nginx_get,
+    mirror_alter_host,
+    mirror_public_storage,
+    mirror_api_get,
+):
+    op = tiny_git_removed_from_main_archive(tiny_git_repo, alter_host, origins)
+    # ensure the email has been sent
+    received_msg = nginx_get("mail/api/v1/message/latest")
+    assert received_msg["From"]["Address"] == "swh-mirror@example.org"
+    assert {dst["Address"] for dst in received_msg["To"]} == {
+        "lucio@example.org",
+        "sofia@example.org",
+    }
+    assert (
+        received_msg["Subject"]
+        == "[Action needed] Removal from the main Software Heritage archive (tiny-git)"
+    )
+
+    # now dismiss the removal in the mirror
+    mirror_alter_host.check_output(
+        "swh alter handle-removal-notification dismiss tiny-git"
+    )
+
+    # check all origins, iluding tiny_git_url, are OK
+    for _, origin_url in origins:
+        mirror_api_get(f"origin/{quote_plus(origin_url)}/visit/latest/")
+    # check individual objects are OK as well
+    for swhid in op.removed_swhids:
+        if swhid.startswith("swh:1:ori:"):
+            continue
+        mirror_api_get(f"resolve/{swhid}/")
