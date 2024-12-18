@@ -151,9 +151,20 @@ def docker_compose(
         docker_host.check_output(f"{compose_cmd} pull --ignore-pull-failures")
 
         # start the whole cluster
-        docker_host.check_output(
-            f"{compose_cmd} up --wait -d {' '.join(compose_services)}"
-        )
+        for i in range(3):
+            try:
+                docker_host.check_output(
+                    f"{compose_cmd} up --wait -d {' '.join(compose_services)}"
+                )
+                break
+            except Exception as exc:
+                print(f"Failed to converge ({exc})")
+                if i == 2:
+                    print("Giving up!")
+                    raise
+                else:
+                    print("Retrying...")
+
         print("OK")
 
         # small hack: add a helper func to docker_host; so it's not necessary to
