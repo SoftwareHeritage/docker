@@ -3,6 +3,7 @@
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
 
+import os
 from functools import partial
 from time import sleep
 from typing import List
@@ -240,9 +241,12 @@ def test_mirror_replication(
 
 
 def tiny_git_removed_from_main_archive(tiny_git_repo, alter_host, origins):
+    bundle_path = "/tmp/tiny-git.swh-recovery-bundle"
+    if os.path.exists(bundle_path):
+        os.remove(bundle_path)
     removal_op = RemovalOperation(
         identifier="tiny-git",
-        bundle_path="/tmp/tiny-git.swh-recovery-bundle",
+        bundle_path=bundle_path,
         origins=[tiny_git_repo],
     )
     removal_op.run_in(alter_host)
