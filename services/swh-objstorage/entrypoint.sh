@@ -15,7 +15,8 @@ case "$1" in
       shift
       wait-for-http $(yq -r '.objstorage.url' $SWH_CONFIG_FILENAME)
       wait-for-http $(yq -r '.objstorage_dst.url' $SWH_CONFIG_FILENAME)
-      wait-for-it kafka:9092 -s --timeout=0
+      wait-for-it kafka:8082 --timeout=0
+      wait-for-topic http://kafka:8082 swh.journal.objects.content
       echo "Starting the SWH mirror content replayer"
       exec swh objstorage replay $@
       ;;

@@ -22,8 +22,9 @@ case "$1" in
     "journal-client")
       shift
       echo "Starting swh-counters-journal client"
-      exec wait-for-it kafka:9092 -s --timeout=0 -- \
-           swh --log-level DEBUG counters \
+      wait-for-it kafka:8082 --timeout=0
+      wait-for-topic http://kafka:8082 swh.journal.objects.content
+      exec swh --log-level DEBUG counters \
            --config-file $SWH_CONFIG_FILENAME \
            journal-client
       ;;

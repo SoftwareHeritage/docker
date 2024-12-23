@@ -75,8 +75,7 @@ case "$1" in
 
         cmd=$1
         shift
-        wait-for-it kafka:9092 -s --timeout=0
-        wait-for-it kafka:8082 -s --timeout=0
+        wait-for-it kafka:8082 --timeout=0
         wait-for-topic http://kafka:8082 swh.journal.objects.snapshot
         case "$cmd" in
             "rpc")
