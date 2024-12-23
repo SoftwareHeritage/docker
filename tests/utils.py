@@ -65,7 +65,9 @@ def api_get(
     assert path[0] != "/", "you probably do not want that..."
     url = urljoin(baseurl, path)
     resp = session.request(verb, url, **kwargs)
-    assert resp.status_code == status_code, f"failed to retrieve {url}: {resp.text}"
+    assert (
+        resp.status_code == status_code
+    ), f"unexpected status code {resp.status_code} for {url}: {resp.text}"
     if raw is None:
         raw = verb.upper() in ("HEAD",)
     if raw:
@@ -187,7 +189,14 @@ class RemovalOperation:
                 self._removed_content_sha1s.append(sha1)
         return self._removed_content_sha1s
 
-    def run_in(self, host):
+    def run_in(self, host, remove_bundle=True):
+        if remove_bundle:
+            host.check_output(
+                "bash -c '"
+                f"[[ -a {self.bundle_path} ]] && "
+                f"rm {self.bundle_path} || true"
+                "'"
+            )
         remove_output = host.check_output(
             "echo y | swh alter remove "
             f"--identifier '{self.identifier}' "
