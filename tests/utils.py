@@ -191,12 +191,14 @@ class RemovalOperation:
 
     def run_in(self, host, remove_bundle=True):
         if remove_bundle:
+            print("Remove existing bundle file (if any)")
             host.check_output(
                 "bash -c '"
                 f"[[ -a {self.bundle_path} ]] && "
                 f"rm {self.bundle_path} || true"
                 "'"
             )
+        print("Execute the 'alter removal' operation")
         remove_output = host.check_output(
             "echo y | swh alter remove "
             f"--identifier '{self.identifier}' "

@@ -1,0 +1,56 @@
+storage:
+  cls: postgresql
+  db: service=swh-storage
+  objstorage:
+    cls: remote
+    url: http://nginx/rpc/objstorage/
+
+graph:
+  url: http://swh-alter:5009/
+
+restoration_storage:
+  cls: remote
+  url: http://nginx/rpc/storage/
+
+removal_searches:
+  main:
+    cls: remote
+    url: http://nginx/rpc/search
+
+removal_storages:
+  postgresql:
+    cls: postgresql
+    db: service=swh-storage
+
+removal_objstorages:
+  primary:
+    cls: remote
+    url: http://nginx/rpc/objstorage/
+
+removal_journals:
+  main:
+    cls: kafka
+    brokers:
+      - kafka
+    prefix: swh.journal.objects
+    client_id: swh.alter.removals
+
+recovery_bundles:
+  secret_sharing:
+    minimum_required_groups: 2
+    groups:
+      legal:
+        minimum_required_shares: 1
+        recipient_keys:
+          Alabaster: age169k6jwg7e2jqjzzsfvqh5v06h56tkss9fx5vmp8xr400272zjq5qux74m5
+      sysadmins:
+        minimum_required_shares: 1
+        recipient_keys:
+          Essun: age1j88rmtr9n6x8l5fzyc0d3glq3jag493hhusx7a7nrsv3vynrdpsqqz6f6u
+
+journal_writer:
+  cls: kafka
+  brokers:
+    - kafka
+  prefix: swh.journal.mirror-notifications
+  client_id: swh.alter.removals

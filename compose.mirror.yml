@@ -304,7 +304,22 @@ services:
       - smtp
     volumes:
       - "./conf/mirror/alter.yml:/srv/softwareheritage/config.yml:ro"
+      - "./conf/mirror/age-identities.txt:/srv/softwareheritage/age-identities.txt:ro"
       - "./services/swh-alter/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
+
+  # the alter service for the main archive side
+  swh-alter:
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
+    build: ./
+    environment:
+      POSTGRES_DB: swh-storage
+    command: mock-graph
+    volumes:
+      - "./tests/alter_companion.py:/src/alter_companion.py:ro"
+      - "./services/swh-alter/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
+      - "./conf/mirror/alter-main.yml:/srv/softwareheritage/config.yml:ro"
+      - "./conf/alter/age-identities.txt:/srv/softwareheritage/age-identities.txt:ro"
+
 
 volumes:
   mirror-masking-data:
