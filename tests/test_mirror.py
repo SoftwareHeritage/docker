@@ -332,12 +332,16 @@ def test_mail_sent_to_mirror_operator_on_removal_from_the_main_archive(
     # now check objects have been masked
     requests = mirror_public_storage.check_output("swh storage masking list-requests")
     assert f"removal-from-main-archive-{removal_identifier}" in requests
-    assert re.search(
-        "Removal notification received from main "
-        rf"archive\s+[(]{removal_identifier}[)]",
-        requests,
-        re.MULTILINE,
-    )
+
+    # check below is disabled for now because it's fragile: the list-requests
+    # tool may have split lines anywhere... Need an easily parsable output to
+    # be checkable
+    # assert re.search(
+    #    "Removal notification received from main "
+    #    rf"archive\s+[(]{removal_identifier}[)]",
+    #    requests,
+    #    re.MULTILINE,
+    # )
     assert "- swh:1:ori:33bf251c0937b1394bc2df185779a75ad0bf3d36" in requests
 
     # check tiny_git_url is masked, but no other origins
