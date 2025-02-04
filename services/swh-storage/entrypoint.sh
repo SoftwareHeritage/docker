@@ -25,24 +25,7 @@ case "$backend" in
             wait-for-it ${CASSANDRA_SEED}:9042 -s --timeout=0
         done
         echo Creating keyspace
-        cat << EOF | python3
-import time
-from swh.storage.cassandra import create_keyspace
-seeds = [seed.strip() for seed in '${CASSANDRA_SEEDS}'.split(',')]
-for i in range(9):
-  try:
-    print(f"Attempt {i+1} to create keyspace")
-    create_keyspace(seeds, 'swh')
-    print("Success!")
-    break
-  except:
-    print("Failed!")
-    time.sleep(5)
-else:
-  print(f"Last attempt to create keyspace")
-  create_keyspace(seeds, 'swh')
-  print("Success!")
-EOF
+        swh storage create-keyspace
         ;;
     *)
         # No extra setup needed

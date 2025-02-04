@@ -6,3 +6,4 @@ storage:
   objstorage:
     cls: remote
     url: http://swh-objstorage:5003/
+  auth_provider: null

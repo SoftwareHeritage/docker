@@ -26,6 +26,7 @@ removal_storages:
     hosts:
     - cassandra-seed
     keyspace: swh
+    auth_provider: null
 
 removal_objstorages:
   primary:
