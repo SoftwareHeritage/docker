@@ -1,4 +1,4 @@
-# Copyright (C) 2019-2023  The Software Heritage developers
+# Copyright (C) 2019-2025  The Software Heritage developers
 # See the AUTHORS file at the top-level directory of this distribution
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
@@ -18,6 +18,7 @@ import pytest
     params=[
         [
             "compose.yml",
+            "compose.azurite.yml",
             "compose.vault.yml",
             "compose.vault-azure.yml",
         ],
@@ -155,7 +156,7 @@ def test_vault_git_bare(
         # extract it in a tmp file and attempt to git clone it
         tarf.extractall(path=tmp_path)
         repo = tmp_path / swhid
-        host.run_test(f"git clone {tmp_path/swhid}.git {repo}")
+        host.run_test(f"git clone {tmp_path / swhid}.git {repo}")
         # check a few basic git stuff
         assert host.check_output(f"git -C {repo} branch") == "* master"
         assert host.check_output(f"git -C {repo} rev-parse HEAD") == rev_id

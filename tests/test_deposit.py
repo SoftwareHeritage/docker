@@ -1,4 +1,4 @@
-# Copyright (C) 2019-2024  The Software Heritage developers
+# Copyright (C) 2019-2025  The Software Heritage developers
 # See the AUTHORS file at the top-level directory of this distribution
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
@@ -70,9 +70,22 @@ SAMPLE_METADATA_RELEASE_2 = """\
 """
 
 
-@pytest.fixture(scope="module")
-def compose_files() -> List[str]:
-    return ["compose.yml", "compose.deposit.yml"]
+@pytest.fixture(
+    scope="module",
+    params=[
+        ["compose.yml", "compose.deposit.yml"],
+        [
+            "compose.yml",
+            "compose.deposit.yml",
+            "compose.deposit-azure.yml",
+            "compose.azurite.yml",
+            "compose.keycloak.yml",
+        ],
+    ],
+    ids=["local_file_storage", "azure_file_storage"],
+)
+def compose_files(request) -> List[str]:
+    return request.param
 
 
 @pytest.fixture(scope="module")

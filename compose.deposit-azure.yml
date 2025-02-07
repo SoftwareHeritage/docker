@@ -1,0 +1,12 @@
+services:
+  swh-deposit:
+    depends_on:
+      - azurite
+      - azure-cli
+    volumes:
+      - "./conf/deposit-keycloak.yml:/srv/softwareheritage/config.yml:ro"
+
+  swh-loader-deposit:
+    depends_on:
+      - azurite
+      - azure-cli

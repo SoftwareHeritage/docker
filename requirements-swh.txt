@@ -1,7 +1,7 @@
 swh-alter
 swh-core[db,http]
 swh-counters
-swh-deposit[server]
+swh-deposit[azure,server]
 swh-graph
 swh-graphql
 swh-indexer
