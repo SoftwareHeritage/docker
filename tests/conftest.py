@@ -100,7 +100,7 @@ def compose_cmd(docker_host, project_name, compose_files, pytestconfig):
         and os.path.isfile(compose_override)
     ):
         compose_files.append(compose_override)
-    print(f"COMPOSE_PROJECT_NAME={project_name}")
+    print(f"COMPOSE_PROJECT_NAME={project_name}", end=" ")
     print(f"COMPOSE_FILE={':'.join(compose_files)}")
     compose_file_cmd = "".join(f" -f {fname} " for fname in compose_files)
     try:
