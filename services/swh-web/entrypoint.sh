@@ -4,9 +4,9 @@ set -e
 
 # when using an editable install of swh-web (when testing changes from
 # a merge request for instance), ensure to generate static assets
-if [ -d /srv/softwareheritage/venv/src/swh-web ] ; then
+if [ -d /src/swh-web ] ; then
     echo "Install and compile swh-web static assets"
-    (cd /srv/softwareheritage/venv/src/swh-web &&
+    (cd /src/swh-web &&
      yarn install --frozen-lockfile &&
      yarn build-dev)
 fi
