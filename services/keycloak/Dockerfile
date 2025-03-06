@@ -1,23 +1,35 @@
-FROM quay.io/keycloak/keycloak:10.0.2
+FROM node:20-alpine AS build-swh-kc-theme
 
-USER root
-# install git to get custom keycloak theme in service entrypoint
-RUN microdnf install -y git
-# install python3.11 and python-keycloak, this is needed to execute a
-# custom config script after keycloak server is up
-RUN curl -LO https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
-RUN rpm -i epel-release-latest-8.noarch.rpm
-RUN microdnf install -y python3.11 python3.11-pip && microdnf clean all
-RUN pip3.11 install 'python-keycloak >= 7.1.1'
+# build swh theme for keycloak
+RUN apk update && \
+    apk add --no-cache openjdk17 maven git
+ARG SWH_KC_THEME_TAG v0.4.2
+RUN git clone https://gitlab.softwareheritage.org/swh/infra/websites/swh-keycloak-theme.git
+WORKDIR /swh-keycloak-theme
+RUN git checkout ${SWH_KC_THEME_TAG}
+RUN yarn install --frozen-lockfile
+RUN yarn build-keycloak-theme
+
+FROM registry.access.redhat.com/ubi9 AS ubi-micro-build
+
+# install git and python3 needed in keycloak service entrypoint
+RUN mkdir -p /mnt/rootfs
+RUN dnf install --installroot /mnt/rootfs git python3 pip curl \
+        --releasever 9 --setopt install_weak_deps=false --nodocs -y && \
+    dnf --installroot /mnt/rootfs clean all && \
+    rpm --root /mnt/rootfs -e --nodeps setup
+
+FROM quay.io/keycloak/keycloak:26.7.5
+
+COPY --from=build-swh-kc-theme /swh-keycloak-theme/dist_keycloak/keycloak-theme-for-kc-all-other-versions.jar /opt/keycloak/providers/
+RUN /opt/keycloak/bin/kc.sh build
+
+COPY --from=ubi-micro-build /mnt/rootfs /
+
+# install python-keycloak to execute custom config script in
+# keycloak service entrypoint after server is up
+RUN pip3 install python-keycloak
+
 # install wait-for-it script
-RUN curl https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh > /wait-for-it.sh
-RUN chmod +x /wait-for-it.sh
-
-USER jboss
-# Modify some config files for keycloak to work properly behind a reverse proxy
-# https://stackoverflow.com/questions/44624844/configure-reverse-proxy-for-keycloak-docker-with-custom-base-url
-RUN sed -i -e 's/<web-context>auth<\/web-context>/<web-context>keycloak\/auth<\/web-context>/' $JBOSS_HOME/standalone/configuration/standalone.xml
-RUN sed -i -e 's/<web-context>auth<\/web-context>/<web-context>keycloak\/auth<\/web-context>/' $JBOSS_HOME/standalone/configuration/standalone-ha.xml
-RUN sed -i -e 's/name="\/"/name="\/keycloak\/"/' $JBOSS_HOME/standalone/configuration/standalone.xml
-RUN sed -i -e 's/name="\/"/name="\/keycloak\/"/' $JBOSS_HOME/standalone/configuration/standalone-ha.xml
-RUN sed -i -e 's/\/auth/\/keycloak\/auth"/' $JBOSS_HOME/welcome-content/index.html
+RUN curl https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh > ~/wait-for-it.sh
+RUN chmod +x ~/wait-for-it.sh

@@ -9,29 +9,28 @@ services:
 
 
   keycloak:
+    image: swh/keycloak
     build: services/keycloak
+    depends_on:
+      keycloak-db:
+        condition: service_started
+      docker-helper:
+        condition: service_healthy
     env_file:
       - ./env/keycloak.env
     entrypoint: /srv/softwareheritage/entrypoint.sh
-    environment:
-      JAVA_TOOL_OPTIONS: "-Dkeycloak.profile=preview -Dkeycloak.profile.feature.token_exchange=enabled"
     healthcheck:
-      test: curl -f --max-time 1 http://localhost:8080/keycloak/auth/realms/SoftwareHeritage/ || exit 1
+      test: curl -f --max-time 1 http://localhost:8080/keycloak/realms/SoftwareHeritage/ || exit 1
       interval: 5s
       retries: 20
     volumes:
       - "./services/keycloak/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
       - "./services/keycloak/keycloak_swh_setup.py:/keycloak_swh_setup.py:ro"
-    expose:
-      - "8080"
-    depends_on:
-      - keycloak-db
-      - docker-helper
 
   swh-web:
     depends_on:
       keycloak:
-        condition: service_started
+        condition: service_healthy
       docker-helper:
         condition: service_healthy
     environment:
@@ -41,7 +40,8 @@ services:
 
   swh-graphql:
     depends_on:
-      - keycloak
+      keycloak:
+        condition: service_healthy
     environment:
       SWH_CONFIG_FILENAME: /srv/softwareheritage/config-kc.yml
     volumes:

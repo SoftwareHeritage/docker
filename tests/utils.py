@@ -136,7 +136,7 @@ def api_get_directory(
 def generate_bearer_token(webapp_host, username, password):
     try:
         return webapp_host.check_output(
-            f"swh auth -u http://nginx/keycloak/auth/ generate-token {username} "
+            f"swh auth -u http://nginx/keycloak/ generate-token {username} "
             f"-p {password}"
         )
     except AssertionError:

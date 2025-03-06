@@ -81,7 +81,7 @@ counters_backend: swh-counters
 history_counters_url: http://nginx/rpc/counters/counters_history/history.json
 
 keycloak:
-  server_url: http://${GATEWAY}:${PUBLIC_PORT}/keycloak/auth/
+  server_url: http://${GATEWAY}:${PUBLIC_PORT}/keycloak/
   realm_name: SoftwareHeritage
 instance_name: archive-docker.softwareheritage.org
 

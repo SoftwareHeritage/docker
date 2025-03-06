@@ -27,7 +27,7 @@ extraction_dir: "/tmp/swh-deposit/archive/"
 
 authentication_provider: keycloak
 keycloak:
-  server_url: http://nginx/keycloak/auth/
+  server_url: http://nginx/keycloak/
   realm_name: SoftwareHeritage
 cache_uri: memcache:11211
 

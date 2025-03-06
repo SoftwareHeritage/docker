@@ -11,7 +11,7 @@ from functools import lru_cache
 import requests
 from keycloak import KeycloakAdmin
 
-SERVER_URL = "http://localhost:8080/keycloak/auth/"
+SERVER_URL = "http://localhost:8080/keycloak/"
 REALM_NAME = "SoftwareHeritage"
 
 CLIENT_WEBAPP_NAME = "swh-web"
@@ -38,11 +38,23 @@ def get_keycloak_base_urls():
 
 
 def get_frontend_url():
-    return get_keycloak_base_urls()[0] + "/keycloak/auth/"
+    return get_keycloak_base_urls()[0] + "/keycloak"
 
 
 def assign_client_base_url(keycloak_admin, client_name, base_url):
     client_data = {"baseUrl": base_url, "clientId": client_name}
+    client_id = keycloak_admin.get_client_id(client_name)
+    keycloak_admin.update_client(client_id, client_data)
+
+
+def assign_client_redirect_uris(keycloak_admin, client_name, redirect_uris):
+    client_data = {"redirectUris": redirect_uris, "clientId": client_name}
+    client_id = keycloak_admin.get_client_id(client_name)
+    keycloak_admin.update_client(client_id, client_data)
+
+
+def assign_client_web_origins(keycloak_admin, client_name, web_origins):
+    client_data = {"webOrigins": web_origins, "clientId": client_name}
     client_id = keycloak_admin.get_client_id(client_name)
     keycloak_admin.update_client(client_id, client_data)
 
@@ -97,17 +109,6 @@ KEYCLOAK_ADMIN = KeycloakAdmin(
     SERVER_URL, username=ADMIN["username"], password=ADMIN["password"]
 )
 
-# update master realm clients base urls as we use a reverse proxy
-assign_client_base_url(
-    KEYCLOAK_ADMIN, "account", "/keycloak/auth/realms/master/account"
-)
-
-assign_client_base_url(
-    KEYCLOAK_ADMIN,
-    "security-admin-console",
-    "/keycloak/auth/admin/master/console/index.html",
-)
-
 KEYCLOAK_ADMIN.update_realm(
     "master",
     payload={
@@ -115,6 +116,20 @@ KEYCLOAK_ADMIN.update_realm(
         "accountTheme": "swh",
         "adminTheme": "swh",
     },
+)
+
+# setup CORs and redirect URIs so admin console and account console can be used
+# in the docker environment for the master realm
+assign_client_web_origins(KEYCLOAK_ADMIN, "account-console", get_keycloak_base_urls())
+assign_client_redirect_uris(
+    KEYCLOAK_ADMIN,
+    "account-console",
+    [url + "/keycloak/realms/master/account/*" for url in get_keycloak_base_urls()],
+)
+assign_client_redirect_uris(
+    KEYCLOAK_ADMIN,
+    "security-admin-console",
+    [url + "/keycloak/admin/master/console/*" for url in get_keycloak_base_urls()],
 )
 
 # create swh realm
@@ -144,15 +159,24 @@ KEYCLOAK_ADMIN.create_realm(
 # set swh realm name in order to create users in it
 KEYCLOAK_ADMIN.change_current_realm(REALM_NAME)
 
-# update swh realm clients base urls as we use a reverse proxy
-assign_client_base_url(
-    KEYCLOAK_ADMIN, "account", f"/keycloak/auth/realms/{REALM_NAME}/account"
+# setup CORs and redirect URIs so admin console and account console can be used
+# in the docker environment for the SoftwareHeritage realm
+assign_client_web_origins(KEYCLOAK_ADMIN, "account-console", get_keycloak_base_urls())
+assign_client_redirect_uris(
+    KEYCLOAK_ADMIN,
+    "account-console",
+    [
+        url + "/keycloak/realms/SoftwareHeritage/account/*"
+        for url in get_keycloak_base_urls()
+    ],
 )
-
-assign_client_base_url(
+assign_client_redirect_uris(
     KEYCLOAK_ADMIN,
     "security-admin-console",
-    f"/keycloak/auth/admin/{REALM_NAME}/console/index.html",
+    [
+        url + "/keycloak/admin/SoftwareHeritage/console/*"
+        for url in get_keycloak_base_urls()
+    ],
 )
 
 # create an admin user in the swh realm
