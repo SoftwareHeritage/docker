@@ -82,5 +82,6 @@ swh_extra_django_apps:
   - swh.web.badges
   - swh.web.jslicenses
   - swh.web.vault
+  - swh.web.alter
 
 secret_key: some_very_secret_key
