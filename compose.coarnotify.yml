@@ -1,0 +1,37 @@
+services:
+  swh-coarnotify-db:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: testpassword
+      POSTGRES_DB: swh-coarnotify
+    volumes:
+      - "./services/initdb.d:/docker-entrypoint-initdb.d"
+
+  swh-coarnotify:
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
+    build: ./
+    depends_on:
+      - swh-coarnotify-db
+      - ldn-inbox
+      - nginx
+      - keycloak
+    env_file:
+      - ./env/common_python.env
+    environment:
+      POSTGRES_DB: swh-coarnotify
+      VERBOSITY: 3
+      DJANGO_SETTINGS_MODULE: swh.coarnotify.settings.production
+      RPC_PORT: 5009
+      SCRIPT_NAME: /coarnotify
+    healthcheck:
+      test: curl -f -I http://localhost:5009/
+      retries: 6
+    volumes:
+      - "./conf/coarnotify-keycloak.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-coarnotify/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
+
+  ldn-inbox:
+    image: antleaf/notify_ldn_inbox:1.2
+    command: notify_ldn_inbox -host=http://localhost -port=30800 -debug=true
+    ports:
+      - "30800:30800"
