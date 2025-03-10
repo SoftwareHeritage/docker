@@ -7,14 +7,14 @@ services:
       # unset PGHOST as db service crashes otherwise
       PGHOST:
 
+
   keycloak:
     build: services/keycloak
     env_file:
       - ./env/keycloak.env
     entrypoint: /srv/softwareheritage/entrypoint.sh
     environment:
-      JAVA_TOOL_OPTIONS: "-Dkeycloak.profile=preview
-        -Dkeycloak.profile.feature.token_exchange=enabled"
+      JAVA_TOOL_OPTIONS: "-Dkeycloak.profile=preview -Dkeycloak.profile.feature.token_exchange=enabled"
     volumes:
       - "./services/keycloak/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
       - "./services/keycloak/keycloak_swh_setup.py:/keycloak_swh_setup.py:ro"
@@ -34,13 +34,13 @@ services:
     volumes:
       - "./conf/web-keycloak.yml:/srv/softwareheritage/config-kc.yml.in:ro"
 
-  swh-deposit:
-    depends_on:
-      - keycloak
-    environment:
-      MEMCACHED: "yes"
-    volumes:
-      - "./conf/deposit-keycloak.yml:/srv/softwareheritage/config.yml:ro"
+  # swh-deposit:
+  #   depends_on:
+  #     - keycloak
+  #   environment:
+  #     MEMCACHED: "yes"
+  #   volumes:
+  #     - "./conf/deposit-keycloak.yml:/srv/softwareheritage/config.yml:ro"
 
   swh-graphql:
     depends_on:
