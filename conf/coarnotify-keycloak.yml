@@ -1,0 +1,20 @@
+storage_metadata:
+  cls: remote
+  url: http://nginx/rpc/storage/
+
+allowed_hosts:
+  - '*'
+
+private:
+  secret_key: prod-in-docker
+  db:
+    host: swh-coarnotify-db
+    port: 5432
+    name: swh-coarnotify
+    user: postgres
+    password: testpassword
+
+authentication_provider: keycloak
+keycloak:
+  server_url: http://nginx/keycloak/auth/
+  realm_name: SoftwareHeritage
