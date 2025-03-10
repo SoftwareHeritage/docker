@@ -18,3 +18,5 @@ authentication_provider: keycloak
 keycloak:
   server_url: http://nginx/keycloak/auth/
   realm_name: SoftwareHeritage
+
+inbox_url_override: http://ldn-inbox:30800

@@ -24,7 +24,7 @@ services:
       RPC_PORT: 5009
       SCRIPT_NAME: /coarnotify
     healthcheck:
-      test: curl -f -I http://localhost:5009/
+      test: curl -f -I http://localhost:5009/coarnotify
       retries: 6
     volumes:
       - "./conf/coarnotify-keycloak.yml:/srv/softwareheritage/config.yml:ro"
