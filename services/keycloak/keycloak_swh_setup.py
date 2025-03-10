@@ -15,6 +15,7 @@ REALM_NAME = "SoftwareHeritage"
 
 CLIENT_WEBAPP_NAME = "swh-web"
 CLIENT_DEPOSIT_NAME = "swh-deposit"
+CLIENT_COARNOTIFY_NAME = "swh-coarnotify"
 
 ADMIN = {"username": "admin", "password": "admin"}
 
@@ -202,6 +203,7 @@ for client_name, redirect_uris in [
         ],
     ),
     (CLIENT_DEPOSIT_NAME, ["http://localhost:5006/*"]),
+    (CLIENT_COARNOTIFY_NAME, ["http://localhost:5009/*"]),
 ]:
     # create swh-web public client
     KEYCLOAK_ADMIN.create_client(
@@ -365,3 +367,12 @@ create_realm_roles(
 )
 
 assign_realm_roles_to_user(KEYCLOAK_ADMIN, [AMBASSADOR_ROLE_NAME], "ambassador")
+
+
+# swh-coarnotify admin role
+COARNOTIFY_ADMIN_ROLE_NAME = "swh.coarnotify.server"
+create_client_roles(
+    KEYCLOAK_ADMIN,
+    CLIENT_COARNOTIFY_NAME,
+    [COARNOTIFY_ADMIN_ROLE_NAME],
+)
