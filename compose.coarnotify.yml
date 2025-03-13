@@ -12,9 +12,9 @@ services:
     build: ./
     depends_on:
       - swh-coarnotify-db
-      - ldn-inbox
+      # - ldn-inbox
       - nginx
-      - keycloak
+      - swh-storage
     env_file:
       - ./env/common_python.env
     environment:
@@ -27,11 +27,24 @@ services:
       test: curl -f -I http://localhost:5009/coarnotify
       retries: 6
     volumes:
-      - "./conf/coarnotify-keycloak.yml:/srv/softwareheritage/config.yml:ro"
+      - "./conf/coarnotify.yml:/srv/softwareheritage/config.yml:ro"
       - "./services/swh-coarnotify/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
+  # ldn-inbox:
+  #   image: antleaf/notify_ldn_inbox:1.2
+  #   command: notify_ldn_inbox -host=http://localhost -port=8008 -debug=true
+  #   ports:
+  #     - "8008"
 
-  ldn-inbox:
-    image: antleaf/notify_ldn_inbox:1.2
-    command: notify_ldn_inbox -host=http://localhost -port=30800 -debug=true
-    ports:
-      - "30800:30800"
+  # ldn-inbox-db:
+  #   image: mongo:7.0.14
+  #   environment:
+  #     MONGO_INITDB_ROOT_USERNAME: root
+  #     MONGO_INITDB_ROOT_PASSWORD: password
+
+  # ldn-inbox:
+  #   build: https://github.com/seanwiseman/coar-notify-inbox.git
+  #   environment:
+  #     - MONGO_DB_URI=mongodb://root:password@ldn-inbox-db:27017
+  #     - SCRIPT_NAME=/ldn-inbox
+  #   depends_on:
+  #     - ldn-inbox-db
