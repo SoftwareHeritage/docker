@@ -200,6 +200,7 @@ Useful services are then exposed by nginx via URL routing:
 - ``/svix``: the weebook engine svix API (if available)
 - ``/azure``: the Azurite_-based Azure API (if available)
 - ``/es``: access the ElasticSearch service (if available)
+- ``/coarnotify``: access the COAR Notify service (if available)
 
 Software Heritage internal (RPC) APIs are exposed as well for testing purpose
 under the ``/rpc`` "namespace":
