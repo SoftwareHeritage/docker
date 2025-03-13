@@ -56,7 +56,7 @@ def api_get(
 
         raw: if True, return the Response object; if False, return the json
             structures (aka response.json()); if not given, its value will be
-            set accurding the verb: True for a HEAD, False otherwise.
+            set according the verb: True for a HEAD, False otherwise.
 
         **kwargs: Any other named argument will be passes to session.request().
     """
