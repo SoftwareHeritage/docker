@@ -1,4 +1,4 @@
-storage_metadata:
+storage:
   cls: remote
   url: http://nginx/rpc/storage/
 
@@ -14,9 +14,5 @@ private:
     user: postgres
     password: testpassword
 
-authentication_provider: keycloak
-keycloak:
-  server_url: http://nginx/keycloak/auth/
-  realm_name: SoftwareHeritage
-
-inbox_url_override: http://ldn-inbox:30800
+coar_notify_client: swh.coarnotify.client.DummyCOARNotifyClient
+serve_assets: true
