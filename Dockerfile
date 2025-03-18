@@ -78,10 +78,6 @@ COPY --from=build_rage /usr/local/cargo/bin/rage /usr/local/cargo/bin/rage-keyge
 # Install yq
 COPY --from=build_yq /go/bin/yq /usr/local/bin
 
-ENV JAVA_HOME=/opt/java/openjdk
-COPY --from=eclipse-temurin:11 $JAVA_HOME $JAVA_HOME
-ENV PATH="${JAVA_HOME}/bin:${PATH}"
-
 RUN useradd -md /srv/softwareheritage -s /bin/bash swh
 USER swh
 
