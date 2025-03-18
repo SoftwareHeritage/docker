@@ -25,7 +25,7 @@ case "$backend" in
             wait-for-it ${CASSANDRA_SEED}:9042 -s --timeout=0
         done
         echo Creating keyspace
-        swh storage create-keyspace
+        swh storage cassandra init
         ;;
     *)
         # No extra setup needed
