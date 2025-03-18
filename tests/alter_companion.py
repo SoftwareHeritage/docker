@@ -197,7 +197,9 @@ def handle_message(
 
     import msgpack
 
-    key = msgpack.unpackb(message.key())
+    msg_key = message.key()
+    assert isinstance(msg_key, bytes)
+    key = msgpack.unpackb(msg_key)
     match message.topic():
         case "swh.journal.objects.origin":
             sha1 = hashlib.sha1(key["url"].encode("us-ascii")).hexdigest()
@@ -225,8 +227,8 @@ def handle_message(
                 swhid = content_journal_key_to_swhid[key]
             else:
                 value = message.value()
-                if value:
-                    d = msgpack.unpackb(message.value())
+                if isinstance(value, bytes):
+                    d = msgpack.unpackb(value)
                     swhid = f"swh:1:cnt:{d['sha1_git'].hex()}"
                     content_journal_key_to_swhid[key] = swhid
                 else:
@@ -390,13 +392,14 @@ def query_objstorage(
 
     from swh.objstorage.exc import ObjNotFoundError
     from swh.objstorage.factory import get_objstorage
+    from swh.objstorage.interface import objid_from_dict
 
     objstorage = get_objstorage(cls="remote", url=objstorage_url)
     searched_obj_ids = set(obj_ids)
     found_obj_ids = set()
     for obj_id in searched_obj_ids:
         try:
-            objstorage.check(obj_id)
+            objstorage.check(objid_from_dict({"sha1": obj_id}))
         except ObjNotFoundError:
             continue
         found_obj_ids.add(obj_id)
