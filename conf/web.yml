@@ -60,6 +60,11 @@ throttling:
         default: 120/h
       exempted_networks:
         - 0.0.0.0/0
+    swh_api_metadata_citation:
+      limiter_rate:
+        default: 60/m
+      exempted_networks:
+        - 0.0.0.0/0
 
 instance_name: archive-docker.softwareheritage.org
 
