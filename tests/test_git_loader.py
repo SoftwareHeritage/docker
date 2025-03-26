@@ -14,17 +14,28 @@ from .utils import grouper
 
 @pytest.fixture(scope="module")
 def reset_compose_session():
-    return False
+    return True
 
+
+@pytest.fixture(
+    scope="module",
+    params=[["compose.yml"], ["compose.yml", "compose.winery.yml"]],
+    ids=["pathslicer", "winery"],
+)
+def compose_files(request):
+    return request.param
 
 @pytest.fixture(scope="module")
-def compose_services():
-    return [
+def compose_services(compose_files):
+    services = [
         "docker-helper",
         "docker-proxy",
         "swh-loader",
         "swh-web",
     ]
+    if "compose.winery.yml" in compose_files:
+        services.extend(["winery-packer", "winery-cleaner"])
+    return services
 
 
 @pytest.fixture(scope="module")
@@ -67,12 +78,19 @@ def test_git_loader(scheduler_host, origins, api_get):
 
         print(f"snapshot has {len(branches)} branches")
 
+        ignored_objects = []
         # check every fetched branch is present in the snapshot
         for branch_name, rev in gitrefs.items():
             # for tags, only check for final revision id
             if branch_name.startswith(b"refs/tags/") and not branch_name.endswith(
                 b"^{}"
             ):
+                ignored_objects.append(rev)
+                continue
+            if branch_name.startswith(b"refs/merge-requests") and branch_name.endswith(
+                b"/merge"
+            ):
+                ignored_objects.append(rev)
                 continue
             rev_desc = api_get(f"revision/{rev.decode()}/")
             assert rev_desc["type"] == "git"
@@ -102,7 +120,9 @@ def test_git_loader(scheduler_host, origins, api_get):
             assert tag_desc["target"] == release_id
 
         print("Check every git object is known by the archive")
-        for batch in grouper(repo.object_store, 1000):
+        for batch in grouper(
+            (obj for obj in repo.object_store if obj not in ignored_objects), 1000
+        ):
             swhids = []
             for sha1 in batch:
                 obj = repo.get_object(sha1)
@@ -116,4 +136,5 @@ def test_git_loader(scheduler_host, origins, api_get):
                 elif obj.type_name == b"tag":
                     swhids.append(f"swh:1:rel:{sha1_str}")
             known = api_get("known/", verb="post", json=swhids)
+
             assert all(v["known"] for k, v in known.items())

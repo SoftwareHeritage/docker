@@ -1,0 +1,56 @@
+services:
+  winery-db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: winery
+      POSTGRES_PASSWORD: testpassword
+    volumes:
+      - "./services/initdb.d:/docker-entrypoint-initdb.d"
+
+  winery-packer:
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
+    env_file:
+      - ./env/common_python.env
+    volumes:
+      - "./conf/objstorage-winery.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-objstorage/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
+      - objstorage-data:/srv/softwareheritage/winery
+    depends_on:
+      - winery-db
+      - swh-objstorage
+    environment:
+      POSTGRES_DB: winery
+    command: winery-packer --pool-name all
+
+  winery-cleaner:
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
+    env_file:
+      - ./env/common_python.env
+    volumes:
+      - "./conf/objstorage-winery.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-objstorage/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
+      - objstorage-data:/srv/softwareheritage/winery
+    depends_on:
+      - winery-db
+      - swh-objstorage
+    environment:
+      POSTGRES_DB: winery
+    command: winery-cleaner
+
+  swh-objstorage:
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
+    env_file:
+      - ./env/common_python.env
+    volumes:
+      - "./conf/objstorage-winery.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-objstorage/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
+      - objstorage-data:/srv/softwareheritage/winery
+    environment:
+      POSTGRES_DB: winery
+      GUNICORN_THREADS: 1
+      SWH_LOG_LEVEL: DEBUG
+      SWH_OPTIONS: ${SWH_OPTIONS:-}
+    command: winery-rpc
+
+volumes:
+  objstorage-data:

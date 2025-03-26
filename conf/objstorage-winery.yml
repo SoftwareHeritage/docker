@@ -1,0 +1,55 @@
+objstorage:
+    cls: winery
+
+    # boolean (false (default): allow writes, true: only allow reads)
+    readonly: false
+    allow_delete: true
+
+    # Shards-related settings
+    shards:
+      # integer: threshold in bytes above which shards get packed. Can be
+      # overflowed by the max allowed object size.
+      max_size: 10_000_000
+
+      # float: timeout in seconds after which idle read-write shards get
+      # released by the winery writer process
+      rw_idle_timeout: 300
+
+    # Shared database settings
+    database:
+      # string: PostgreSQL connection string for the object index and read-write
+      # shards
+      db: postgresql:///?service=winery
+
+      # string: PostgreSQL application name for connections (unset by default)
+      application_name: winery
+
+    # Shards pool settings
+    shards_pools:
+      -
+        ## Settings for the directory shards pool
+        # Shards are stored in `{base_directory}/{pool_name}`
+        type: directory
+        base_directory: /srv/softwareheritage/winery
+        pool_name: shards
+      -
+        ## Settings for another directory shards pool
+        type: directory
+        base_directory: /srv/softwareheritage/winery
+        pool_name: shards2
+#      -
+#        ## Settings for a directory mosaic pool
+#        type: mosaic
+#        base_directory: /srv/softwareheritage/winery
+#        pool_name: mosaic
+
+    shards_active_pool: shards
+
+    # Packer-related settings
+    packer:
+      # Whether the packer should create shards in the shard pool, or defer to
+      # the pool manager (default: true, the packer creates images)
+      create_images: true
+
+
+client_max_size: 1073741824

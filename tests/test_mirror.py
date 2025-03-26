@@ -21,6 +21,11 @@ from .utils import compose_host_for_service, retry_until_success
 
 
 @pytest.fixture(scope="module")
+def reset_compose_session():
+    return True
+
+
+@pytest.fixture(scope="module")
 def compose_files() -> List[str]:
     return ["compose.yml", "compose.mirror.yml"]
 

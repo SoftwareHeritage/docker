@@ -111,7 +111,7 @@ swh_setup_db() {
   echo Database setup
 
   echo " step 1: Creating extensions..."
-  swh db init-admin $2 $1
+  swh db init-admin $2 $1 || echo "init-admin failed, skipping"
 
   echo " step 2: Initializing the database..."
   swh db init $2 --flavor ${DB_FLAVOR:-default} $1

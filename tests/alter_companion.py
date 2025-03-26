@@ -337,13 +337,22 @@ def validate_obj_id(ctx, param, value):
     obj_ids = []
     for s in value:
         try:
-            obj_id = bytes.fromhex(s)
+            hdict = json.loads(s)
+            obj_id = {k: bytes.fromhex(s) for (k, s) in hdict.items()}
+        except json.JSONDecodeError as e:
+            raise click.BadParameter(f"“{s}” is not a json-encoded dict ({e.args[0]})")
         except ValueError as e:
             raise click.BadParameter(f"“{s}” is not a hex-encoded SHA1 ({e.args[0]})")
-        if len(obj_id) != 20:
-            raise click.BadParameter(f"“{s}” is not a hex-encoded SHA1")
+        if len(obj_id.get("sha1", b"")) != 20:
+            raise click.BadParameter(f"“{s}” invalid hex-encoded SHA1")
+        if len(obj_id.get("sha256", b"")) != 32:
+            raise click.BadParameter(f"“{s}” invalid hex-encoded SHA256")
         obj_ids.append(obj_id)
     return obj_ids
+
+
+def hexlify(obj_id):
+    return {k: v.hex() for k, v in obj_id.items()}
 
 
 @cli.command()
@@ -367,16 +376,20 @@ def query_objstorage(
     """Ensure that the given objects (referenced by their SHA1)
     are absent from swh-objstorage"""
 
+    from collections import namedtuple
+
     from swh.objstorage.exc import ObjNotFoundError
     from swh.objstorage.factory import get_objstorage
     from swh.objstorage.interface import objid_from_dict
 
+    OID = namedtuple("OID", ["sha1", "sha256"])
+
     objstorage = get_objstorage(cls="remote", url=objstorage_url)
-    searched_obj_ids = set(obj_ids)
+    searched_obj_ids = set(OID(**e) for e in obj_ids)
     found_obj_ids = set()
     for obj_id in searched_obj_ids:
         try:
-            objstorage.check(objid_from_dict({"sha1": obj_id}))
+            objstorage.check(objid_from_dict(obj_id._asdict()))
         except ObjNotFoundError:
             continue
         found_obj_ids.add(obj_id)
@@ -386,15 +399,15 @@ def query_objstorage(
         else:
             print("Not found:\n")
             for obj_id in sorted(searched_obj_ids - found_obj_ids):
-                click.echo(obj_id.hex())
+                click.echo(hexlify(obj_id._asdict()))
             ctx.exit(1)
     else:
-        if found_obj_ids.isdisjoint(obj_ids):
+        if found_obj_ids.isdisjoint({OID(**e) for e in obj_ids}):
             ctx.exit(0)
         else:
             print("Found nonetheless:\n")
             for obj_id in sorted(found_obj_ids & searched_obj_ids):
-                click.echo(obj_id.hex())
+                click.echo(hexlify(obj_id._asdict()))
             ctx.exit(1)
 
 

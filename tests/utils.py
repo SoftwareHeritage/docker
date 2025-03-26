@@ -10,7 +10,7 @@ import logging
 import random
 import time
 from os.path import join
-from typing import Any, Callable, Generator, Iterable, List, Mapping, Optional, Tuple
+from typing import Any, Callable, Dict, Generator, Iterable, List, Mapping, Tuple
 from urllib.parse import urljoin, urlparse
 
 import requests
@@ -35,9 +35,9 @@ def api_get(
     baseurl: str,
     path: str,
     verb: str = "GET",
-    session: Optional[requests.Session] = None,
+    session: requests.Session | None = None,
     status_code: int = 200,
-    raw: Optional[bool] = None,
+    raw: bool | None = None,
     **kwargs,
 ):
     """Query the API at path and return the json result or raise an AssertionError
@@ -158,11 +158,11 @@ class RemovalOperation:
     origins: List[str]
     removed_swhids: List[str] = dataclasses.field(default_factory=list)
     referencing: List[str] = dataclasses.field(default_factory=list)
-    _removed_content_sha1s: Optional[List[bytes]] = None
+    _removed_content_hashes: List[Dict[str, bytes]] | None = None
 
-    def get_removed_content_sha1s(self, host):
-        if self._removed_content_sha1s is None:
-            self._removed_content_sha1s = []
+    def get_removed_content_hashes(self, host):
+        if self._removed_content_hashes is None:
+            self._removed_content_hashes = []
             # Computing the SHA1 of content objects from the recovery bundle
             # is a very slow operation. So let’s only take a random sample
             # of the content SWHIDS.
@@ -184,10 +184,19 @@ class RemovalOperation:
                     f"'{self.bundle_path}' '{swhid}'"
                 )
                 assert cmd.succeeded, f"extract-content failed! {cmd.stderr}"
-                sha1 = hashlib.sha1(cmd.stdout_bytes).hexdigest()
-                logger.debug("%s data SHA1: %s", swhid, sha1)
-                self._removed_content_sha1s.append(sha1)
-        return self._removed_content_sha1s
+                hdict = {
+                    "sha1": hashlib.sha1(cmd.stdout_bytes).hexdigest(),
+                    "sha256": hashlib.sha256(cmd.stdout_bytes).hexdigest(),
+                }
+                logger.debug("%s data SHA1: %s", swhid, hdict["sha1"])
+                self._removed_content_hashes.append(hdict)
+        return self._removed_content_hashes
+
+    def get_removed_content_sha1s(self, host):
+        return [hdict["sha1"] for hdict in self.get_removed_content_hashes(host)]
+
+    def get_removed_content_sha256s(self, host):
+        return [hdict["sha56"] for hdict in self.get_removed_content_hashes(host)]
 
     def run_in(self, host, remove_bundle=True):
         if remove_bundle:

@@ -4,6 +4,7 @@
 # See top-level LICENSE file for more information
 
 import hashlib
+import json
 import logging
 from typing import List, Tuple
 
@@ -17,17 +18,21 @@ logger = logging.getLogger(__name__)
 
 @pytest.fixture(scope="module")
 def reset_compose_session():
-    return False
+    return True
+
+
+@pytest.fixture(
+    scope="module",
+    params=[[], ["compose.winery.yml"]],
+    ids=["pathslicer", "winery"],
+)
+def compose_files(request) -> List[str]:
+    return ["compose.yml", "compose.search.yml", "compose.alter.yml"] + request.param
 
 
 @pytest.fixture(scope="module")
-def compose_files() -> List[str]:
-    return ["compose.yml", "compose.search.yml", "compose.alter.yml"]
-
-
-@pytest.fixture(scope="module")
-def compose_services() -> List[str]:
-    return [
+def compose_services(compose_files) -> List[str]:
+    services = [
         "docker-helper",
         "docker-proxy",
         "swh-alter",
@@ -42,6 +47,9 @@ def compose_services() -> List[str]:
         "swh-web",
         "swh-loader",
     ]
+    if "compose.winery.yml" in compose_files:
+        services.extend(["winery-packer", "winery-cleaner"])
+    return services
 
 
 @pytest.fixture(scope="module")
@@ -217,7 +225,10 @@ def test_initial_removed_in_primary_objstorage(
     docker_compose.check_compose_output(
         "exec swh-alter python /src/alter_companion.py query-objstorage "
         "--objstorage-url http://nginx/rpc/objstorage "
-        f"{' '.join(initial_removed.get_removed_content_sha1s(alter_host))}"
+        + " ".join(
+            f"'{json.dumps(hashes)}'"
+            for hashes in initial_removed.get_removed_content_hashes(alter_host)
+        )
     )
 
 
@@ -228,7 +239,10 @@ def test_initial_removed_in_extra_objstorage(
     docker_compose.check_compose_output(
         "exec swh-alter python /src/alter_companion.py query-objstorage "
         "--objstorage-url http://swh-extra-objstorage:5003 "
-        f"{' '.join(initial_removed.get_removed_content_sha1s(alter_host))}"
+        + " ".join(
+            f"'{json.dumps(hashes)}'"
+            for hashes in initial_removed.get_removed_content_hashes(alter_host)
+        )
     )
 
 
@@ -277,7 +291,10 @@ def test_initial_restored_in_primary_objstorage(
     docker_compose.check_compose_output(
         "exec swh-alter python /src/alter_companion.py query-objstorage --presence "
         "--objstorage-url http://nginx/rpc/objstorage "
-        f"{' '.join(initial_restored.get_removed_content_sha1s(alter_host))}"
+        + " ".join(
+            f"'{json.dumps(hashes)}'"
+            for hashes in initial_restored.get_removed_content_hashes(alter_host)
+        )
     )
 
 
@@ -288,7 +305,10 @@ def test_initial_restored_in_extra_objstorage(
     docker_compose.check_compose_output(
         "exec swh-alter python /src/alter_companion.py query-objstorage --presence "
         "--objstorage-url http://swh-extra-objstorage:5003 "
-        f"{' '.join(initial_restored.get_removed_content_sha1s(alter_host))}"
+        + " ".join(
+            f"'{json.dumps(hashes)}'"
+            for hashes in initial_restored.get_removed_content_hashes(alter_host)
+        )
     )
 
 

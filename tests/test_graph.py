@@ -22,7 +22,7 @@ from .utils import (compose_host_for_service, generate_bearer_token,
 
 @pytest.fixture(scope="module")
 def reset_compose_session():
-    return False
+    return True
 
 
 @pytest.fixture(scope="module")

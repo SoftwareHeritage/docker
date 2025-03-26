@@ -4,8 +4,10 @@ set -e
 
 source /srv/softwareheritage/utils/pyutils.sh
 source /srv/softwareheritage/utils/swhutils.sh
+source /srv/softwareheritage/utils/pgsql.sh
 
 setup_pip
+setup_pgsql
 
 case "$1" in
     "shell")
@@ -22,6 +24,31 @@ case "$1" in
       ;;
     "rpc")
       shift
-      swh_start_rpc objstorage
+      swh_start_rpc objstorage $@
+      ;;
+    "winery-rpc")
+      shift
+      echo "Setup Winery DB $NAME"
+      wait_pgsql
+      swh db init-admin -d service=$POSTGRES_DB objstorage:winery
+      swh db init -d service=$POSTGRES_DB objstorage:winery
+      swh db upgrade --non-interactive -d service=$POSTGRES_DB objstorage:winery
+      #swh_setup_db objstorage
+      if [ "$GUNICORN_THREADS" != "1" ]; then
+	  echo "Enforce GUNICORN_THREADS to 1"
+	  GUNICORN_THREADS="1"
+      fi
+      swh_start_rpc objstorage $@
+      ;;
+    "winery-packer")
+      shift
+      wait-for-http http://swh-objstorage:5003/
+      exec swh objstorage winery packer $@
+      ;;
+    "winery-cleaner")
+      shift
+      echo "Starting cleaner"
+      wait-for-http http://swh-objstorage:5003/
+      exec swh objstorage winery rw-shard-cleaner --min-mapped-hosts=0 $@
       ;;
 esac

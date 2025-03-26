@@ -68,6 +68,19 @@ wait-for-http() {
     echo "$1 is up after ${SECONDS}s"
 }
 
+wait_task_types() {
+    echo "Waiting for loader task types to be registered in scheduler db"
+    until python3 -c "
+from celery import Celery
+app = Celery('swh', broker='$BROKER_URL')
+for worker_instance in '$WORKER_INSTANCES'.split(','):
+    assert any(worker_name.startswith(f'{worker_instance.strip()}@')
+            for worker_name in app.control.inspect().active())" 2>/dev/null
+    do
+        sleep 1
+    done
+}
+
 host-port-from-url() {
     # extract the protocol
     proto="$(echo $1 | grep :// | sed -e's,^\(.*://\).*,\1,g')"

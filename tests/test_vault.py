@@ -15,7 +15,7 @@ import pytest
 
 @pytest.fixture(scope="module")
 def reset_compose_session():
-    return False
+    return True
 
 
 @pytest.fixture(
@@ -28,16 +28,17 @@ def reset_compose_session():
             "compose.vault-azure.yml",
         ],
         ["compose.yml", "compose.vault.yml"],
+        ["compose.yml", "compose.vault.yml", "compose.winery.yml"],
     ],
-    ids=["azure_cache", "local_cache"],
+    ids=["azure_cache", "local_cache", "winery"],
 )
 def compose_files(request) -> List[str]:
     return request.param
 
 
 @pytest.fixture(scope="module")
-def compose_services():
-    return [
+def compose_services(compose_files):
+    services = [
         "docker-helper",
         "docker-proxy",
         "swh-lister",  # required for the scheduler runner to start
@@ -49,6 +50,9 @@ def compose_services():
         "swh-vault-worker",
         "swh-web",
     ]
+    if "compose.winery.yml" in compose_files:
+        services.extend(["winery-packer", "winery-cleaner"])
+    return services
 
 
 def test_vault_directory(
