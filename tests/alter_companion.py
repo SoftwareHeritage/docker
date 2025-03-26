@@ -103,7 +103,7 @@ def validate_swhid(ctx, param, value):
 def query_postgresql(ctx, presence, swhids):
     """Ensure that the given SWHIDs are absent in the PostgreSQL storage"""
 
-    import psycopg2
+    import psycopg
 
     if presence:
         expected_count = 1
@@ -112,7 +112,7 @@ def query_postgresql(ctx, presence, swhids):
         expected_count = 0
         message = "{} found"
 
-    conn = psycopg2.connect(
+    conn = psycopg.connect(
         "host=swh-storage-db dbname=swh-storage user=postgres password=testpassword"
     )
     cur = conn.cursor()
