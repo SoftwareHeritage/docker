@@ -2,6 +2,8 @@ ARG REGISTRY=container-registry.softwareheritage.org/swh/infra/swh-apps/
 ARG RSVNDUMP=/usr/local/bin/rsvndump
 FROM ${REGISTRY}rsvndump-base:latest AS rsvndump_image
 
+FROM softwareheritage/maven-index-exporter:v0.4.0 AS maven_index_exporter_image
+
 # build rage (for swh-alter)
 FROM rust:slim-bookworm AS build_rage
 RUN cargo install rage
@@ -53,6 +55,7 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
   gettext-base \
   iputils-ping \
   jq \
+  openjdk-21-jre-headless \
   pkg-config \
   pv \
   postgresql-client-16 \
@@ -79,8 +82,11 @@ COPY --from=rsvndump_image /usr/local/bin/rsvndump /usr/local/bin/rsvndump
 COPY --from=build_rage /usr/local/cargo/bin/rage /usr/local/cargo/bin/rage-keygen /usr/local/bin
 # Install yq
 COPY --from=build_yq /go/bin/yq /usr/local/bin
+# Install maven-index-exporter tool used by the maven lister
+COPY --from=maven_index_exporter_image /opt/maven-index-exporter /opt/maven-index-exporter
 
 RUN useradd -md /srv/softwareheritage -s /bin/bash swh
+
 USER swh
 
 RUN python3 -m venv /srv/softwareheritage/venv

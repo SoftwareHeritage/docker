@@ -463,19 +463,12 @@ services:
       - swh-scheduler
       - swh-scheduler-runner
       - amqp
-      - swh-lister-maven-nginx
       - prometheus-statsd-exporter
       - nginx
     command: worker
     volumes:
       - "./conf/lister.yml:/srv/softwareheritage/config.yml:ro"
       - "./services/swh-worker/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
-
-  swh-lister-maven-nginx:
-    # Http server to host the maven extracted index for the maven lister
-    image: nginx
-    volumes:
-      - "./conf/maven_index/:/usr/share/nginx/html:ro"
 
   # Loader + deposit checker Celery workers
 
