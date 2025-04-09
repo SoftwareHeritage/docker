@@ -21,7 +21,7 @@ services:
       POSTGRES_DB: swh-coarnotify
       VERBOSITY: 3
       DJANGO_SETTINGS_MODULE: swh.coarnotify.settings.production
-      RPC_PORT: 5015
+      RPC_PORT: 5009
       SCRIPT_NAME: /coarnotify
     healthcheck:
       test: curl -f -I http://localhost:5009/coarnotify
