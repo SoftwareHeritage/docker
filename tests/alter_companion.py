@@ -283,7 +283,7 @@ def lookup_kafka_messages() -> Iterator[Tuple[str, Message]]:
         content_journal_key_to_swhid: Dict[bytes, str] = {}
 
         while True:
-            msg = consumer.poll(timeout=1.0)
+            msg = consumer.poll(timeout=10.0)
             if msg is None:
                 break
             error = msg.error()
