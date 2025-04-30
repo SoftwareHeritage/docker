@@ -55,7 +55,9 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
   jq \
   pkg-config \
   pv \
-  postgresql-client-12 \
+  postgresql-client-16 \
+  # for rubygems lister
+  postgresql-16 \
   wait-for-it \
   ngrep \
   rsync \
