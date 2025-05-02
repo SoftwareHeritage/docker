@@ -19,8 +19,6 @@ if [ "$1" = 'shell' ] ; then
     fi
 else
     wait_pgsql
-    # XXX
-    pip install git+https://gitlab.softwareheritage.org/swh/devel/swh-coarnotify.git@prototype\#egg=swh.coarnotify
 
     echo "Migrating db"
     django-admin migrate --settings=${DJANGO_SETTINGS_MODULE}
