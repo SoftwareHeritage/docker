@@ -7,7 +7,7 @@ FROM rust:slim-bookworm AS build_rage
 RUN cargo install rage
 
 # build yq (stolen from https://github.com/mikefarah/yq/blob/master/Dockerfile)
-FROM golang:1.23 AS build_yq
+FROM golang:1.24 AS build_yq
 
 RUN CGO_ENABLED=0 go install -ldflags "-s" github.com/mikefarah/yq/v4@latest
 
