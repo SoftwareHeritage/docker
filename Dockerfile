@@ -18,7 +18,7 @@ ARG PGDG_GPG_KEY=https://www.postgresql.org/media/keys/ACCC4CF8.asc
 ARG PGDG_KEYRING=/usr/share/keyrings/pgdg-archive-keyring.gpg
 
 ARG NODE_REPO=https://deb.nodesource.com/node_20.x
-ARG NODE_GPG_KEY=https://deb.nodesource.com/gpgkey/nodesource.gpg.key
+ARG NODE_GPG_KEY=https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key
 ARG NODE_KEYRING=/usr/share/keyrings/nodejs-archive-keyring.gpg
 
 ARG YARN_REPO=https://dl.yarnpkg.com/debian/
@@ -29,7 +29,7 @@ RUN . /etc/os-release && \
   echo "deb [signed-by=${PGDG_KEYRING}] ${PGDG_REPO} ${VERSION_CODENAME}-pgdg main" \
   > /etc/apt/sources.list.d/pgdg.list && \
   curl -fsSL ${PGDG_GPG_KEY} | gpg --dearmor > ${PGDG_KEYRING} && \
-  echo "deb [signed-by=${NODE_KEYRING}] ${NODE_REPO} ${VERSION_CODENAME} main" \
+  echo "deb [signed-by=${NODE_KEYRING}] ${NODE_REPO} nodistro main" \
   > /etc/apt/sources.list.d/nodejs.list && \
   curl -fsSL ${NODE_GPG_KEY} | gpg --dearmor > ${NODE_KEYRING} && \
   echo "deb [signed-by=${YARN_KEYRING}] ${YARN_REPO} stable main" \
