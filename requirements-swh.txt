@@ -1,6 +1,7 @@
 swh-alter
 swh-core[db,http]
 swh-counters
+swh-coarnotify
 swh-deposit[azure,server]
 swh-graph
 swh-graphql
