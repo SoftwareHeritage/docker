@@ -30,6 +30,7 @@ celery:
     - swh.loader.git.tasks.UpdateGitRepository
     - swh.loader.mercurial.tasks.LoadArchiveMercurial
     - swh.loader.mercurial.tasks.LoadMercurial
+    - swh.loader.mercurial.tasks.LoadMercurialCheckout
     - swh.loader.package.arch.tasks.LoadArch
     - swh.loader.package.archive.tasks.LoadTarball
     - swh.loader.package.aur.tasks.LoadAur
@@ -49,6 +50,7 @@ celery:
     - swh.loader.package.rubygems.tasks.LoadRubyGems
     - swh.loader.svn.tasks.DumpMountAndLoadSvnRepository
     - swh.loader.svn.tasks.LoadSvnRepository
+    - swh.loader.svn.tasks.LoadSvnExport
     - swh.loader.svn.tasks.MountAndLoadSvnRepository
     - save_code_now:swh.loader.bzr.tasks.LoadBazaar
     - save_code_now:swh.loader.cvs.tasks.LoadCvsRepository
