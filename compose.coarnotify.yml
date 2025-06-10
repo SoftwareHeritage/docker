@@ -29,22 +29,31 @@ services:
     volumes:
       - "./conf/coarnotify.yml:/srv/softwareheritage/config.yml:ro"
       - "./services/swh-coarnotify/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
-  # ldn-inbox:
-  #   image: antleaf/notify_ldn_inbox:1.2
-  #   command: notify_ldn_inbox -host=http://localhost -port=8008 -debug=true
-  #   ports:
-  #     - "8008"
+  ldn-inbox:
+    image: antleaf/notify_ldn_inbox:1.2
+    command: notify_ldn_inbox -host=http://localhost -port=8008 -debug=true
+    ports:
+      - "8008"
 
-  # ldn-inbox-db:
-  #   image: mongo:7.0.14
-  #   environment:
-  #     MONGO_INITDB_ROOT_USERNAME: root
-  #     MONGO_INITDB_ROOT_PASSWORD: password
-
-  # ldn-inbox:
-  #   build: https://github.com/seanwiseman/coar-notify-inbox.git
-  #   environment:
-  #     - MONGO_DB_URI=mongodb://root:password@ldn-inbox-db:27017
-  #     - SCRIPT_NAME=/ldn-inbox
-  #   depends_on:
-  #     - ldn-inbox-db
+  swh-indexer-journal-client-oemd:
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
+    build: ./
+    user: swh
+    env_file:
+      - ./env/common_python.env
+      - ./env/workers.env
+    environment:
+      SWH_WORKER_INSTANCE: indexer
+      SWH_LOG_LEVEL: debug
+      POSTGRES_DB: swh-idx-storage
+      SWH_SCHEDULER_INSTANCE: http://nginx/rpc/scheduler/
+    command: journal-client extrinsic_metadata
+    depends_on:
+      - kafka
+      - swh-storage
+      - swh-idx-storage
+      - swh-objstorage
+      - nginx
+    volumes:
+      - "./conf/indexer.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-indexer/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"

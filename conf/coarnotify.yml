@@ -14,5 +14,6 @@ private:
     user: postgres
     password: testpassword
 
-coar_notify_client: swh.coarnotify.client.DummyCOARNotifyClient
+coar_notify_client: swh.coarnotify.client.DevCOARNotifyClient
+inbox_url_override: http://ldn-inbox:8008/inbox
 serve_assets: true
