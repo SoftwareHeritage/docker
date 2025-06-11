@@ -111,12 +111,12 @@ swh_setup_db() {
   echo Database setup
 
   echo " step 1: Creating extensions..."
-  swh db init-admin --dbname postgresql:///?service=${NAME} $1
+  swh db init-admin $2 $1
 
   echo " step 2: Initializing the database..."
-  swh db init --flavor ${DB_FLAVOR:-default} $1
+  swh db init $2 --flavor ${DB_FLAVOR:-default} $1
 
   echo " step 3: upgrade"
-  swh db upgrade --non-interactive $1
+  swh db upgrade $2 --non-interactive $1
 
 }

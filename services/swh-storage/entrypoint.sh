@@ -11,6 +11,10 @@ setup_pip
 setup_pgsql
 
 backend=$(yq -r .storage.cls $SWH_CONFIG_FILENAME)
+if yq -e '.storage | .. | select(has("cls") and .cls == "postgresql") | .cls' \
+      $SWH_CONFIG_FILENAME >/dev/null 2>&1 ; then
+    backend="postgresql"
+fi
 if yq -e '.storage | .. | select(has("cls") and .cls == "record_references") | .cls' \
       $SWH_CONFIG_FILENAME >/dev/null 2>&1 ; then
     record_references=1
@@ -27,9 +31,14 @@ case "$backend" in
         echo Creating keyspace
         swh storage cassandra init
         ;;
+    "postgresql"|"masking")
+        # postgresql backend otherwise
+        swh_setup_db storage --all
+        ;;
     *)
         # No extra setup needed
         ;;
+
 esac
 
 
@@ -43,15 +52,6 @@ case "$1" in
         exec swh $@
         ;;
     *)
-        # noop if not pg backend is configured
-        swh db init-admin --all storage
-        if [[ -n "$DB_FLAVOR" ]]; then
-            swh db init --all --flavor ${DB_FLAVOR} storage
-        else
-            swh db init --all storage
-        fi
-        swh db upgrade --all storage
-
         if [ "$record_references" ]; then
             swh storage create-object-reference-partitions "$(date -I)" "$(date -I -d "next week")"
         fi
