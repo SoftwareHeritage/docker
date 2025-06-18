@@ -12,7 +12,6 @@ services:
     build: ./
     depends_on:
       - swh-coarnotify-db
-      # - ldn-inbox
       - nginx
       - swh-storage
     env_file:
