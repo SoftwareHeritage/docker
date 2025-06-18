@@ -3,14 +3,12 @@
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
 
+import hashlib
 import uuid
 from functools import partial
 from http import HTTPStatus
 
 import pytest
-from swh.indexer.storage import get_indexer_storage
-from swh.model.model import MetadataAuthority, MetadataAuthorityType, Origin
-from swh.storage import get_storage
 
 from .utils import api_get as api_get_func
 from .utils import retry_until_success
@@ -122,12 +120,14 @@ def test_head_includes_inbox_link(docker_compose, cn_call, nginx_url):
 
 
 def test_mention(
+    docker_compose,
     auth_cn_call,
     nginx_url,
     origin_url,
     storage_rpc_url,
     indexer_storage_rpc_url,
     mention_payload,
+    api_get,
 ):
     receipt = auth_cn_call(
         "coarnotify/",
@@ -146,28 +146,30 @@ def test_mention(
     )
     assert data == mention_payload
 
-    origin = Origin(url=origin_url)
-    storage = get_storage(cls="remote", url=storage_rpc_url)
+    swhid = f"swh:1:ori:{hashlib.sha1(str.encode(origin_url)).hexdigest()}"
+
+    def get_raw_extrinsic_metadata():
+        raw_extrinsic_metadata = api_get(  # needs a retry
+            f"raw-extrinsic-metadata/swhid/{swhid}/",
+        )
+        print(raw_extrinsic_metadata)
+        return raw_extrinsic_metadata
+
     raw_extrinsic_metadata = retry_until_success(
-        lambda: storage.raw_extrinsic_metadata_get(
-            target=origin.swhid(),
-            authority=MetadataAuthority(
-                type=MetadataAuthorityType.REGISTRY, url=mention_payload["origin"]["id"]
-            ),
-        ).results
+        get_raw_extrinsic_metadata,
+        error_message=f"Unable to fetch raw extrinsic metadata of {origin_url} {swhid}",
     )
+
     assert len(raw_extrinsic_metadata) == 1
 
-    indexer_storage = get_indexer_storage(cls="remote", url=indexer_storage_rpc_url)
-    origin_extrinsic_metadata = retry_until_success(
-        lambda: indexer_storage.origin_extrinsic_metadata_get([origin_url])
+    extrinsic_metadata = api_get_func(
+        nginx_url,
+        f"api/1/extrinsic-metadata/origin/{swhid}",
+        params={"origin_url": origin_url},
     )
-
-    assert len(origin_extrinsic_metadata) == 1
+    print(extrinsic_metadata)
 
     assert (
-        origin_extrinsic_metadata[0].metadata["citation"]["schema:ScholarlyArticle"][
-            "id"
-        ]
+        extrinsic_metadata["citation"]["schema:ScholarlyArticle"]["id"]
         == mention_payload["object"]["as:subject"]
     )
