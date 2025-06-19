@@ -11,7 +11,6 @@ from http import HTTPStatus
 import pytest
 
 from .utils import api_get as api_get_func
-from .utils import retry_until_success
 
 
 @pytest.fixture(scope="module")
@@ -127,7 +126,7 @@ def test_mention(
     storage_rpc_url,
     indexer_storage_rpc_url,
     mention_payload,
-    api_get,
+    api_poll,
 ):
     receipt = auth_cn_call(
         "coarnotify/",
@@ -148,17 +147,7 @@ def test_mention(
 
     swhid = f"swh:1:ori:{hashlib.sha1(str.encode(origin_url)).hexdigest()}"
 
-    def get_raw_extrinsic_metadata():
-        raw_extrinsic_metadata = api_get(  # needs a retry
-            f"raw-extrinsic-metadata/swhid/{swhid}/",
-        )
-        print(raw_extrinsic_metadata)
-        return raw_extrinsic_metadata
-
-    raw_extrinsic_metadata = retry_until_success(
-        get_raw_extrinsic_metadata,
-        error_message=f"Unable to fetch raw extrinsic metadata of {origin_url} {swhid}",
-    )
+    raw_extrinsic_metadata = api_poll(f"raw-extrinsic-metadata/swhid/{swhid}/")
 
     assert len(raw_extrinsic_metadata) == 1
 
