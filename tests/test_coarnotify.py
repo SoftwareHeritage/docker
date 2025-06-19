@@ -11,6 +11,7 @@ from http import HTTPStatus
 import pytest
 
 from .utils import api_get as api_get_func
+from .utils import compose_host_for_service
 
 
 @pytest.fixture(scope="module")
@@ -76,7 +77,13 @@ def compose_services() -> list[str]:
         "swh-lister",  # required for the scheduler runner to start
         "swh-loader",
         "swh-idx-storage",
+        "swh-web",
     ]
+
+
+@pytest.fixture(scope="module")
+def storage_public_service(docker_compose):
+    return compose_host_for_service(docker_compose, "swh-storage-public")
 
 
 @pytest.fixture(scope="module")
@@ -119,7 +126,7 @@ def test_head_includes_inbox_link(docker_compose, cn_call, nginx_url):
 
 
 def test_mention(
-    docker_compose,
+    storage_public_service,
     auth_cn_call,
     nginx_url,
     origin_url,
@@ -127,6 +134,7 @@ def test_mention(
     indexer_storage_rpc_url,
     mention_payload,
     api_poll,
+    api_get,
 ):
     receipt = auth_cn_call(
         "coarnotify/",
@@ -147,7 +155,7 @@ def test_mention(
 
     swhid = f"swh:1:ori:{hashlib.sha1(str.encode(origin_url)).hexdigest()}"
 
-    raw_extrinsic_metadata = api_poll(f"raw-extrinsic-metadata/swhid/{swhid}/")
+    raw_extrinsic_metadata = api_get(f"raw-extrinsic-metadata/swhid/{swhid}/")
 
     assert len(raw_extrinsic_metadata) == 1
 
