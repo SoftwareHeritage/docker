@@ -105,16 +105,6 @@ def auth_cn_call(cn_call):
     )
 
 
-@pytest.fixture(scope="module")
-def storage_rpc_url(nginx_url):
-    return f"{nginx_url}/rpc/storage/"
-
-
-@pytest.fixture(scope="module")
-def indexer_storage_rpc_url(nginx_url):
-    return f"{nginx_url}/rpc/indexer-storage/"
-
-
 def test_head_includes_inbox_link(docker_compose, cn_call, nginx_url):
     response = cn_call(
         "coarnotify/",
@@ -130,8 +120,6 @@ def test_mention(
     auth_cn_call,
     nginx_url,
     origin_url,
-    storage_rpc_url,
-    indexer_storage_rpc_url,
     mention_payload,
     api_poll,
     api_get,
@@ -155,18 +143,25 @@ def test_mention(
 
     swhid = f"swh:1:ori:{hashlib.sha1(str.encode(origin_url)).hexdigest()}"
 
-    raw_extrinsic_metadata = api_get(f"raw-extrinsic-metadata/swhid/{swhid}/")
+    raw_extrinsic_metadata = api_get(
+        f"raw-extrinsic-metadata/swhid/{swhid}/",
+        params={
+            "authority": f"registry {mention_payload['origin']['id']}",
+        },
+    )
 
     assert len(raw_extrinsic_metadata) == 1
+    assert raw_extrinsic_metadata[0]["format"] == "coarnotify-mention-v1"
 
     extrinsic_metadata = api_get_func(
         nginx_url,
-        f"api/1/extrinsic-metadata/origin/{swhid}",
+        "api/1/extrinsic-metadata/origin/",
         params={"origin_url": origin_url},
     )
-    print(extrinsic_metadata)
+
+    assert len(extrinsic_metadata) == 1
 
     assert (
-        extrinsic_metadata["citation"]["schema:ScholarlyArticle"]["id"]
+        extrinsic_metadata[0]["citation"]["schema:ScholarlyArticle"]["id"]
         == mention_payload["object"]["as:subject"]
     )
