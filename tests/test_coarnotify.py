@@ -11,7 +11,7 @@ from http import HTTPStatus
 import pytest
 
 from .utils import api_get as api_get_func
-from .utils import compose_host_for_service
+from .utils import compose_host_for_service, retry_until_success
 
 
 @pytest.fixture(scope="module")
@@ -143,23 +143,37 @@ def test_mention(
 
     swhid = f"swh:1:ori:{hashlib.sha1(str.encode(origin_url)).hexdigest()}"
 
-    raw_extrinsic_metadata = api_get(
-        f"raw-extrinsic-metadata/swhid/{swhid}/",
-        params={
-            "authority": f"registry {mention_payload['origin']['id']}",
-        },
+    def get_raw_extrinsic_metadata():
+        raw_extrinsic_metadata = api_get(
+            f"raw-extrinsic-metadata/swhid/{swhid}/",
+            params={
+                "authority": f"registry {mention_payload['origin']['id']}",
+            },
+        )
+        if len(raw_extrinsic_metadata) == 1:
+            return raw_extrinsic_metadata
+
+    raw_extrinsic_metadata = retry_until_success(
+        get_raw_extrinsic_metadata,
+        error_message=("Could not get Raw Extrinsic MD after multiple attempts"),
+        max_attempts=30,
     )
 
-    assert len(raw_extrinsic_metadata) == 1
     assert raw_extrinsic_metadata[0]["format"] == "coarnotify-mention-v1"
 
-    extrinsic_metadata = api_get_func(
-        nginx_url,
-        "api/1/extrinsic-metadata/origin/",
-        params={"origin_url": origin_url},
-    )
+    def get_extrinsic_metadata():
+        extrinsic_metadata = api_get(
+            "extrinsic-metadata/origin/",
+            params={"origin_url": origin_url},
+        )
+        if len(extrinsic_metadata) == 1:
+            return extrinsic_metadata
 
-    assert len(extrinsic_metadata) == 1
+    extrinsic_metadata = retry_until_success(
+        get_extrinsic_metadata,
+        error_message=("Could not get Extrinsic MD after multiple attempts"),
+        max_attempts=30,
+    )
 
     assert (
         extrinsic_metadata[0]["citation"]["schema:ScholarlyArticle"]["id"]
