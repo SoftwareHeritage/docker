@@ -35,14 +35,6 @@ services:
     volumes:
       - "./conf/web-keycloak.yml:/srv/softwareheritage/config-kc.yml.in:ro"
 
-  # swh-deposit:
-  #   depends_on:
-  #     - keycloak
-  #   environment:
-  #     MEMCACHED: "yes"
-  #   volumes:
-  #     - "./conf/deposit-keycloak.yml:/srv/softwareheritage/config.yml:ro"
-
   swh-graphql:
     depends_on:
       - keycloak
