@@ -1,0 +1,58 @@
+services:
+  swh-coarnotify-db:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: testpassword
+      POSTGRES_DB: swh-coarnotify
+    volumes:
+      - "./services/initdb.d:/docker-entrypoint-initdb.d"
+
+  swh-coarnotify:
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
+    build: ./
+    depends_on:
+      - swh-coarnotify-db
+      - nginx
+      - swh-storage
+    env_file:
+      - ./env/common_python.env
+    environment:
+      POSTGRES_DB: swh-coarnotify
+      VERBOSITY: 3
+      DJANGO_SETTINGS_MODULE: swh.coarnotify.settings.production
+      RPC_PORT: 5009
+      SCRIPT_NAME: /coarnotify
+    healthcheck:
+      test: curl -f -I http://localhost:5009/coarnotify
+      retries: 6
+    volumes:
+      - "./conf/coarnotify.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-coarnotify/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
+  ldn-inbox:
+    image: antleaf/notify_ldn_inbox:1.2
+    command: notify_ldn_inbox -host=http://localhost -port=8008 -debug=true
+    ports:
+      - "8008"
+
+  swh-indexer-journal-client-oemd:
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
+    build: ./
+    user: swh
+    env_file:
+      - ./env/common_python.env
+      - ./env/workers.env
+    environment:
+      SWH_WORKER_INSTANCE: indexer
+      SWH_LOG_LEVEL: debug
+      POSTGRES_DB: swh-idx-storage
+      SWH_SCHEDULER_INSTANCE: http://nginx/rpc/scheduler/
+    command: journal-client extrinsic_metadata
+    depends_on:
+      - kafka
+      - swh-storage
+      - swh-idx-storage
+      - swh-objstorage
+      - nginx
+    volumes:
+      - "./conf/indexer.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-indexer/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"

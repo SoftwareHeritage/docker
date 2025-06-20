@@ -1,0 +1,19 @@
+storage:
+  cls: remote
+  url: http://nginx/rpc/storage/
+
+allowed_hosts:
+  - '*'
+
+private:
+  secret_key: prod-in-docker
+  db:
+    host: swh-coarnotify-db
+    port: 5432
+    name: swh-coarnotify
+    user: postgres
+    password: testpassword
+
+coar_notify_client: swh.coarnotify.client.DevCOARNotifyClient
+inbox_url_override: http://ldn-inbox:8008/inbox
+serve_assets: true
