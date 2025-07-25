@@ -5,7 +5,7 @@ services:
       test: nc 127.0.0.1 10000 -z
       interval: 1s
       retries: 30
-    command: azurite-blob --blobHost 0.0.0.0
+    command: azurite-blob --skipApiVersionCheck --blobHost 0.0.0.0
     ports:
       - "10000"
 
