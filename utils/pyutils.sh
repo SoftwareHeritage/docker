@@ -9,7 +9,7 @@ setup_pip() {
     find /src -maxdepth 1 -name 'swh-*' -type d | while read srcrepo; do
       pushd $srcrepo
       # Install package in editable mode if source directory is writable
-      pip install -e .
+      pip install -e . --config-settings editable_mode=strict
       popd
     done
 
