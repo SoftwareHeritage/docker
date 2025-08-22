@@ -190,7 +190,6 @@ def query_cassandra(ctx, presence, swhids):
 
 
 def handle_message(
-    content_journal_key_to_swhid: Dict[bytes, str],
     message: Message,
 ) -> Iterator[Tuple[str, Message]]:
     import hashlib
@@ -221,23 +220,7 @@ def handle_message(
         case "swh.journal.objects.directory":
             yield f"swh:1:dir:{key.hex()}", message
         case "swh.journal.objects.content":
-            # We need to do the map dance because the key for content is `sha1`
-            # and not `sha1_git`.
-            if key in content_journal_key_to_swhid:
-                swhid = content_journal_key_to_swhid[key]
-            else:
-                value = message.value()
-                if isinstance(value, bytes):
-                    d = msgpack.unpackb(value)
-                    swhid = f"swh:1:cnt:{d['sha1_git'].hex()}"
-                    content_journal_key_to_swhid[key] = swhid
-                else:
-                    print(
-                        "Unknown SWHID for content tombstone. Key: {key.hex()}",
-                        file=sys.stderr,
-                    )
-                    return
-            yield swhid, message
+            yield f"swh:1:cnt:{key['sha1_git'].hex()}", message
         case topic:
             print(f"unhandled topic {topic} -> {key}", file=sys.stderr)
 
@@ -276,12 +259,6 @@ def lookup_kafka_messages() -> Iterator[Tuple[str, Message]]:
                 # swh.journal.objects.raw_extrinsic_metadata
             ]
         )
-
-        # Because key for Content objects are using `sha1` and not `sha1_git`,
-        # we need to keep a map from one to the other to properly handle
-        # tombstones.
-        content_journal_key_to_swhid: Dict[bytes, str] = {}
-
         while True:
             msg = consumer.poll(timeout=10.0)
             if msg is None:
@@ -289,7 +266,7 @@ def lookup_kafka_messages() -> Iterator[Tuple[str, Message]]:
             error = msg.error()
             if error is not None:
                 raise KafkaException(error)
-            yield from handle_message(content_journal_key_to_swhid, msg)
+            yield from handle_message(msg)
     finally:
         consumer.close()
 
