@@ -11,6 +11,8 @@ celery:
     - swh.lister.bitbucket.tasks.FullBitBucketRelister
     - swh.lister.bitbucket.tasks.IncrementalBitBucketLister
     - swh.lister.bitbucket.tasks.RangeBitBucketLister
+    - swh.lister.bioconductor.tasks.BioconductorListerTask
+    - swh.lister.bioconductor.tasks.BioconductorIncrementalListerTask
     - swh.lister.bower.tasks.BowerListerTask
     - swh.lister.cgit.tasks.CGitListerTask
     - swh.lister.conda.tasks.CondaListerTask

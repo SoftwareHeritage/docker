@@ -34,6 +34,7 @@ celery:
     - swh.loader.package.arch.tasks.LoadArch
     - swh.loader.package.archive.tasks.LoadTarball
     - swh.loader.package.aur.tasks.LoadAur
+    - swh.loader.package.bioconductor.tasks.LoadBioconductor
     - swh.loader.package.cpan.tasks.LoadCpan
     - swh.loader.package.cran.tasks.LoadCRAN
     - swh.loader.package.crates.tasks.LoadCrates
