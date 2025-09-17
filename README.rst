@@ -28,6 +28,27 @@ Docker environment and that the docker compose plugin (>= 2.24.4) `is installed
 .. _Compose: https://docs.docker.com/compose/
 
 
+Docker image
+------------
+
+Most of the compose services are bound to the docker image named ``swh/stack``
+built from the ``Dockerfile`` located at the root of that repository. It contains
+all software components developed by Software Heritage along their runtime dependencies.
+
+Please note that when new software components are released by Software Heritage, typically
+Python packages, the image must be updated to install these new versions. To update the image,
+either use the following command:
+
+.. code-block:: console
+
+   ~/swh-environment/docker$ docker build --pull --no-cache -t swh/stack .
+
+or use the dedicated ``make`` target wrapping it:
+
+.. code-block:: console
+
+   ~/swh-environment/docker$ make update-docker-image
+
 Service "packs"
 ---------------
 
