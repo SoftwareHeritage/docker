@@ -6,6 +6,7 @@ TOPICS = [
     "swh.journal.objects.content",
     "swh.journal.objects.directory",
     "swh.journal.objects.extid",
+    "swh.journal.objects.hash_colliding_contents",
     "swh.journal.objects.origin",
     "swh.journal.objects.origin_visit",
     "swh.journal.objects.origin_visit_status",
