@@ -45,9 +45,9 @@ def mention_payload(origin_url, nginx_url):
             "type": "Organization",
         },
         "object": {
-            "as:object": origin_url,
+            "as:object": "https://example.com/paper/123/",
             "as:relationship": "https://w3id.org/codemeta/3.0#citation",
-            "as:subject": "https://example.com/paper/123/",
+            "as:subject": origin_url,
             "id": f"urn:uuid:{uuid.uuid4()}",
             "type": "Relationship",
         },
@@ -177,5 +177,5 @@ def test_mention(
 
     assert (
         extrinsic_metadata[0]["citation"]["schema:ScholarlyArticle"]["id"]
-        == mention_payload["object"]["as:subject"]
+        == mention_payload["object"]["as:object"]
     )
