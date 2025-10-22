@@ -25,7 +25,7 @@ case "$1" in
               echo "Waiting for ElasticSearch cluster to be up"
               cat << EOF | python3
 import elasticsearch
-es = elasticsearch.Elasticsearch(['elasticsearch:9200'])
+es = elasticsearch.Elasticsearch(['http://elasticsearch:9200'])
 es.cluster.health(wait_for_status='yellow')
 EOF
               echo "ElasticSearch cluster is up"
