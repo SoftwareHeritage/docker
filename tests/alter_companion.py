@@ -418,7 +418,7 @@ def query_elasticsearch(ctx: click.Context, presence: bool, urls: List[str]) -> 
 
     searched_urls = set(urls)
 
-    es = Elasticsearch(hosts="elasticsearch:9200")
+    es = Elasticsearch(hosts="http://elasticsearch:9200")
     hits = es.search(index="origin").get("hits", {}).get("hits", [])
     found_urls = {hit.get("_source", {}).get("url") for hit in hits}
     found_urls.discard(None)
