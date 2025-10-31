@@ -4,4 +4,12 @@ journal:
   prefix: swh.journal.objects
 
 graph:
+  cls: local
+  grpc_server:
+    port: 50091
+    masked_nodes: /srv/softwareheritage/graph/masked_nodes
+  http_rpc_server:
+    debug: true
   path: /srv/softwareheritage/graph/compressed/graph
+
+masking_db: postgresql:///?service=swh-masking

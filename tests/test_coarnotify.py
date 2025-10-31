@@ -11,7 +11,7 @@ from http import HTTPStatus
 import pytest
 
 from .utils import api_get as api_get_func
-from .utils import compose_host_for_service, retry_until_success
+from .utils import retry_until_success
 
 
 @pytest.fixture(scope="module")
@@ -79,11 +79,6 @@ def compose_services() -> list[str]:
         "swh-idx-storage",
         "swh-web",
     ]
-
-
-@pytest.fixture(scope="module")
-def storage_public_service(docker_compose):
-    return compose_host_for_service(docker_compose, "swh-storage-public")
 
 
 @pytest.fixture(scope="module")

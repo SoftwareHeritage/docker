@@ -66,6 +66,12 @@ search:
 search_config:
   metadata_backend: swh-search
 
+counters:
+  cls: remote
+  url: http://nginx/rpc/counters/
+counters_backend: swh-counters
+history_counters_url: http://nginx/rpc/counters/counters_history/history.json
+
 keycloak:
   server_url: http://${GATEWAY}:${PUBLIC_PORT}/keycloak/auth/
   realm_name: SoftwareHeritage
@@ -73,3 +79,10 @@ instance_name: archive-docker.softwareheritage.org
 
 save_code_now_webhook_secret: whsec_QgEXGNJPBPjKsyBMPwtAkJpgVtA0g41A
 secret_key: some_very_secret_key
+
+graph:
+  server_url: http://nginx/rpc/graph/
+  max_edges:
+    staff: 0
+    user: 100000
+    anonymous: 1000

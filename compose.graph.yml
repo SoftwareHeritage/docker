@@ -5,12 +5,19 @@ services:
     depends_on:
       - kafka
       - prometheus-statsd-exporter
+      - swh-storage-public
+      - swh-web
+      - swh-counters
     env_file:
       - ./env/common_python.env
+      - ./env/graph.env
     volumes:
       - "./conf/graph.yml:/srv/softwareheritage/config.yml:ro"
       - "./services/swh-graph/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
       - swh-graph-data:/srv/softwareheritage/graph
+    ports:
+      # grpc server cannot be proxied by nginx on a non root path so we expose its port instead
+      - 50091
 
 volumes:
   swh-graph-data:

@@ -1,4 +1,4 @@
-# Copyright (C) 2019-2024  The Software Heritage developers
+# Copyright (C) 2019-2025  The Software Heritage developers
 # See the AUTHORS file at the top-level directory of this distribution
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
@@ -398,3 +398,8 @@ def alter_host(docker_compose) -> Iterable[testinfra.host.Host]:
     host = testinfra.get_host("docker://" + docker_id)
     host.check_output("wait-for-it --timeout=60 swh-alter:5009")
     yield host
+
+
+@pytest.fixture(scope="module")
+def storage_public_service(docker_compose):
+    return compose_host_for_service(docker_compose, "swh-storage-public")

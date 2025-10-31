@@ -19,6 +19,13 @@ case "$1" in
         echo Waiting for the scheduler
         wait-for-it $SWH_SCHEDULER_HOST:5008 -s --timeout=0
 
+        if ! ping -c 1 swh-graph; then
+            # swh-graph service not available, remove graph config to
+            # prevent vault worker from crashing when creating cookers
+            yq 'del(.vault.graph)' $SWH_CONFIG_FILENAME > /srv/softwareheritage/config-no-graph.yml
+            export SWH_CONFIG_FILENAME=/srv/softwareheritage/config-no-graph.yml
+        fi
+
         echo Starting the swh-vault Celery worker
         exec python -m celery \
                     --app=swh.scheduler.celery_backend.config.app \

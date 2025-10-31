@@ -7,6 +7,9 @@ vault:
   objstorage:
     cls: remote
     url: http://nginx/rpc/objstorage/
+  graph:
+    url: http://nginx/rpc/graph/
+
 celery:
   broker_heartbeat: null
   task_broker: amqp://guest:guest@amqp//

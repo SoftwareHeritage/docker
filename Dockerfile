@@ -2,9 +2,48 @@ ARG REGISTRY=container-registry.softwareheritage.org/swh/infra/swh-apps/
 
 FROM softwareheritage/maven-index-exporter:v0.4.0 AS maven_index_exporter_image
 
-# build rage (for swh-alter)
-FROM rust:slim-bookworm AS build_rage
-RUN cargo install rage
+# build rust crates
+FROM rust:slim-bookworm AS build_rust_base
+
+RUN export DEBIAN_FRONTEND=noninteractive && \
+  apt-get update && apt-get upgrade -y && \
+  apt-get install -y \
+  build-essential clang pkg-config libssl-dev libprotobuf-dev protobuf-compiler curl && \
+  apt-get clean && \
+  rm -rf /var/lib/apt/lists/*
+
+# install sccache to speedup rust builds
+ARG sccache_version=0.12.0
+RUN cd /usr/local/bin && \
+  curl -sSfL https://github.com/mozilla/sccache/releases/download/v${sccache_version}/sccache-v${sccache_version}-x86_64-unknown-linux-musl.tar.gz | \
+  tar --strip-components=1 -xz sccache-v${sccache_version}-x86_64-unknown-linux-musl/sccache
+
+COPY ./env-from-secrets /usr/local/bin
+
+FROM build_rust_base AS build_rust_rage
+
+# rage is required by swh-alter
+ARG rage_version=0.11.1
+RUN --mount=type=secret,mode=0444,id=SCCACHE_REDIS_ENDPOINT \
+    --mount=type=secret,mode=0444,id=SCCACHE_REDIS_PASSWORD \
+  env-from-secrets \
+      RUSTC_WRAPPER=sccache \
+      CARGO_INCREMENTAL=0 \
+    cargo install rage@${rage_version}
+
+FROM build_rust_base AS build_rust_swh_graph
+
+# rust crates of swh-graph
+ARG swh_graph_version=8.0.11
+RUN --mount=type=secret,mode=0444,id=SCCACHE_REDIS_ENDPOINT \
+    --mount=type=secret,mode=0444,id=SCCACHE_REDIS_PASSWORD \
+  env-from-secrets \
+      RUSTC_WRAPPER=sccache \
+      CARGO_INCREMENTAL=0 \
+    cargo install swh-graph@${swh_graph_version} \
+      swh-graph-grpc-server@${swh_graph_version} \
+      swh_graph_topology@${swh_graph_version} \
+      --all-features --locked
 
 # build yq (stolen from https://github.com/mikefarah/yq/blob/master/Dockerfile)
 FROM golang:1.24 AS build_yq
@@ -69,14 +108,18 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
   opam \
   rpm2cpio \
   nano \
-  cpio && \
+  cpio \
+  inotify-tools && \
   apt-get clean && \
   rm -rf /var/lib/apt/lists/*
 
-# Install rage (for swh-alter)
-COPY --from=build_rage /usr/local/cargo/bin/rage /usr/local/cargo/bin/rage-keygen /usr/local/bin
+# Install compiled rust binaries (for swh-alter and swh-graph)
+COPY --from=build_rust_rage /usr/local/cargo/bin/* /usr/local/bin
+COPY --from=build_rust_swh_graph /usr/local/cargo/bin/* /usr/local/bin
+
 # Install yq
 COPY --from=build_yq /go/bin/yq /usr/local/bin
+
 # Install maven-index-exporter tool used by the maven lister
 COPY --from=maven_index_exporter_image /opt/maven-index-exporter /opt/maven-index-exporter
 

@@ -2,7 +2,9 @@ swh-alter
 swh-core[db,http]
 swh-counters
 swh-coarnotify
-swh-deposit[azure,server]
+swh-datasets
+swh-deposit[azure,swh-datasetsserver]
+swh-export
 swh-graph
 swh-graphql
 swh-indexer
