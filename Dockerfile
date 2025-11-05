@@ -95,7 +95,7 @@ ENV PATH="/srv/softwareheritage/venv/bin:${PATH}"
 RUN --mount=type=cache,uid=1000,target=/srv/softwareheritage/.cache \
     pip install --upgrade pip setuptools wheel
 RUN --mount=type=cache,uid=1000,target=/srv/softwareheritage/.cache \
-    pip install gunicorn httpie
+    pip install gunicorn
 # cython and configjob are required to install the breeze (bzr) package
 RUN --mount=type=cache,uid=1000,target=/srv/softwareheritage/.cache \
     pip install cython configobj
