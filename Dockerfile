@@ -1,6 +1,4 @@
 ARG REGISTRY=container-registry.softwareheritage.org/swh/infra/swh-apps/
-ARG RSVNDUMP=/usr/local/bin/rsvndump
-FROM ${REGISTRY}rsvndump-base:latest AS rsvndump_image
 
 FROM softwareheritage/maven-index-exporter:v0.4.0 AS maven_index_exporter_image
 
@@ -74,9 +72,6 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
   cpio && \
   apt-get clean && \
   rm -rf /var/lib/apt/lists/*
-
-# Install rsvndump (svn loader related)
-COPY --from=rsvndump_image /usr/local/bin/rsvndump /usr/local/bin/rsvndump
 
 # Install rage (for swh-alter)
 COPY --from=build_rage /usr/local/cargo/bin/rage /usr/local/cargo/bin/rage-keygen /usr/local/bin
