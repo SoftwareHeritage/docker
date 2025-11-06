@@ -14,27 +14,27 @@ RUN CGO_ENABLED=0 go install -ldflags "-s" github.com/mikefarah/yq/v4@latest
 FROM python:3.11
 
 ARG PGDG_REPO=http://apt.postgresql.org/pub/repos/apt
-ARG PGDG_GPG_KEY=https://www.postgresql.org/media/keys/ACCC4CF8.asc
+ARG PGDG_GPG=https://www.postgresql.org/media/keys/ACCC4CF8.asc
 ARG PGDG_KEYRING=/usr/share/keyrings/pgdg-archive-keyring.gpg
 
 ARG NODE_REPO=https://deb.nodesource.com/node_20.x
-ARG NODE_GPG_KEY=https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key
+ARG NODE_GPG=https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key
 ARG NODE_KEYRING=/usr/share/keyrings/nodejs-archive-keyring.gpg
 
 ARG YARN_REPO=https://dl.yarnpkg.com/debian/
-ARG YARN_GPG_KEY=https://dl.yarnpkg.com/debian/pubkey.gpg
+ARG YARN_GPG=https://dl.yarnpkg.com/debian/pubkey.gpg
 ARG YARN_KEYRING=/usr/share/keyrings/yarnpkg-archive-keyring.gpg
 
 RUN . /etc/os-release && \
   echo "deb [signed-by=${PGDG_KEYRING}] ${PGDG_REPO} ${VERSION_CODENAME}-pgdg main" \
   > /etc/apt/sources.list.d/pgdg.list && \
-  curl -fsSL ${PGDG_GPG_KEY} | gpg --dearmor > ${PGDG_KEYRING} && \
+  curl -fsSL ${PGDG_GPG} | gpg --dearmor > ${PGDG_KEYRING} && \
   echo "deb [signed-by=${NODE_KEYRING}] ${NODE_REPO} nodistro main" \
   > /etc/apt/sources.list.d/nodejs.list && \
-  curl -fsSL ${NODE_GPG_KEY} | gpg --dearmor > ${NODE_KEYRING} && \
+  curl -fsSL ${NODE_GPG} | gpg --dearmor > ${NODE_KEYRING} && \
   echo "deb [signed-by=${YARN_KEYRING}] ${YARN_REPO} stable main" \
   > /etc/apt/sources.list.d/yarnpkg.list && \
-  curl -fsSL ${YARN_GPG_KEY} | gpg --dearmor > ${YARN_KEYRING}
+  curl -fsSL ${YARN_GPG} | gpg --dearmor > ${YARN_KEYRING}
 
 # warning: the py:3.7 image comes with python3.9 installed from debian; do not
 # add debian python packages here, they would not be usable for the py37 based
