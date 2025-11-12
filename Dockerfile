@@ -87,10 +87,9 @@ USER swh
 RUN python3 -m venv /srv/softwareheritage/venv
 ENV PATH="/srv/softwareheritage/venv/bin:${PATH}"
 
+COPY requirements.txt /srv/softwareheritage/
 RUN --mount=type=cache,uid=1000,target=/srv/softwareheritage/.cache \
-    pip install --upgrade pip setuptools wheel
-RUN --mount=type=cache,uid=1000,target=/srv/softwareheritage/.cache \
-    pip install gunicorn
+  pip install -r /srv/softwareheritage/requirements.txt
 
 COPY requirements-swh.txt /srv/softwareheritage/
 RUN --mount=type=cache,uid=1000,target=/srv/softwareheritage/.cache \
