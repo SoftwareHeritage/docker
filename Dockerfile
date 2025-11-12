@@ -11,7 +11,7 @@ FROM golang:1.24 AS build_yq
 
 RUN CGO_ENABLED=0 go install -ldflags "-s" github.com/mikefarah/yq/v4@latest
 
-FROM python:3.11
+FROM python:3.11 AS install_non_python_dependencies
 
 ARG PGDG_REPO=http://apt.postgresql.org/pub/repos/apt
 ARG PGDG_GPG=https://www.postgresql.org/media/keys/ACCC4CF8.asc
@@ -86,6 +86,8 @@ USER swh
 
 RUN python3 -m venv /srv/softwareheritage/venv
 ENV PATH="/srv/softwareheritage/venv/bin:${PATH}"
+
+FROM install_non_python_dependencies AS install_python_packages
 
 COPY requirements.txt /srv/softwareheritage/
 RUN --mount=type=cache,uid=1000,target=/srv/softwareheritage/.cache \

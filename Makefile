@@ -4,4 +4,4 @@ check-staged:
 
 .PHONY: update-docker-image
 update-docker-image:
-	docker build --pull --no-cache -t swh/stack .
+	docker build --pull --no-cache-filter install_python_packages -t swh/stack .
