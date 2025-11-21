@@ -3,7 +3,7 @@
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
 
-from typing import List
+from typing import Iterator, List, Tuple
 
 import grpc
 import pytest
@@ -29,7 +29,7 @@ def compose_files() -> List[str]:
 
 
 @pytest.fixture(scope="module")
-def compose_services():
+def compose_services() -> List[str]:
     return [
         "docker-helper",
         "docker-proxy",
@@ -47,7 +47,7 @@ def compose_services():
 
 
 @pytest.fixture(scope="module")
-def graph_service(docker_compose):
+def graph_service(docker_compose) -> Iterator[str]:
     # run a container in which test commands are executed
     graph_host = compose_host_for_service(docker_compose, "swh-graph")
     assert graph_host
@@ -171,3 +171,23 @@ def test_graph_web_api(graph_service, api_get, origins):
     )
 
     assert stats["num_nodes"] > 0 and stats["num_edges"] > 0
+
+
+@pytest.fixture(scope="module")
+def origin_urls(tiny_git_repo) -> List[Tuple[str, str]]:
+    return [("git", tiny_git_repo), ("git", "https://github.com/rdicosmo/parmap.git")]
+
+
+def test_compression_pipeline(graph_service, origins):
+    graph_service.check_output(
+        "swh datasets luigi "
+        "--base-directory /srv/softwareheritage/datasets "
+        "--base-sensitive-directory /srv/softwareheritage/datasets-sensitive "
+        "--dataset-name test "
+        "CompressGraph "
+        "-- "
+        "--local-scheduler "
+        "--LocalExport-export-task-type ExportGraph "
+        "--ExportGraph-config-file config.yml "
+        "--check-flavor none"
+    )

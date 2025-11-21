@@ -2,6 +2,7 @@ journal:
   brokers:
     - kafka
   prefix: swh.journal.objects
+  privileged: true
 
 graph:
   cls: local
