@@ -1,0 +1,17 @@
+storage:
+  cls: remote
+  url: http://nginx/rpc/storage/
+
+scheduler:
+  cls: remote
+  url: http://nginx/rpc/scheduler/
+
+celery:
+  broker_heartbeat: null
+  task_broker: amqp://guest:guest@amqp//
+  task_modules:
+    - swh.coarnotify.tasks
+  task_queues:
+    - swh.coarnotify.tasks.ProcessInboundNotificationTask
+    - swh.coarnotify.tasks.SendOutboundNotificationTask
+

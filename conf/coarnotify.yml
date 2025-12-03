@@ -2,6 +2,10 @@ storage:
   cls: remote
   url: http://nginx/rpc/storage/
 
+scheduler:
+  cls: remote
+  url: http://nginx/rpc/scheduler/
+
 allowed_hosts:
   - '*'
 
