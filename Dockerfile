@@ -34,7 +34,7 @@ RUN --mount=type=secret,mode=0444,id=SCCACHE_REDIS_ENDPOINT \
 FROM build_rust_base AS build_rust_swh_graph
 
 # rust crates of swh-graph
-ARG swh_graph_version=8.0.11
+ARG swh_graph_version=9.0.2
 RUN --mount=type=secret,mode=0444,id=SCCACHE_REDIS_ENDPOINT \
     --mount=type=secret,mode=0444,id=SCCACHE_REDIS_PASSWORD \
   env-from-secrets \
@@ -42,7 +42,6 @@ RUN --mount=type=secret,mode=0444,id=SCCACHE_REDIS_ENDPOINT \
       CARGO_INCREMENTAL=0 \
     cargo install swh-graph@${swh_graph_version} \
       swh-graph-grpc-server@${swh_graph_version} \
-      swh_graph_topology@${swh_graph_version} \
       --all-features --locked
 
 # build yq (stolen from https://github.com/mikefarah/yq/blob/master/Dockerfile)

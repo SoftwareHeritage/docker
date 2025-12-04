@@ -6,6 +6,7 @@ swh-datasets
 swh-deposit[azure,swh-datasetsserver]
 swh-export
 swh-graph
+swh-graph-libs
 swh-graphql
 swh-indexer
 swh-journal

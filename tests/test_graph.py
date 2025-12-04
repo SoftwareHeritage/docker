@@ -11,11 +11,13 @@ import swh.graph.grpc.swhgraph_pb2 as swhgraph
 import swh.graph.grpc.swhgraph_pb2_grpc as swhgraph_grpc
 
 from .conftest import service_url
-
-from .utils import compose_host_for_service, generate_bearer_token, retry_until_success
-
+# fmt: off
 # to test vault cooking with graph use
 from .test_vault import test_vault_git_bare  # noqa
+from .utils import (compose_host_for_service, generate_bearer_token,
+                    retry_until_success)
+
+# fmt: on
 
 
 @pytest.fixture(scope="module")
@@ -178,6 +180,27 @@ def origin_urls(tiny_git_repo) -> List[Tuple[str, str]]:
     return [("git", tiny_git_repo), ("git", "https://github.com/rdicosmo/parmap.git")]
 
 
+def swh_datasets_version():
+    import subprocess
+
+    return subprocess.check_output(
+        [
+            "docker",
+            "run",
+            "--entrypoint",
+            "",
+            "swh/stack",
+            "/bin/bash",
+            "-c",
+            "cat pip-installed.txt | grep swh.datasets | awk '{print $2}'",
+        ]
+    ).decode()[:-1]
+
+
+@pytest.mark.skipif(
+    swh_datasets_version() == "2.0.3",
+    reason="swh-datasets v2.0.3 is not compatible with swh-graph v9.0",
+)
 def test_compression_pipeline(graph_service, origins):
     graph_service.check_output(
         "swh datasets luigi "
