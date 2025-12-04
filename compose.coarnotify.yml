@@ -15,6 +15,7 @@ services:
       - nginx
       - swh-storage
       - swh-scheduler
+      - swh-scheduler-runner
       - swh-coarnotify-worker
     env_file:
       - ./env/common_python.env
@@ -43,7 +44,6 @@ services:
       SWH_SCHEDULER_INSTANCE: http://nginx/rpc/scheduler/
     depends_on:
       - swh-storage
-      - swh-scheduler
       - amqp
       - nginx
     volumes:
@@ -78,3 +78,11 @@ services:
     command: notify_ldn_inbox -host=http://localhost -port=8008 -debug=true
     ports:
       - "8008"
+
+  swh-scheduler-runner:
+    environment:
+      WORKER_INSTANCES: listers, loader, coarnotify
+
+  swh-scheduler-runner-priority:
+    environment:
+      WORKER_INSTANCES: listers, loader, coarnotify
