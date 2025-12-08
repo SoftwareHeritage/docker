@@ -44,6 +44,8 @@ services:
     environment:
       SWH_SCHEDULER_HOST: swh-scheduler
       SWH_SCHEDULER_INSTANCE: http://nginx/rpc/scheduler/
+      SWH_WORKER_INSTANCE: coarnotify
+      DJANGO_SETTINGS_MODULE: swh.coarnotify.settings.production
     depends_on:
       - swh-storage
       - swh-scheduler
@@ -53,7 +55,7 @@ services:
       - nginx
     volumes:
       - "./conf/coarnotify-worker.yml:/srv/softwareheritage/config.yml:ro"
-      - "./services/swh-coarnotify/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
+      - "./services/swh-worker/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   swh-indexer-journal-client-oemd:
     image: swh/stack:${SWH_IMAGE_TAG:-latest}
