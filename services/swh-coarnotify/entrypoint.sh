@@ -18,10 +18,6 @@ if [ "$1" = 'shell' ] ; then
         "$@"
     fi
 elif [ "$1" = 'worker' ] ; then
-
-    # FIXME
-    pip install git+https://gitlab.softwareheritage.org/swh/devel/swh-coarnotify.git@tasks\#egg=swh.coarnotify
-
     echo Waiting for the scheduler
     wait-for-it $SWH_SCHEDULER_HOST:5008 -s --timeout=0
 

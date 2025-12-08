@@ -1,7 +1,7 @@
 swh-alter
 swh-core[db,http]
 swh-counters
-swh-coarnotify
+swh-coarnotify @ git+https://gitlab.softwareheritage.org/swh/devel/swh-coarnotify.git@tasks#egg=swh.coarnotify
 swh-datasets
 swh-deposit[azure,swh-datasetsserver]
 swh-export
