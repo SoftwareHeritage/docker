@@ -15,7 +15,9 @@ services:
       - nginx
       - swh-storage
       - swh-scheduler
+      - swh-scheduler-listener
       - swh-scheduler-runner
+      - swh-scheduler-runner-priority
       - swh-coarnotify-worker
     env_file:
       - ./env/common_python.env
@@ -44,6 +46,9 @@ services:
       SWH_SCHEDULER_INSTANCE: http://nginx/rpc/scheduler/
     depends_on:
       - swh-storage
+      - swh-scheduler
+      - swh-scheduler-runner
+      - swh-scheduler-runner-priority
       - amqp
       - nginx
     volumes:
