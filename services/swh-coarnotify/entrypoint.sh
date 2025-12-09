@@ -17,22 +17,6 @@ if [ "$1" = 'shell' ] ; then
     else
         "$@"
     fi
-elif [ "$1" = 'worker' ] ; then
-    echo Waiting for the scheduler
-    wait-for-it $SWH_SCHEDULER_HOST:5008 -s --timeout=0
-
-    echo Waiting for RabbitMQ to start
-    wait-for-it amqp:5672 -s --timeout=0
-
-    echo Starting the swh-coarnotify Celery worker
-    exec python -m celery \
-                --app=swh.scheduler.celery_backend.config.app \
-                worker \
-                --pool=prefork --events \
-                --concurrency=${CONCURRENCY} \
-                --max-tasks-per-child=${MAX_TASKS_PER_CHILD} \
-                -Ofair --loglevel=${LOG_LEVEL:-INFO} \
-                --hostname "coarnotify@%h"
 else
     wait_pgsql
 
