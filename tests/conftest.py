@@ -6,13 +6,11 @@
 import atexit
 import logging
 import os
-import re
 import shutil
 import time
 from functools import partial
 from subprocess import CalledProcessError, check_output
 from typing import Iterable, List, Tuple, Union
-from urllib.parse import urlparse
 from uuid import uuid4 as uuid
 
 import pytest
@@ -22,7 +20,7 @@ import testinfra
 from .utils import api_get as api_get_func
 from .utils import api_get_directory as api_get_directory_func
 from .utils import api_poll as api_poll_func
-from .utils import compose_host_for_service, retry_until_success
+from .utils import compose_host_for_service, filter_origins, retry_until_success
 
 logger = logging.getLogger(__name__)
 
@@ -234,13 +232,33 @@ def docker_network_gateway_ip(docker_compose):
 
 
 @pytest.fixture(scope="module")
-def scheduler_host(request, docker_compose):
+def scheduler_host(docker_compose):
     # run a container in which test commands are executed
     scheduler_host = compose_host_for_service(docker_compose, "swh-scheduler")
     assert scheduler_host
     scheduler_host.check_output(f"wait-for-it swh-storage:5002 -t {WFI_TIMEOUT}")
     # return a testinfra connection to the container
     yield scheduler_host
+
+
+@pytest.fixture(scope="module")
+def loader_host(docker_compose):
+    # run a container in which test commands are executed
+    loader_host = compose_host_for_service(docker_compose, "swh-loader")
+    assert loader_host
+    loader_host.check_output(f"wait-for-it swh-storage:5002 -t {WFI_TIMEOUT}")
+    # return a testinfra connection to the container
+    yield loader_host
+
+
+@pytest.fixture(scope="module")
+def lister_host(docker_compose):
+    # run a container in which test commands are executed
+    lister_host = compose_host_for_service(docker_compose, "swh-lister")
+    assert lister_host
+    lister_host.check_output(f"wait-for-it swh-scheduler:5008 -t {WFI_TIMEOUT}")
+    # return a testinfra connection to the container
+    yield lister_host
 
 
 @pytest.fixture(scope="module")
@@ -298,80 +316,19 @@ def origin_urls(tiny_git_repo) -> List[Tuple[str, Union[str, Iterable[str]]]]:
     return [("git", tiny_git_repo)]
 
 
-def filter_origins(origin_urls: Iterable[str]) -> str:
-    """From a list of urls, return the first one that is reachable"""
-    if isinstance(origin_urls, str):
-        origin_urls = [origin_urls]
-
-    for origin_url in origin_urls:
-        parsed_url = urlparse(origin_url)
-        if parsed_url.scheme in ("http", "https"):
-            try:
-                requests.head(origin_url, timeout=5).raise_for_status()
-                return origin_url
-            except Exception as exc:
-                print(f"Failed to connect to {origin_url}: {exc}")
-                continue
-        else:
-            # not a http url, assume it's ok
-            return origin_url
-    raise AssertionError("Unable to contact any origin of {origin_urls}")
-
-
 @pytest.fixture(scope="module")
-def origins(docker_compose, scheduler_host, origin_urls: List[Tuple[str, str]]):
-    """A fixture that ingest origins from origin_urls in the storage
-
-    For each origin url listed in origin_urls, scheduler a loading task and
-    wait for all the loading tasks to finish. Check these are in the 'eventful'
-    state.
-    """
+def origins(loader_host, origin_urls: List[Tuple[str, str]]):
+    """A fixture that ingest origins from origin_urls in the storage"""
     origin_urls = [(otype, filter_origins(urls)) for (otype, urls) in origin_urls]
-    task_ids = {}
 
     for origin_type, origin_url in origin_urls:
-        print(f"Scheduling {origin_type} loading task for {origin_url}")
-        task = scheduler_host.check_output(
-            f"swh scheduler task add load-{origin_type} url={origin_url}"
+        print(f"Loading {origin_type} origin: {origin_url}")
+        t = time.time()
+        loader_host.check_output(
+            f"swh loader run {origin_type.replace('hg', 'mercurial')} {origin_url}"
         )
-        m = re.search(r"^Task (?P<id>\d+)$", task, flags=re.MULTILINE)
-        assert m
-        taskid = m.group("id")
-        assert int(taskid) > 0
-        task_ids[origin_url] = taskid
-
-    # ids of the tasks still running
-    ids = list(task_ids.values())
-    t0 = time.time()
-
-    def check_origins_load_statuses():
-        taskid = ids.pop(0)
-        origin_url = next(k for k, v in task_ids.items() if v == taskid)
-        status = scheduler_host.check_output(
-            f"swh scheduler task list --list-runs --task-id {taskid}"
-        )
-        if "Executions:" in status:
-            if "[eventful]" in status:
-                print(f"Loading of {origin_url} is done (took {time.time() - t0:.2f}s)")
-            elif "[started]" in status or "[scheduled]" in status:
-                ids.append(taskid)
-            elif "[failed]" in status:
-                loader_logs = docker_compose.check_compose_output("logs swh-loader")
-                raise AssertionError(
-                    "Loading execution failed\n"
-                    f"status: {status}\n"
-                    f"loader logs: " + loader_logs
-                )
-            else:
-                raise AssertionError(
-                    f"Loading execution failed, task status is {status}"
-                )
-        else:
-            ids.append(taskid)
-
-        return not ids
-
-    retry_until_success(check_origins_load_statuses)
+        elapsed = time.time() - t
+        print(f"Loading of {origin_url} took {elapsed:.2f}s")
 
     return origin_urls
 

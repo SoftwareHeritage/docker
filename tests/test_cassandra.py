@@ -1,4 +1,4 @@
-# Copyright (C) 2023  The Software Heritage developers
+# Copyright (C) 2023-2025  The Software Heritage developers
 # See the AUTHORS file at the top-level directory of this distribution
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
@@ -24,11 +24,7 @@ def compose_services():
         "cassandra",
         "docker-helper",
         "docker-proxy",
-        "swh-lister",  # required for the scheduler runner to start
         "swh-loader",
-        "swh-scheduler-journal-client",
-        "swh-scheduler-listener",
-        "swh-scheduler-runner",
         "swh-web",
     ]
 

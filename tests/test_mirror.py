@@ -1,4 +1,4 @@
-# Copyright (C) 2023-2024  The Software Heritage developers
+# Copyright (C) 2023-2025  The Software Heritage developers
 # See the AUTHORS file at the top-level directory of this distribution
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
@@ -23,6 +23,28 @@ from .utils import compose_host_for_service, retry_until_success
 @pytest.fixture(scope="module")
 def compose_files() -> List[str]:
     return ["compose.yml", "compose.mirror.yml"]
+
+
+@pytest.fixture(scope="module")
+def compose_services() -> List[str]:
+    return [
+        "docker-helper",
+        "docker-proxy",
+        "swh-alter",
+        "swh-loader",
+        "swh-web",
+        "swh-mirror-objstorage",
+        "swh-mirror-storage",
+        "swh-mirror-storage-public",
+        "swh-mirror-notification-watcher",
+        "swh-mirror-web",
+        "swh-mirror-storage-replayer",
+        "swh-mirror-objstorage-replayer",
+        "swh-mirror-scheduler-listener",
+        "swh-mirror-scheduler-runner",
+        "swh-mirror-vault",
+        "swh-mirror-vault-worker",
+    ]
 
 
 @pytest.fixture(scope="module")
