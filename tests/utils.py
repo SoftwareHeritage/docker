@@ -1,4 +1,4 @@
-# Copyright (C) 2019-2024  The Software Heritage developers
+# Copyright (C) 2019-2025  The Software Heritage developers
 # See the AUTHORS file at the top-level directory of this distribution
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
@@ -10,8 +10,8 @@ import logging
 import random
 import time
 from os.path import join
-from typing import Any, Callable, Generator, List, Mapping, Optional, Tuple
-from urllib.parse import urljoin
+from typing import Any, Callable, Generator, Iterable, List, Mapping, Optional, Tuple
+from urllib.parse import urljoin, urlparse
 
 import requests
 import testinfra
@@ -215,3 +215,23 @@ class RemovalOperation:
         if int(manifest["version"]) >= 3:
             assert self.origins == manifest["requested"]
             self.referencing = manifest["referencing"]
+
+
+def filter_origins(origin_urls: Iterable[str]) -> str:
+    """From a list of urls, return the first one that is reachable"""
+    if isinstance(origin_urls, str):
+        origin_urls = [origin_urls]
+
+    for origin_url in origin_urls:
+        parsed_url = urlparse(origin_url)
+        if parsed_url.scheme in ("http", "https"):
+            try:
+                requests.head(origin_url, timeout=5).raise_for_status()
+                return origin_url
+            except Exception as exc:
+                print(f"Failed to connect to {origin_url}: {exc}")
+                continue
+        else:
+            # not a http url, assume it's ok
+            return origin_url
+    raise AssertionError("Unable to contact any origin of {origin_urls}")
