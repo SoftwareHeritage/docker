@@ -6,6 +6,18 @@ scheduler:
   cls: remote
   url: http://nginx/rpc/scheduler/
 
+private:
+  secret_key: prod-in-docker
+  db:
+    host: swh-coarnotify-db
+    port: 5432
+    name: swh-coarnotify
+    user: postgres
+    password: testpassword
+
+coar_notify_client: swh.coarnotify.client.DevCOARNotifyClient
+inbox_url_override: http://ldn-inbox:8008/inbox
+
 celery:
   broker_heartbeat: null
   task_broker: amqp://guest:guest@amqp//
@@ -14,4 +26,3 @@ celery:
   task_queues:
     - swh.coarnotify.tasks.ProcessInboundNotificationTask
     - swh.coarnotify.tasks.SendOutboundNotificationTask
-
