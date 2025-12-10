@@ -24,7 +24,8 @@ services:
       SCRIPT_NAME: /coarnotify
     healthcheck:
       test: curl -f -I http://localhost:5009/coarnotify
-      retries: 6
+      interval: 5s
+      retries: 10
     volumes:
       - "./conf/coarnotify.yml:/srv/softwareheritage/config.yml:ro"
       - "./services/swh-coarnotify/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"

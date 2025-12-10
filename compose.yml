@@ -116,7 +116,8 @@ services:
       - docker-proxy
     healthcheck:
       test: curl -f http://localhost/public-port/ || exit 1
-      retries: 6
+      interval: 5s
+      retries: 10
 
   # SMTP service (used by keycloak and vault)
   smtp:
@@ -154,7 +155,8 @@ services:
     command: rpc
     healthcheck:
       test: curl -f http://localhost:5008 || exit 1
-      retries: 6
+      interval: 5s
+      retries: 10
     depends_on:
       - swh-scheduler-db
       - prometheus-statsd-exporter
@@ -312,7 +314,8 @@ services:
     command: rpc
     healthcheck:
       test: curl -f http://localhost:5002 || exit 1
-      retries: 6
+      interval: 5s
+      retries: 30
     volumes:
       - "./conf/storage.yml:/srv/softwareheritage/config.yml:ro"
       - "./services/swh-storage/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
@@ -340,7 +343,8 @@ services:
       RPC_PORT: 5002
     healthcheck:
       test: curl -f http://localhost:5002 || exit 1
-      retries: 6
+      interval: 5s
+      retries: 10
     volumes:
       - "./conf/storage-public.yml:/srv/softwareheritage/config.yml:ro"
       - "./services/swh-storage/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
@@ -359,7 +363,8 @@ services:
     command: rpc
     healthcheck:
       test: curl -f http://localhost:5003 || exit 1
-      retries: 6
+      interval: 5s
+      retries: 10
     volumes:
       - "./conf/objstorage.yml:/srv/softwareheritage/config.yml:ro"
       - "./services/swh-objstorage/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
@@ -389,7 +394,8 @@ services:
     command: rpc
     healthcheck:
       test: curl -f http://localhost:5007 || exit 1
-      retries: 6
+      interval: 5s
+      retries: 10
     volumes:
       - "./conf/indexer_storage.yml:/srv/softwareheritage/config.yml:ro"
       - "./services/swh-indexer/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
@@ -422,10 +428,11 @@ services:
       VERBOSITY: 3
       DJANGO_SETTINGS_MODULE: swh.web.settings.production
     healthcheck:
-      # use curl retry with exponential backoff in case service initialization takes too
+      test: curl -f http://localhost:5004 || exit 1
+      interval: 5s
+      # use higher number of retries in case service initialization takes too
       # much time (when static assets must be downloaded and compiled for instance)
-      test: curl --retry 5 -f http://localhost:5004 || exit 1
-      retries: 6
+      retries: 60
     volumes:
       - "./conf/web.yml:/srv/softwareheritage/config.yml:ro"
       - "./services/swh-web/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
@@ -553,8 +560,7 @@ services:
       - "./services/swh-counters/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
     healthcheck:
       test: curl -f http://localhost:5011 || exit 1
-      interval: 10s
-      timeout: 5s
+      interval: 5s
       retries: 10
 
   swh-counters-journal-client:
@@ -581,7 +587,8 @@ services:
     command: rpc
     healthcheck:
       test: curl -f http://localhost:5010 || exit 1
-      retries: 6
+      interval: 5s
+      retries: 10
     environment:
       RPC_PORT: 5010
     env_file:
@@ -639,7 +646,8 @@ services:
     command: rpc
     healthcheck:
       test: curl -f http://localhost:5013 || exit 1
-      retries: 6
+      interval: 5s
+      retries: 10
 
 volumes:
   redis-data:

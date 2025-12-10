@@ -55,7 +55,8 @@ services:
     command: rpc
     healthcheck:
       test: curl -f http://localhost:5002 || exit 1
-      retries: 6
+      interval: 5s
+      retries: 30
     volumes:
       - "./conf/alter/storage_cassandra.yml:/srv/softwareheritage/config.yml:ro"
       - "./services/swh-storage/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
@@ -72,7 +73,8 @@ services:
     command: rpc
     healthcheck:
       test: curl -f http://localhost:5003 || exit 1
-      retries: 6
+      interval: 5s
+      retries: 10
     volumes:
       - "./conf/objstorage.yml:/srv/softwareheritage/config.yml:ro"
       - "./services/swh-objstorage/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"

@@ -9,7 +9,7 @@ from typing import List
 import pytest
 
 from .test_git_loader import test_git_loader  # noqa
-from .utils import compose_host_for_service
+from .utils import compose_host_for_service, retry_until_success
 
 
 @pytest.fixture(scope="module")
@@ -39,10 +39,17 @@ def test_ensure_cassandra(docker_compose, origins):
 
     cass_host = compose_host_for_service(docker_compose, "cassandra-seed")
     assert cass_host
-    # ensure the cassandra cluster consist in at least 2 nodes
-    status = cass_host.check_output("nodetool status")
-    upnodes = [row for row in status.splitlines() if row.startswith("UN")]
-    assert len(upnodes) >= 2
+
+    def cassandra_cluster_has_two_nodes():
+        # ensure the cassandra cluster consist in at least 2 nodes
+        status = cass_host.check_output("nodetool status")
+        upnodes = [row for row in status.splitlines() if row.startswith("UN")]
+        return len(upnodes) >= 2
+
+    retry_until_success(
+        cassandra_cluster_has_two_nodes,
+        error_message="Cassandra cluster does not have two nodes",
+    )
 
     # check we do have some archived content in cassandra
     orig_resp = cass_host.check_output("cqlsh -e 'SELECT url FROM swh.origin;'")
