@@ -18,7 +18,8 @@ services:
     command: rpc
     healthcheck:
       test: curl -f http://localhost:5005 || exit 1
-      retries: 6
+      interval: 5s
+      retries: 10
     depends_on:
       - swh-vault-db
       - swh-objstorage
