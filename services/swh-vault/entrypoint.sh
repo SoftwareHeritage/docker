@@ -24,6 +24,8 @@ case "$1" in
             # prevent vault worker from crashing when creating cookers
             yq 'del(.vault.graph)' $SWH_CONFIG_FILENAME > /srv/softwareheritage/config-no-graph.yml
             export SWH_CONFIG_FILENAME=/srv/softwareheritage/config-no-graph.yml
+        else
+            wait-for-it swh-graph:5009 -s --timeout=0
         fi
 
         echo Starting the swh-vault Celery worker
