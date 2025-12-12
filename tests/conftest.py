@@ -144,6 +144,7 @@ def docker_compose(
     failed_tests_count = request.node.session.testsfailed
     got_exception = False
     print(f"Starting the compose session {project_name} ...", end=" ", flush=True)
+    t = time.time()
     try:
         # pull required docker images
         docker_host.check_output(f"{compose_cmd} pull --ignore-pull-failures")
@@ -171,7 +172,8 @@ def docker_compose(
             f"{compose_cmd} {command}"
         )
         services = docker_host.check_compose_output("ps --services").splitlines()
-        print(f"Started {len(services)} services")
+        elapsed = time.time() - t
+        print(f"Started {len(services)} services in {elapsed:.2f}s")
         yield docker_host
     except Exception:
         got_exception = True
