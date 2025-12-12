@@ -3,5 +3,6 @@ objstorage:
   root: /srv/softwareheritage/objects
   slicing: 0:5
   allow_delete: true
+  batch_with_threads: true
 
 client_max_size: 1073741824
