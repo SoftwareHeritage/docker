@@ -15,6 +15,10 @@ services:
     entrypoint: /srv/softwareheritage/entrypoint.sh
     environment:
       JAVA_TOOL_OPTIONS: "-Dkeycloak.profile=preview -Dkeycloak.profile.feature.token_exchange=enabled"
+    healthcheck:
+      test: curl -f --max-time 1 http://localhost:8080/keycloak/auth/realms/SoftwareHeritage/ || exit 1
+      interval: 5s
+      retries: 20
     volumes:
       - "./services/keycloak/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
       - "./services/keycloak/keycloak_swh_setup.py:/keycloak_swh_setup.py:ro"
