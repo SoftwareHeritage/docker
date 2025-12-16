@@ -280,7 +280,7 @@ services:
       BROKER_URL: amqp://amqp-mirror/
       WORKER_INSTANCES: vault
       APP: swh.scheduler.celery_backend.config.app
-    command: worker start-runner --period 10
+    command: worker start-runner --period 1
     depends_on:
       - swh-mirror-scheduler
       - amqp-mirror

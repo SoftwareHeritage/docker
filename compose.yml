@@ -205,7 +205,7 @@ services:
       BROKER_URL: amqp://amqp/
       WORKER_INSTANCES: listers, loader
       APP: swh.scheduler.celery_backend.config.app
-    command: worker start-runner --period 10
+    command: worker start-runner --period 1
     depends_on:
       - swh-scheduler
       - amqp
@@ -226,7 +226,7 @@ services:
       BROKER_URL: amqp://amqp/
       WORKER_INSTANCES: listers, loader
       APP: swh.scheduler.celery_backend.config.app
-    command: worker start-runner --period 10 --with-priority
+    command: worker start-runner --period 1 --with-priority
     depends_on:
       - swh-scheduler
       - amqp
@@ -247,7 +247,7 @@ services:
       BROKER_URL: amqp://amqp/
       WORKER_INSTANCES: listers, loader
       APP: swh.scheduler.celery_backend.config.app
-    command: worker start-runner-first-visits --period 10
+    command: worker start-runner-first-visits --period 1
     depends_on:
       - swh-scheduler
       - amqp
