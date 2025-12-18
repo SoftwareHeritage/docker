@@ -14,6 +14,10 @@ services:
       - swh-coarnotify-db
       - nginx
       - swh-storage
+      - swh-scheduler
+      - swh-scheduler-listener
+      - swh-scheduler-runner
+      - swh-coarnotify-worker
     env_file:
       - ./env/common_python.env
     environment:
@@ -28,11 +32,28 @@ services:
     volumes:
       - "./conf/coarnotify.yml:/srv/softwareheritage/config.yml:ro"
       - "./services/swh-coarnotify/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
-  ldn-inbox:
-    image: antleaf/notify_ldn_inbox:1.2
-    command: notify_ldn_inbox -host=http://localhost -port=8008 -debug=true
-    ports:
-      - "8008"
+
+  swh-coarnotify-worker:
+    image: swh/stack:${SWH_IMAGE_TAG:-latest}
+    build: ./
+    command: worker
+    env_file:
+      - ./env/common_python.env
+      - ./env/workers.env
+    environment:
+      SWH_SCHEDULER_HOST: swh-scheduler
+      SWH_SCHEDULER_INSTANCE: http://nginx/rpc/scheduler/
+      SWH_WORKER_INSTANCE: coarnotify
+      DJANGO_SETTINGS_MODULE: swh.coarnotify.settings.production
+    depends_on:
+      - swh-storage
+      - swh-scheduler
+      - swh-scheduler-runner
+      - amqp
+      - nginx
+    volumes:
+      - "./conf/coarnotify-worker.yml:/srv/softwareheritage/config.yml:ro"
+      - "./services/swh-worker/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
 
   swh-indexer-journal-client-oemd:
     image: swh/stack:${SWH_IMAGE_TAG:-latest}
@@ -56,3 +77,13 @@ services:
     volumes:
       - "./conf/indexer.yml:/srv/softwareheritage/config.yml:ro"
       - "./services/swh-indexer/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
+
+  ldn-inbox:
+    image: antleaf/notify_ldn_inbox:1.2
+    command: notify_ldn_inbox -host=http://localhost -port=8008 -debug=true
+    ports:
+      - "8008"
+
+  swh-scheduler-runner:
+    environment:
+      WORKER_INSTANCES: listers, loader, coarnotify

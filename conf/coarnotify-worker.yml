@@ -6,9 +6,6 @@ scheduler:
   cls: remote
   url: http://nginx/rpc/scheduler/
 
-allowed_hosts:
-  - '*'
-
 private:
   secret_key: prod-in-docker
   db:
@@ -20,4 +17,12 @@ private:
 
 coar_notify_client: swh.coarnotify.client.DevCOARNotifyClient
 inbox_url_override: http://ldn-inbox:8008/inbox
-serve_assets: true
+
+celery:
+  broker_heartbeat: null
+  task_broker: amqp://guest:guest@amqp//
+  task_modules:
+    - swh.coarnotify.tasks
+  task_queues:
+    - swh.coarnotify.tasks.ProcessInboundNotificationTask
+    - swh.coarnotify.tasks.SendOutboundNotificationTask
