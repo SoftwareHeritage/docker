@@ -103,6 +103,7 @@ case "$1" in
       generate_masked_nodes_file
       echo "Starting the swh-graph RPC servers"
       swh --log-level DEBUG graph rpc-serve --graph /srv/softwareheritage/graph/compressed/graph &
+      graph_server_pid=$!
       # execute that function in background to poll changes in the archive
       check_archive_update &
       # execute that function in background to poll changes in masked objects
@@ -112,9 +113,13 @@ case "$1" in
       inotifywait -q -m -e attrib graph.stamp |
       while read -r filename event; do
         echo "Restarting the swh-graph RPC servers"
-        kill -9 $(pgrep -f swh)
+        # kill graph grpc server process, child of rpc server one
+        pkill -P $graph_server_pid
+        # kill graph rpc server process
+        kill -9 $graph_server_pid
         generate_masked_nodes_file
         swh --log-level DEBUG graph rpc-serve --graph /srv/softwareheritage/graph/compressed/graph &
+        graph_server_pid=$!
       done
       ;;
 esac
