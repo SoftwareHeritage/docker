@@ -11,6 +11,9 @@ services:
       KAFKA_NUM_PARTITIONS: 16
       KAFKA_LOG_CLEANUP_POLICY: compact
       KAFKA_LOG_DIRS: /var/lib/kafka/data/kraft-combined-logs
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+      - kafka-secrets:/etc/kafka/secrets
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
@@ -149,6 +152,7 @@ services:
       POSTGRES_PASSWORD: testpassword
     volumes:
       - "./services/initdb.d:/docker-entrypoint-initdb.d"
+      - scheduler-data:/var/lib/postgresql/data
 
   swh-scheduler:
     image: swh/stack:${SWH_IMAGE_TAG:-latest}
@@ -302,7 +306,7 @@ services:
       POSTGRES_PASSWORD: testpassword
     volumes:
       - "./services/initdb.d:/docker-entrypoint-initdb.d"
-      - storage-data:/var/lib/postgresql
+      - storage-data:/var/lib/postgresql/data
 
   swh-storage:
     image: swh/stack:${SWH_IMAGE_TAG:-latest}
@@ -337,7 +341,7 @@ services:
       POSTGRES_PASSWORD: testpassword
     volumes:
       - "./services/initdb.d:/docker-entrypoint-initdb.d"
-      - masking-data:/var/lib/postgresql
+      - masking-data:/var/lib/postgresql/data
 
   swh-storage-public:
     image: swh/stack
@@ -387,6 +391,7 @@ services:
       POSTGRES_PASSWORD: testpassword
     volumes:
       - "./services/initdb.d:/docker-entrypoint-initdb.d"
+      - idx-storage-data:/var/lib/postgresql/data
 
   swh-idx-storage:
     image: swh/stack:${SWH_IMAGE_TAG:-latest}
@@ -416,6 +421,7 @@ services:
       POSTGRES_PASSWORD: testpassword
     volumes:
       - "./services/initdb.d:/docker-entrypoint-initdb.d"
+      - web-data:/var/lib/postgresql/data
 
   swh-web:
     build: ./
@@ -668,4 +674,8 @@ volumes:
   storage-data:
   masking-data:
   objstorage-data:
+  idx-storage-data:
+  scheduler-data:
+  web-data:
   kafka-data:
+  kafka-secrets:

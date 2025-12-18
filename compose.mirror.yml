@@ -45,7 +45,7 @@ services:
       POSTGRES_PASSWORD: testpassword
     volumes:
       - "./services/initdb.d:/docker-entrypoint-initdb.d"
-      - mirror-masking-data:/var/lib/postgresql
+      - mirror-masking-data:/var/lib/postgresql/data
 
   swh-mirror-storage-public:
     image: swh/stack

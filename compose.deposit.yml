@@ -6,6 +6,7 @@ services:
       POSTGRES_DB: swh-deposit
     volumes:
       - "./services/initdb.d:/docker-entrypoint-initdb.d"
+      - "deposit-data:/var/lib/postgresql/data"
 
   swh-deposit:
     image: swh/stack:${SWH_IMAGE_TAG:-latest}
@@ -75,3 +76,6 @@ services:
     volumes:
       - "./conf/indexer.yml:/srv/softwareheritage/config.yml:ro"
       - "./services/swh-indexer/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
+
+volumes:
+  deposit-data:
