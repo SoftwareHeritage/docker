@@ -16,6 +16,11 @@ logger = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="module")
+def reset_compose_session():
+    return False
+
+
+@pytest.fixture(scope="module")
 def compose_files() -> List[str]:
     return ["compose.yml", "compose.search.yml", "compose.alter.yml"]
 

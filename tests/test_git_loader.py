@@ -13,6 +13,11 @@ from .utils import grouper
 
 
 @pytest.fixture(scope="module")
+def reset_compose_session():
+    return False
+
+
+@pytest.fixture(scope="module")
 def compose_services():
     return [
         "docker-helper",

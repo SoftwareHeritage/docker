@@ -70,6 +70,11 @@ SAMPLE_METADATA_RELEASE_2 = """\
 """
 
 
+@pytest.fixture(scope="module")
+def reset_compose_session():
+    return False
+
+
 @pytest.fixture(
     scope="module",
     params=[
@@ -108,7 +113,7 @@ def compose_services():
 # scope='module' so we use the same container for all the tests in a given test
 # file
 @pytest.fixture(scope="module")
-def deposit_host(request, docker_compose, scheduler_host):
+def deposit_host(request, docker_compose, scheduler_host, docker_host):
     # ensure deposit tasks are registered
     task_list = scheduler_host.check_output("swh scheduler task-type list")
     assert "load-deposit:" in task_list
@@ -125,6 +130,15 @@ def deposit_host(request, docker_compose, scheduler_host):
         f"echo '{SAMPLE_METADATA_RELEASE_2}' > /tmp/metadata_release2.xml"
     )
     deposit_host.check_output(f"wait-for-it swh-deposit:5006 -t {WFI_TIMEOUT}")
+    # reset deposit database
+    deposit_host.check_output(
+        "django-admin flush --no-input --settings=swh.deposit.settings.production"
+    )
+    # create admin user
+    deposit_host.check_output(
+        "swh deposit admin user create --username test --password test "
+        "--provider-url https://softwareheritage.org --domain softwareheritage.org"
+    )
     # return a testinfra connection to the container
     yield deposit_host
 

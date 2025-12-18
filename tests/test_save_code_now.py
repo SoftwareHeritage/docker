@@ -1,4 +1,4 @@
-# Copyright (C) 2023-2024  The Software Heritage developers
+# Copyright (C) 2023-2025  The Software Heritage developers
 # See the AUTHORS file at the top-level directory of this distribution
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
@@ -11,6 +11,11 @@ from .utils import retry_until_success
 # small git repository that takes a couple of seconds to load into the archive
 ORIGIN_URL = "https://github.com/anlambert/highlightjs-line-numbers.js"
 VISIT_TYPE = "git"
+
+
+@pytest.fixture(scope="module")
+def reset_compose_session():
+    return False
 
 
 @pytest.fixture(

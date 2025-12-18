@@ -10,6 +10,11 @@ MAVEN_REPOSITORY_BASE_URL = "https://mavenrepo.openmrs.org/releases/"
 
 
 @pytest.fixture(scope="module")
+def reset_compose_session():
+    return False
+
+
+@pytest.fixture(scope="module")
 def compose_services():
     return [
         "docker-helper",

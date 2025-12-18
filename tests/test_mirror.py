@@ -223,7 +223,7 @@ def origins(docker_compose, origins, base_api_get, api_get, kafka_api_url):
     print("Checking origins exists in the main storage")
     # ensure all the origins have been loaded, should not be needed but...
     m_origins = set(x["url"] for x in base_api_get("origins/"))
-    assert m_origins == expected_urls, "not all origins have been loaded"
+    assert expected_urls.issubset(m_origins), "not all origins have been loaded"
 
     cluster = requests.get(kafka_api_url).json()["data"][0]["cluster_id"]
 

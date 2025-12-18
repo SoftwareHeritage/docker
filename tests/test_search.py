@@ -106,7 +106,7 @@ def test_origin_metadata_search(origins, docker_compose, nginx_get, api_get):
         (hit["_source"]["visit_types"][0], hit["_source"]["url"])
         for hit in es_resp["hits"]["hits"]
     ]
-    assert set(es_origins) == set(origins)
+    assert set(origins).issubset(set(es_origins))
 
     metadata_patterns = {
         "https://pypi.org/project/swh.counters/": "Software Heritage archive counters",

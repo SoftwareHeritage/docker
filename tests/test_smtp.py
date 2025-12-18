@@ -11,6 +11,11 @@ import pytest
 
 
 @pytest.fixture(scope="module")
+def reset_compose_session():
+    return False
+
+
+@pytest.fixture(scope="module")
 def compose_services() -> List[str]:
     return [
         "docker-helper",

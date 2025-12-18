@@ -8,6 +8,11 @@ import requests
 
 
 @pytest.fixture(scope="module")
+def reset_compose_session():
+    return False
+
+
+@pytest.fixture(scope="module")
 def compose_services():
     return [
         "docker-helper",
@@ -44,7 +49,7 @@ def test_graphql(origins, api_get, graphql_url):
     # ensure all the origins have been loaded, should not be needed but...
     m_origins = set(x["url"] for x in api_get("origins/"))
     expected_urls = set(url for _, url in origins)
-    assert m_origins == expected_urls, "not all origins have been loaded"
+    assert expected_urls.issubset(m_origins), "not all origins have been loaded"
 
     # get 2 of the 3 origins
     query = {"query": "query {origins(first: 2) {nodes {url}}}"}
@@ -53,7 +58,7 @@ def test_graphql(origins, api_get, graphql_url):
     result = resp.json()
     origins = set(n["url"] for n in result["data"]["origins"]["nodes"])
     assert len(origins) == 2
-    assert origins.issubset(expected_urls)
+    assert origins.issubset(m_origins)
 
     # get all the 3 origins
     query = {"query": "query {origins(first: 10) {nodes {url}}}"}
@@ -61,4 +66,4 @@ def test_graphql(origins, api_get, graphql_url):
     assert resp.status_code == 200
     result = resp.json()
     origins = set(n["url"] for n in result["data"]["origins"]["nodes"])
-    assert origins == expected_urls
+    assert origins.issubset(m_origins)

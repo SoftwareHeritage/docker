@@ -10,12 +10,13 @@ import shutil
 import time
 from functools import partial
 from subprocess import CalledProcessError, check_output
-from typing import Iterable, List, Tuple, Union
+from typing import Iterable, List, Set, Tuple, Union
 from uuid import uuid4 as uuid
 
 import pytest
 import requests
 import testinfra
+import yaml
 
 from .utils import api_get as api_get_func
 from .utils import api_get_directory as api_get_directory_func
@@ -64,7 +65,7 @@ def pytest_addoption(parser):
     )
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def docker_host():
     return testinfra.get_host("local://")
 
@@ -77,6 +78,18 @@ def compose_files() -> List[str]:
 
 
 @pytest.fixture(scope="module")
+def defined_compose_services(compose_files) -> Set[str]:
+    services = set()
+    for compose_file in compose_files:
+        with open(compose_file, "r") as compose_fd:
+            compose_data = yaml.safe_load(
+                compose_fd.read().replace("!override", "").replace("!reset", "")
+            )
+            services.update(compose_data["services"].keys())
+    return services
+
+
+@pytest.fixture(scope="module")
 def compose_services() -> List[str]:
     # this fixture is meant to be overloaded in test modules to explicitly
     # specify which services to spawn in the docker compose session.
@@ -84,7 +97,7 @@ def compose_services() -> List[str]:
     return []
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def project_name() -> str:
     return f"swh_test_{uuid()}"
 
@@ -109,10 +122,12 @@ def compose_cmd(docker_host, project_name, compose_files, pytestconfig):
         return f"docker-compose -p {project_name} {compose_file_cmd} "
 
 
-def stop_compose_session(docker_host, project_name, compose_cmd):
+def stop_compose_session(docker_host, project_name):
     print(f"\nStopping the compose session {project_name}...", end=" ", flush=True)
     # first kill all the containers (brutal but much faster than a proper shutdown)
-    containers = docker_host.check_output(f"{compose_cmd} ps -q").replace("\n", " ")
+    containers = docker_host.check_output(
+        f"docker compose -p {project_name} ps -q"
+    ).replace("\n", " ")
     if containers:
         try:
             docker_host.check_output(f"docker kill {containers}")
@@ -121,28 +136,62 @@ def stop_compose_session(docker_host, project_name, compose_cmd):
             # being shut down...
             pass
         # and gently stop the cluster
-        docker_host.check_output(f"{compose_cmd} down --volumes --remove-orphans")
+        docker_host.check_output(
+            f"docker compose -p {project_name} down --volumes --remove-orphans"
+        )
         print("OK")
         retry_until_success(
-            lambda: not docker_host.check_output(f"{compose_cmd} ps -q"),
+            lambda: not docker_host.check_output(
+                f"docker compose -p {project_name} ps -q"
+            ),
             error_message="Failed to shut compose down",
             max_attempts=30,
         )
         print("... All the services are stopped")
 
 
+@pytest.fixture(scope="session", autouse=True)
+def compose_session_cleaner(docker_host, project_name):
+    # register an exit handler to ensure started containers will be stopped, even
+    # if any keyboard interruption or unhandled exception occurs
+    atexit.register(stop_compose_session, docker_host, project_name)
+
+
+@pytest.fixture(scope="module")
+def reset_compose_session():
+    # by default all compose services are restarted from scratch when processing
+    # a test module.
+
+    # nevertheless, if the compose environment for a test module does not require
+    # a full reset (services restart and empty volumes), that fixture can be overridden
+    # in the test module so that it returns False, only orphan compose services are
+    # shut down in that case
+    return True
+
+
 # scope='module' so we use the same container for all the tests in a test file
 @pytest.fixture(scope="module")
 def docker_compose(
-    request, docker_host, project_name, compose_cmd, compose_services, tmp_path_factory
+    request,
+    docker_host,
+    project_name,
+    compose_cmd,
+    compose_services,
+    tmp_path_factory,
+    defined_compose_services,
+    reset_compose_session,
 ):
-    # register an exit handler to ensure started containers will be stopped if any
-    # keyboard interruption or unhandled exception occurs
-    stop_compose_func = atexit.register(
-        stop_compose_session, docker_host, project_name, compose_cmd
-    )
     failed_tests_count = request.node.session.testsfailed
     got_exception = False
+
+    if reset_compose_session:
+        stop_compose_session(docker_host, project_name)
+
+    if hasattr(docker_host, "check_compose_output"):
+        # nginx service must be restarted when executing test modules
+        # sequentially or 502 and 504 errors can happen otherwise
+        docker_host.check_compose_output("stop nginx")
+
     print(f"Starting the compose session {project_name} ...", end=" ", flush=True)
     t = time.time()
     try:
@@ -166,14 +215,30 @@ def docker_compose(
 
         print("OK")
 
+        if hasattr(docker_host, "check_compose_output"):
+            # kill orphan services from previous test module execution
+            services = set(
+                docker_host.check_compose_output("ps --services").splitlines()
+            )
+            services_to_kill = [
+                service
+                for service in services
+                if service not in defined_compose_services
+            ]
+            if services_to_kill:
+                print("Killing orphan services: ", ", ".join(services_to_kill))
+                docker_host.check_compose_output(f"kill {' '.join(services_to_kill)}")
+
+        elapsed = time.time() - t
+
         # small hack: add a helper func to docker_host; so it's not necessary to
         # use all 3 docker_compose, docker_host and compose_cmd fixtures everywhere
         docker_host.check_compose_output = lambda command: docker_host.check_output(
             f"{compose_cmd} {command}"
         )
-        services = docker_host.check_compose_output("ps --services").splitlines()
-        elapsed = time.time() - t
+        services = set(docker_host.check_compose_output("ps --services").splitlines())
         print(f"Started {len(services)} services in {elapsed:.2f}s")
+
         yield docker_host
     except Exception:
         got_exception = True
@@ -190,12 +255,14 @@ def docker_compose(
             )
             services = docker_host.check_output(f"{compose_cmd} ps --services --all")
             for service in services.splitlines():
-                logs = docker_host.check_output(f"{compose_cmd} logs -t {service}")
-                with open(logs_filepath, "a") as logs_file:
-                    logs_file.write(logs)
-
-        atexit.unregister(stop_compose_func)
-        stop_compose_session(docker_host, project_name, compose_cmd)
+                try:
+                    logs = docker_host.check_output(f"{compose_cmd} logs -t {service}")
+                except Exception:
+                    # some services might no longer exist, ignore them
+                    pass
+                else:
+                    with open(logs_filepath, "a") as logs_file:
+                        logs_file.write(logs)
 
 
 def service_port(docker_compose_host, service, port=80) -> int:

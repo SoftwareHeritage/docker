@@ -15,6 +15,11 @@ from .utils import retry_until_success
 
 
 @pytest.fixture(scope="module")
+def reset_compose_session():
+    return False
+
+
+@pytest.fixture(scope="module")
 def origin_url(origins):
     _, origin_url = origins[0]
     return origin_url

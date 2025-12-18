@@ -12,6 +12,11 @@ from .utils import filter_origins, retry_until_success
 
 
 @pytest.fixture(scope="module")
+def reset_compose_session():
+    return False
+
+
+@pytest.fixture(scope="module")
 def compose_services():
     return [
         "docker-helper",
@@ -51,7 +56,7 @@ def test_origins_to_load_scheduling(docker_compose, scheduler_host, origin_urls)
             f"swh scheduler task list --list-runs --task-id {taskid}"
         )
         if "Executions:" in status:
-            if "[eventful]" in status:
+            if "[eventful]" in status or "[uneventful]" in status:
                 print(f"Loading of {origin_url} is done (took {time.time() - t0:.2f}s)")
             elif "[started]" in status or "[scheduled]" in status:
                 ids.append(taskid)

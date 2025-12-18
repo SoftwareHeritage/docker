@@ -13,6 +13,11 @@ from .utils import compose_host_for_service, retry_until_success
 
 
 @pytest.fixture(scope="module")
+def reset_compose_session():
+    return False
+
+
+@pytest.fixture(scope="module")
 def compose_files() -> List[str]:
     # overload the default list to add cassandra specific compose override
     return ["compose.yml", "compose.cassandra.yml"]
@@ -43,9 +48,6 @@ def test_ensure_cassandra(docker_compose, origins):
     check_output = docker_compose.check_compose_output
     # ensure the cassandra-seed service is running
     assert check_output("ps -q cassandra-seed")
-    # ensure the swh-storage-db service does NOT exists
-    services = check_output("ps")
-    assert "swh-storage-db" not in services
 
     cass_host = compose_host_for_service(docker_compose, "cassandra-seed")
     assert cass_host

@@ -13,6 +13,11 @@ from .utils import compose_host_for_service
 
 
 @pytest.fixture(scope="module")
+def reset_compose_session():
+    return False
+
+
+@pytest.fixture(scope="module")
 def compose_files() -> List[str]:
     # overload the default list to add scrubber compose override
     return ["compose.yml", "compose.scrubber.yml"]
@@ -24,7 +29,7 @@ def compose_services():
         "docker-helper",
         "docker-proxy",
         "swh-loader",
-        "swh-scrubber",
+        "swh-scrubber-db",
     ]
 
 

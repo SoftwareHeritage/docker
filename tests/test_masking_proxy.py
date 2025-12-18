@@ -13,6 +13,11 @@ from .utils import compose_host_for_service
 
 
 @pytest.fixture(scope="module")
+def reset_compose_session():
+    return False
+
+
+@pytest.fixture(scope="module")
 def compose_services():
     return [
         "docker-helper",

@@ -21,6 +21,11 @@ from .utils import (compose_host_for_service, generate_bearer_token,
 
 
 @pytest.fixture(scope="module")
+def reset_compose_session():
+    return False
+
+
+@pytest.fixture(scope="module")
 def compose_files() -> List[str]:
     return [
         "compose.yml",

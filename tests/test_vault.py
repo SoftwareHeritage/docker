@@ -13,6 +13,11 @@ from urllib.parse import quote_plus
 import pytest
 
 
+@pytest.fixture(scope="module")
+def reset_compose_session():
+    return False
+
+
 @pytest.fixture(
     scope="module",
     params=[
