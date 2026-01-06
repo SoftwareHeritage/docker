@@ -719,6 +719,32 @@ On the first start, it will run some precomputation based on all objects already
 in your local SWH instance; so it may take a long time if you loaded many
 repositories. (Expect 5 to 10s per repository.)
 
+Integrity checks run at the end of the precomputation, which assume that some
+repositories are present. Therefore, you should run load tasks for the
+following origins before starting a compression:
+
+- https://github.com/rdicosmo/parmap
+- https://github.com/pallets/flask
+- https://github.com/home-assistant/core
+- https://github.com/neovim/neovim
+- https://gitlab.softwareheritage.org/swh/devel/swh-graph
+
+To do so, the easiest way is to use the *Save Code Now* feature of the archive web interface:
+
+  http://localhost:<nginx-port>/browse/origin/save/
+
+The other option is to run a loading task for each origin::
+
+   ~/swh-environment/docker$ docker compose \
+       -f compose.yml \
+       -f compose.graph.yml \
+       exec \
+       swh-scheduler swh scheduler task add \
+       load-git -p oneshot url=<url-of-the-project>
+
+Alternatively, you will need to recompress the graph with the
+``--check-flavor=none`` flag.
+
 It **does not update automatically** when you load new repositories.
 You need to restart it every time you want to update it.
 
