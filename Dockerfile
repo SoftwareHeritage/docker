@@ -1,6 +1,6 @@
 ARG REGISTRY=container-registry.softwareheritage.org/swh/infra/swh-apps/
 
-FROM softwareheritage/maven-index-exporter:v0.4.0 AS maven_index_exporter_image
+FROM softwareheritage/maven-index-exporter:v0.4.1 AS maven_index_exporter_image
 
 # build rust crates
 FROM rust:slim-bookworm AS build_rust_base
