@@ -29,7 +29,7 @@ RUN --mount=type=secret,mode=0444,id=SCCACHE_REDIS_ENDPOINT \
   env-from-secrets \
       RUSTC_WRAPPER=sccache \
       CARGO_INCREMENTAL=0 \
-    cargo install rage@${rage_version}
+    cargo install rage@${rage_version} --locked
 
 FROM build_rust_base AS build_rust_swh_graph
 
