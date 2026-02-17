@@ -22,6 +22,8 @@ celery:
     - swh.lister.debian.tasks.DebianListerTask
     - swh.lister.dlang.tasks.DlangListerTask
     - swh.lister.elm.tasks.ElmListerTask
+    - swh.lister.forgejo.tasks.FullForgejoRelister
+    - swh.lister.gerrit.tasks.GerritListerTask
     - swh.lister.gitea.tasks.FullGiteaRelister
     - swh.lister.gitea.tasks.IncrementalGiteaLister
     - swh.lister.gitea.tasks.RangeGiteaLister
