@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v6.0.0
     hooks:
       - id: trailing-whitespace
       - id: check-json
@@ -8,12 +8,12 @@ repos:
         args: [--unsafe]
 
   - repo: https://github.com/pycqa/flake8
-    rev: 6.1.0
+    rev: 7.3.0
     hooks:
       - id: flake8
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.2.6
+    rev: v2.4.1
     hooks:
       - id: codespell
         name: Check source code spelling
@@ -33,11 +33,11 @@ repos:
         types: [python]
 
   - repo: https://github.com/PyCQA/isort
-    rev: 5.13.2
+    rev: 6.1.0
     hooks:
       - id: isort
 
   - repo: https://github.com/python/black
-    rev: 23.10.0
+    rev: 25.9.0
     hooks:
       - id: black
