@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright (C) 2020-2025  The Software Heritage developers
+# Copyright (C) 2020-2026  The Software Heritage developers
 # See the AUTHORS file at the top-level directory of this distribution
 # License: GNU Affero General Public License version 3, or any later version
 # See top-level LICENSE file for more information
@@ -85,7 +85,9 @@ def create_realm_roles(keycloak_admin, realm_roles):
 
 
 # login as admin in master realm
-KEYCLOAK_ADMIN = KeycloakAdmin(SERVER_URL, ADMIN["username"], ADMIN["password"])
+KEYCLOAK_ADMIN = KeycloakAdmin(
+    SERVER_URL, username=ADMIN["username"], password=ADMIN["password"]
+)
 
 # update master realm clients base urls as we use a reverse proxy
 assign_client_base_url(
@@ -132,7 +134,7 @@ KEYCLOAK_ADMIN.create_realm(
 )
 
 # set swh realm name in order to create users in it
-KEYCLOAK_ADMIN.realm_name = REALM_NAME
+KEYCLOAK_ADMIN.change_current_realm(REALM_NAME)
 
 # update swh realm clients base urls as we use a reverse proxy
 assign_client_base_url(
@@ -189,7 +191,10 @@ assign_client_roles_to_user(
 
 # login as admin in swh realm
 KEYCLOAK_ADMIN = KeycloakAdmin(
-    SERVER_URL, ADMIN["username"], ADMIN["password"], REALM_NAME
+    SERVER_URL,
+    username=ADMIN["username"],
+    password=ADMIN["password"],
+    realm_name=REALM_NAME,
 )
 
 for client_name, redirect_uris in [
@@ -265,6 +270,7 @@ KEYCLOAK_ADMIN.create_group(
 GROUPS = KEYCLOAK_ADMIN.get_groups()
 
 ADMIN_USER_ID = KEYCLOAK_ADMIN.get_user_id(username=ADMIN["username"])
+assert ADMIN_USER_ID is not None
 
 for GROUP in GROUPS:
     if GROUP["name"] == "staff":

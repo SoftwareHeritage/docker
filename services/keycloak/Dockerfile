@@ -3,10 +3,12 @@ FROM quay.io/keycloak/keycloak:10.0.2
 USER root
 # install git to get custom keycloak theme in service entrypoint
 RUN microdnf install -y git
-# install python3 and python-keycloak, this is needed to execute a
+# install python3.11 and python-keycloak, this is needed to execute a
 # custom config script after keycloak server is up
-RUN microdnf install -y python3 && microdnf clean all
-RUN pip3 install python-keycloak
+RUN curl -LO https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
+RUN rpm -i epel-release-latest-8.noarch.rpm
+RUN microdnf install -y python3.11 python3.11-pip && microdnf clean all
+RUN pip3.11 install 'python-keycloak >= 7.1.1'
 # install wait-for-it script
 RUN curl https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh > /wait-for-it.sh
 RUN chmod +x /wait-for-it.sh
