@@ -278,6 +278,10 @@ WEB_API_GRAPH_ROLE_NAME = "swh.web.api.graph"
 VAULT_GIT_BARE_UI_ROLE_NAME = "swh.vault.git_bare.ui"
 WEB_ADMIN_LIST_DEPOSITS_ROLE_NAME = "swh.web.admin.list_deposits"
 WEB_API_SAVE_BULK = "swh.web.api.save_bulk"
+ADD_FORGE_NOW_CHANGE_REQUEST = "swh_web_add_forge_now.change_request"
+ADD_FORGE_NOW_VIEW_REQUEST = "swh_web_add_forge_now.view_request"
+SAVE_CODE_NOW_CHANGE_REQUEST = "swh_web_save_code_now.change_saveoriginrequest"
+SAVE_CODE_NOW_VIEW_REQUEST = "swh_web_save_code_now.view_saveoriginrequest"
 
 create_client_roles(
     KEYCLOAK_ADMIN,
@@ -288,6 +292,10 @@ create_client_roles(
         VAULT_GIT_BARE_UI_ROLE_NAME,
         WEB_ADMIN_LIST_DEPOSITS_ROLE_NAME,
         WEB_API_SAVE_BULK,
+        ADD_FORGE_NOW_CHANGE_REQUEST,
+        ADD_FORGE_NOW_VIEW_REQUEST,
+        SAVE_CODE_NOW_CHANGE_REQUEST,
+        SAVE_CODE_NOW_VIEW_REQUEST,
     ],
 )
 
@@ -348,6 +356,22 @@ for user_data in [
     create_user(KEYCLOAK_ADMIN, user_data)
 
 
+assign_client_roles_to_user(
+    KEYCLOAK_ADMIN,
+    CLIENT_WEBAPP_NAME,
+    [
+        WEB_API_THROTTLING_EXEMPTED_ROLE_NAME,
+        WEB_API_GRAPH_ROLE_NAME,
+        VAULT_GIT_BARE_UI_ROLE_NAME,
+        WEB_ADMIN_LIST_DEPOSITS_ROLE_NAME,
+        WEB_API_SAVE_BULK,
+        ADD_FORGE_NOW_CHANGE_REQUEST,
+        ADD_FORGE_NOW_VIEW_REQUEST,
+        SAVE_CODE_NOW_CHANGE_REQUEST,
+        SAVE_CODE_NOW_VIEW_REQUEST,
+    ],
+    "admin",
+)
 assign_client_roles_to_user(
     KEYCLOAK_ADMIN, CLIENT_DEPOSIT_NAME, [DEPOSIT_API_ROLE_NAME], "test"
 )
