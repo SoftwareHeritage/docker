@@ -17,7 +17,7 @@ case "$1" in
         shift
         swh_setup_db scrubber
         touch scrubber_db_initialized
-        echo "Scrubbing db initialized, puting the service to sleep..."
+        echo "Scrubbing db initialized, putting the service to sleep..."
         exec sleep infinity
         ;;
 
