@@ -1,7 +1,6 @@
 storage:
   cls: remote
   url: http://nginx/rpc/storage/
-  timeout: 1
 
 objstorage:
   cls: remote

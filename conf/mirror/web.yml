@@ -1,7 +1,6 @@
 storage:
   cls: remote
   url: http://nginx-mirror/rpc/storage-public/
-  timeout: 1
 
 #indexer_storage:
 #  cls: remote
