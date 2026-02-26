@@ -1,4 +1,3 @@
-# If you update what follows, you should probably update conf/storage_cassandra-public.yml
 storage:
   cls: cassandra
   hosts:
@@ -6,7 +5,7 @@ storage:
   keyspace: swh
   objstorage:
     cls: remote
-    url: http://swh-objstorage:5003/
+    url: http://nginx/rpc/objstorage/
   journal_writer:
     cls: kafka
     brokers:
