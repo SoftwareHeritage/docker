@@ -59,8 +59,3 @@ services:
     environment:
       CASSANDRA_SEEDS: cassandra-seed
       PYTHONUNBUFFERED: 1
-
-  swh-storage-public:
-    volumes:
-      - "./conf/storage_cassandra-public.yml:/srv/softwareheritage/config.yml:ro"
-      - "./services/swh-storage/entrypoint.sh:/srv/softwareheritage/entrypoint.sh:ro"
