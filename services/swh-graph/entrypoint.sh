@@ -102,6 +102,11 @@ case "$1" in
       fi
       generate_masked_nodes_file
       echo "Starting the swh-graph RPC servers"
+      if [ ! -s /srv/softwareheritage/graph/compressed/graph.property.tag_name.bin ]; then
+        # prevent GRPC server crash when no releases were exported
+        # https://gitlab.softwareheritage.org/swh/devel/swh-graph/-/issues/4890
+        rm -f /srv/softwareheritage/graph/compressed/graph.property.tag_name.bin
+      fi
       swh --log-level DEBUG graph rpc-serve --graph /srv/softwareheritage/graph/compressed/graph &
       graph_server_pid=$!
       # execute that function in background to poll changes in the archive
@@ -118,6 +123,11 @@ case "$1" in
         # kill graph rpc server process
         kill -9 $graph_server_pid
         generate_masked_nodes_file
+        if [ ! -s /srv/softwareheritage/graph/compressed/graph.property.tag_name.bin ]; then
+          # prevent GRPC server crash when no releases were exported
+          # https://gitlab.softwareheritage.org/swh/devel/swh-graph/-/issues/4890
+          rm -f /srv/softwareheritage/graph/compressed/graph.property.tag_name.bin
+        fi
         swh --log-level DEBUG graph rpc-serve --graph /srv/softwareheritage/graph/compressed/graph &
         graph_server_pid=$!
       done
