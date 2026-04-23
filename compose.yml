@@ -483,6 +483,12 @@ services:
     environment:
       SWH_WORKER_INSTANCE: loader
       SWH_SCHEDULER_INSTANCE: http://nginx/rpc/scheduler/
+      # workaround issue in subvertpy 0.11.1 installed from binary wheels
+      # that prevents communication with a remote svn repository through HTTPS,
+      # will be fixed in next subvertpy release on PyPI
+      # https://github.com/jelmer/subvertpy/pull/213
+      SSL_CERT_DIR: /etc/ssl/certs
+
     command: worker
     depends_on:
       - swh-storage
