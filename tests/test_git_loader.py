@@ -26,6 +26,16 @@ def compose_services():
     ]
 
 
+@pytest.fixture(scope="module")
+def origin_urls():
+    return [
+        (
+            "git",
+            "https://gitlab.softwareheritage.org/swh/infra/websites/swh-keycloak-theme.git",  # noqa
+        )
+    ]
+
+
 def test_git_loader(scheduler_host, origins, api_get):
     # check the loaded repos from origins are OK, and nothing is missing
     for origin_type, url in origins:
