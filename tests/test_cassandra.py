@@ -33,6 +33,16 @@ def compose_services():
     ]
 
 
+@pytest.fixture(scope="module")
+def origin_urls():
+    return [
+        (
+            "git",
+            "https://gitlab.softwareheritage.org/swh/infra/websites/swh-keycloak-theme.git",  # noqa
+        )
+    ]
+
+
 def test_ensure_cassandra(docker_compose, origins):
     check_output = docker_compose.check_compose_output
     # ensure the cassandra-seed service is running
