@@ -133,7 +133,7 @@ def test_origin_metadata_search(origins, docker_compose, nginx_get, api_get):
         omd_proc_raws = [
             raw
             for raw in logs.splitlines()
-            if "DEBUG:root:processing origin intrinsic_metadata" in raw
+            if "DEBUG:root:Converting origin (intrinsic|extrinsic) metadata" in raw
         ]
         urls = [
             m.group("url") for m in (matcher.search(row) for row in omd_proc_raws) if m
