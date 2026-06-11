@@ -142,7 +142,7 @@ def test_mention(
         raw_extrinsic_metadata = api_get(
             f"raw-extrinsic-metadata/swhid/{swhid}/",
             params={
-                "authority": f"registry {mention_payload['origin']['id']}",
+                "authority": "registry http://partner.local",
             },
         )
         if len(raw_extrinsic_metadata) == 1:
