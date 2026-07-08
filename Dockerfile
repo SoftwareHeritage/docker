@@ -34,7 +34,7 @@ RUN --mount=type=secret,mode=0444,id=SCCACHE_REDIS_ENDPOINT \
 FROM build_rust_base AS build_rust_swh_graph
 
 # rust crates of swh-graph
-ARG swh_graph_version=11.4.5
+ARG swh_graph_version=12.1.2
 RUN --mount=type=secret,mode=0444,id=SCCACHE_REDIS_ENDPOINT \
     --mount=type=secret,mode=0444,id=SCCACHE_REDIS_PASSWORD \
   env-from-secrets \
