@@ -1,4 +1,4 @@
-# Copyright (C) 2025  The Software Heritage developers
+# Copyright (C) 2025-2026  The Software Heritage developers
 # See the AUTHORS file at the top-level directory of this distribution
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
@@ -51,7 +51,9 @@ def mention_payload(origin_url, nginx_url):
         },
         "object": {
             "as:object": origin_url,
-            "as:relationship": "https://w3id.org/codemeta/3.0#citation",
+            "as:relationship": (
+                "https://schema.datacite.org/linked-data/vocab/relationType/Cites"
+            ),
             "as:subject": "https://example.com/paper/123/",
             "id": f"urn:uuid:{uuid.uuid4()}",
             "type": "Relationship",
@@ -176,6 +178,8 @@ def test_mention(
     )
 
     assert (
-        extrinsic_metadata[0]["citation"]["schema:ScholarlyArticle"]["id"]
+        extrinsic_metadata[0][
+            "https://schema.datacite.org/linked-data/vocab/relationType/IsCitedBy"
+        ]["schema:ScholarlyArticle"]["id"]
         == mention_payload["object"]["as:subject"]
     )
