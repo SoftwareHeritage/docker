@@ -405,7 +405,7 @@ def origins(loader_host, origin_urls: List[Tuple[str, str]]):
 @pytest.fixture
 def smtp_port(docker_compose):
     """Get the port exposed by our smtp server."""
-    return service_port(docker_compose, "smtp", 1025)
+    return service_port(docker_compose, "smtp4tests", 1025)
 
 
 @pytest.fixture(scope="module")

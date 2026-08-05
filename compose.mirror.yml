@@ -307,7 +307,7 @@ services:
       - kafka-create-topics
       - swh-mirror-storage
       - swh-mirror-masking-db
-      - smtp
+      - smtp4tests
     volumes:
       - "./conf/mirror/alter.yml:/srv/softwareheritage/config.yml:ro"
       - "./conf/mirror/age-identities.txt:/srv/softwareheritage/age-identities.txt:ro"

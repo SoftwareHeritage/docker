@@ -131,7 +131,7 @@ services:
       retries: 10
 
   # SMTP service (used by keycloak and vault)
-  smtp:
+  smtp4tests:
     image: axllent/mailpit
     # https://mailpit.axllent.org/docs/configuration/runtime-options/
     environment:

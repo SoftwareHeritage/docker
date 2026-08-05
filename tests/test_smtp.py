@@ -20,7 +20,7 @@ def compose_services() -> List[str]:
     return [
         "docker-helper",
         "docker-proxy",
-        "smtp",
+        "smtp4tests",
         "nginx",
     ]
 

@@ -14,4 +14,4 @@ vault:
     slicing: 0:5
   smtp:
     port: 1025
-    host: smtp
+    host: smtp4tests

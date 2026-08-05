@@ -125,7 +125,7 @@ KEYCLOAK_ADMIN.create_realm(
         "verifyEmail": True,
         "smtpServer": {
             "port": "1025",
-            "host": "smtp",
+            "host": "smtp4tests",
             "from": "keycloak-swh@docker",
             "fromDisplayName": "Keycloak SWH @ docker",
         },
