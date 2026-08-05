@@ -25,6 +25,7 @@ def reset_compose_session():
 def compose_files(request):
     return request.param
 
+
 @pytest.fixture(scope="module")
 def compose_services(compose_files):
     services = [
@@ -44,7 +45,11 @@ def origin_urls():
         (
             "git",
             "https://gitlab.softwareheritage.org/swh/infra/websites/swh-keycloak-theme.git",  # noqa
-        )
+        ),
+        (
+            "git",
+            "https://gitlab.softwareheritage.org/swh/devel/swh-core.git",  # noqa
+        ),
     ]
 
 
@@ -78,50 +83,72 @@ def test_git_loader(scheduler_host, origins, api_get):
 
         print(f"snapshot has {len(branches)} branches")
 
-        ignored_objects = []
-        # check every fetched branch is present in the snapshot
-        for branch_name, rev in gitrefs.items():
-            # for tags, only check for final revision id
-            if branch_name.startswith(b"refs/tags/") and not branch_name.endswith(
-                b"^{}"
-            ):
-                ignored_objects.append(rev)
-                continue
-            if branch_name.startswith(b"refs/merge-requests") and branch_name.endswith(
-                b"/merge"
-            ):
-                ignored_objects.append(rev)
-                continue
-            rev_desc = api_get(f"revision/{rev.decode()}/")
-            assert rev_desc["type"] == "git"
-
+        # check tags
         tag_revision = {}
         tag_release = {}
         for tag, rev in gitrefs.items():
             if tag.startswith(b"refs/tags/"):
                 tag_str = tag.decode()
                 rev_str = rev.decode()
-                if tag.endswith(b"^{}"):
-                    tag_revision[tag_str[:-3]] = rev_str
-                else:
-                    tag_release[tag_str] = rev_str
+                obj = repo.get_object(rev)
+                if not obj.type_name == b"tag":
+                    # ignore lighweigth tags (?)
+                    continue
+                tag_release[tag_str] = rev_str
+                tgt, tgt_id = obj.object
+                assert tgt.type_name == b"commit"
+                tag_revision[tag_str] = tgt_id.decode()
 
-        for tag, revision in tag_revision.items():
+        for tag, release_id in tag_release.items():
             # check that every release tag listed in the snapshot is known by the
             # archive and consistent
-            release_id = tag_release[tag]
             release = api_get(f"release/{release_id}/")
             assert release["id"] == release_id
             assert release["target_type"] == "revision"
-            assert release["target"] == revision
+            assert release["target"] == tag_revision[tag]
             # and compare this with what git ls-remote reported
             tag_desc = branches[tag]
             assert tag_desc["target_type"] == "release"
             assert tag_desc["target"] == release_id
 
+        # check all cnt, dir or rev objects; we check only objects accessible
+        # from non-filtered refs (should we use
+        # swh/loader/git/utils.py:ignore_branch_name here?)
+        used_branches = []
+        # check every fetched branch is present in the snapshot
+        for branch_name in gitrefs.keys():
+            if branch_name.endswith(b"^{}"):
+                continue
+            if branch_name.startswith(b"refs/merge-requests") and branch_name.endswith(
+                b"/merge"
+            ):
+                continue
+            if branch_name.startswith(b"refs/pull/") and branch_name.endswith(
+                b"/merge"
+            ):
+                continue
+            if branch_name.startswith((b"refs/pipelines/", b"refs/changes/")):
+                continue
+            used_branches.append(branch_name)
+
+        accessible_revs = set(
+            we.commit.id
+            for we in repo.get_walker(
+                include=[repo[gitrefs[bn]].id for bn in used_branches]
+            )
+        )
+        all_objs = set(repo.object_store)
+        rp = repo.object_store.get_reachability_provider()
+        accessible_trees = set(
+            rp.get_tree_objects([repo[rev].tree for rev in accessible_revs])
+        )
+        # we will no check anything that is not accessible from a 'valid'
+        # ref/branch name
+        ignored_objs = all_objs - (accessible_revs | accessible_trees)
+
         print("Check every git object is known by the archive")
         for batch in grouper(
-            (obj for obj in repo.object_store if obj not in ignored_objects), 1000
+            (obj for obj in repo.object_store if obj not in ignored_objs), 1000
         ):
             swhids = []
             for sha1 in batch:
@@ -133,8 +160,6 @@ def test_git_loader(scheduler_host, origins, api_get):
                     swhids.append(f"swh:1:rev:{sha1_str}")
                 elif obj.type_name == b"tree":
                     swhids.append(f"swh:1:dir:{sha1_str}")
-                elif obj.type_name == b"tag":
-                    swhids.append(f"swh:1:rel:{sha1_str}")
             known = api_get("known/", verb="post", json=swhids)
-
-            assert all(v["known"] for k, v in known.items())
+            missing = [k for k, v in known.items() if v["known"] is not True]
+            assert not missing, missing
