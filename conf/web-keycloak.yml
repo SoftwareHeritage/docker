@@ -1,10 +1,6 @@
 storage:
   cls: remote
-  url: http://nginx/rpc/storage/
-
-objstorage:
-  cls: remote
-  url: http://nginx/rpc/objstorage/
+  url: http://nginx/rpc/storage-public/
 
 indexer_storage:
   cls: remote
@@ -33,11 +29,7 @@ serve_assets: yes
 development_db: /tmp/swh/web.sqlite3
 
 production_db:
-  host: swh-web-db
-  port: 5432
-  name: swh-web
-  user: postgres
-  password: testpassword
+  name: postgresql:///?service=swh-web
 
 throttling:
   cache_uri: memcache:11211
@@ -45,18 +37,35 @@ throttling:
     swh_api:
       limiter_rate:
         default: 120/h
+      exempted_networks:
+        - 0.0.0.0/0
     swh_api_origin_search:
       limiter_rate:
         default: 70/m
+      exempted_networks:
+        - 0.0.0.0/0
     swh_api_origin_visit_latest:
       limiter_rate:
         default: 700/m
+      exempted_networks:
+        - 0.0.0.0/0
     swh_vault_cooking:
       limiter_rate:
         default: 120/h
+      exempted_networks:
+        - 0.0.0.0/0
     swh_save_origin:
       limiter_rate:
         default: 120/h
+      exempted_networks:
+        - 0.0.0.0/0
+    swh_api_metadata_citation:
+      limiter_rate:
+        default: 60/m
+      exempted_networks:
+        - 0.0.0.0/0
+
+instance_name: archive-docker.softwareheritage.org
 
 search:
   cls: remote
@@ -85,3 +94,4 @@ graph:
     staff: 0
     user: 100000
     anonymous: 1000
+
