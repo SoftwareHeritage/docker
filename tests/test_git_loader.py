@@ -53,7 +53,7 @@ def origin_urls():
     ]
 
 
-def test_git_loader(scheduler_host, origins, api_get):
+def test_git_loader(scheduler_host, loader_host, origins, api_get):
     # check the loaded repos from origins are OK, and nothing is missing
     for origin_type, url in origins:
         assert origin_type == "git"
@@ -111,30 +111,22 @@ def test_git_loader(scheduler_host, origins, api_get):
             assert tag_desc["target_type"] == "release"
             assert tag_desc["target"] == release_id
 
-        # check all cnt, dir or rev objects; we check only objects accessible
-        # from non-filtered refs (should we use
-        # swh/loader/git/utils.py:ignore_branch_name here?)
-        used_branches = []
-        # check every fetched branch is present in the snapshot
-        for branch_name in gitrefs.keys():
-            if branch_name.endswith(b"^{}"):
-                continue
-            if branch_name.startswith(b"refs/merge-requests") and branch_name.endswith(
-                b"/merge"
-            ):
-                continue
-            if branch_name.startswith(b"refs/pull/") and branch_name.endswith(
-                b"/merge"
-            ):
-                continue
-            if branch_name.startswith((b"refs/pipelines/", b"refs/changes/")):
-                continue
-            used_branches.append(branch_name)
+        # check all cnt, dir or rev objects;
+        # We check only objects accessible from non-filtered refs.
+        # Use the actual filter from swh.loader.git from the
+        # container; this prevents to have this test depend on
+        # swh.loader.git which pulls a semi-ton of dependencies...
+
+        filtered_refs_str = loader_host.check_output(
+            'python -c "from swh.loader.git.utils import filter_refs; '
+            f'print(filter_refs({gitrefs}))"'
+        )
+        filtered_refs = eval(filtered_refs_str)
 
         accessible_revs = set(
             we.commit.id
             for we in repo.get_walker(
-                include=[repo[gitrefs[bn]].id for bn in used_branches]
+                include=[repo[gitrefs[bn]].id for bn in filtered_refs]
             )
         )
         all_objs = set(repo.object_store)
