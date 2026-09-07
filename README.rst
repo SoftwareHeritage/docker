@@ -27,6 +27,15 @@ Docker environment and that the docker compose plugin (>= 2.24.4) `is installed
 
 .. _Compose: https://docs.docker.com/compose/
 
+Pulling required images from Docker Hub
+_______________________________________
+
+Compose services use a set of docker images hosted on Docker Hub.
+You can explicitly pull their latest versions using the following command:
+
+.. code-block:: console
+
+   ~/swh-environment/docker$ make pull-images-from-dockerhub
 
 Docker image
 ------------
