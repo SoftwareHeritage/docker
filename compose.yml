@@ -26,6 +26,7 @@ services:
   kafka-create-topics:
     # this is a short-lived service, it creates kafka topics and exits
     image: swh/stack:${SWH_IMAGE_TAG:-latest}
+    build: ./
     depends_on:
       - kafka
     restart: on-failure
@@ -117,6 +118,7 @@ services:
 
   docker-helper:
     image: swh/stack:${SWH_IMAGE_TAG:-latest}
+    build: ./
     environment:
       COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
     command: rpc

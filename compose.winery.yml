@@ -9,6 +9,7 @@ services:
 
   winery-packer:
     image: swh/stack:${SWH_IMAGE_TAG:-latest}
+    build: ./
     env_file:
       - ./env/common_python.env
     volumes:
@@ -24,6 +25,7 @@ services:
 
   winery-cleaner:
     image: swh/stack:${SWH_IMAGE_TAG:-latest}
+    build: ./
     env_file:
       - ./env/common_python.env
     volumes:
@@ -39,6 +41,7 @@ services:
 
   swh-objstorage:
     image: swh/stack:${SWH_IMAGE_TAG:-latest}
+    build: ./
     env_file:
       - ./env/common_python.env
     volumes:
