@@ -13,10 +13,13 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
   rm -rf /var/lib/apt/lists/*
 
 # install sccache to speedup rust builds
-ARG sccache_version=0.12.0
+ARG sccache_version=0.17.0
 RUN cd /usr/local/bin && \
   curl -sSfL https://github.com/mozilla/sccache/releases/download/v${sccache_version}/sccache-v${sccache_version}-x86_64-unknown-linux-musl.tar.gz | \
   tar --strip-components=1 -xz sccache-v${sccache_version}-x86_64-unknown-linux-musl/sccache
+# Enable sccache client-side mode for better performance,
+# see https://github.com/mozilla/sccache/releases/tag/v0.17.0
+ENV SCCACHE_CLIENT_SIDE=1
 
 COPY ./env-from-secrets /usr/local/bin
 
