@@ -9,7 +9,9 @@ import pytest
 from .utils import retry_until_success
 
 # small git repository that takes a couple of seconds to load into the archive
-ORIGIN_URL = "https://github.com/anlambert/highlightjs-line-numbers.js"
+ORIGIN_URL = (
+    "https://gitlab.com/gitlab-com/solution-architecture-blueprints/account-plan.git"
+)
 VISIT_TYPE = "git"
 
 

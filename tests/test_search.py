@@ -38,7 +38,9 @@ def origin_urls(small_git_repo, tiny_git_repo):
     return [
         ("git", small_git_repo),
         ("git", tiny_git_repo),
-        ("git", "https://github.com/rdicosmo/parmap.git"),
+        # imported to SWH gitlab from https://github.com/rdicosmo/parmap
+        # to workaround GitHub rate-limit for anonymous users
+        ("git", "https://gitlab.softwareheritage.org/anlambert/parmap.git"),
         ("pypi", "https://pypi.org/project/swh.counters/"),
         ("pypi", "https://pypi.org/project/swh.search/"),
     ]
@@ -111,7 +113,7 @@ def test_origin_metadata_search(origins, docker_compose, nginx_get, api_get):
     metadata_patterns = {
         "https://pypi.org/project/swh.counters/": "Software Heritage archive counters",
         "https://pypi.org/project/swh.search/": "Software Heritage search service",
-        "https://github.com/rdicosmo/parmap.git": "roberto",
+        "https://gitlab.softwareheritage.org/anlambert/parmap.git": "roberto",
     }
     imd_urls = set(metadata_patterns)
 

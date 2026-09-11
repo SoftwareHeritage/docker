@@ -182,7 +182,10 @@ def test_graph_web_api(graph_service, api_get, origins):
 
 @pytest.fixture(scope="module")
 def origin_urls(tiny_git_repo) -> List[Tuple[str, str]]:
-    return [("git", tiny_git_repo), ("git", "https://github.com/rdicosmo/parmap.git")]
+    return [
+        ("git", tiny_git_repo),
+        ("git", "https://gitlab.softwareheritage.org/swh/devel/swh-model.git"),
+    ]
 
 
 def swh_datasets_version():
