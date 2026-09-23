@@ -14,3 +14,5 @@ webhooks:
       g1ODg1LCJpc3MiOiJzdml4LXNlcnZlciIsInN1YiI6Im9yZ18yM3JiO\
       FlkR3FNVDBxSXpwZ0d3ZFhmSGlyTXUifQ.5r19B_eNWeke6exW8d9pC\
       MWWzp71eOe7oo_q_vnPp1I"
+
+save_code_now_webhook_secret: whsec_QgEXGNJPBPjKsyBMPwtAkJpgVtA0g41A

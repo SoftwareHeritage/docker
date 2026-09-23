@@ -15,11 +15,6 @@ ORIGIN_URL = (
 VISIT_TYPE = "git"
 
 
-@pytest.fixture(scope="module")
-def reset_compose_session():
-    return False
-
-
 @pytest.fixture(
     scope="module",
     params=[
@@ -56,10 +51,20 @@ def compose_services(compose_files):
 def test_save_code_now(webapp_host, api_get):
     api_path = f"origin/save/{VISIT_TYPE}/url/{ORIGIN_URL}/"
     # create save request
-    api_get(api_path, verb="POST")
+    request_id = api_get(api_path, verb="POST")["id"]
+
     # wait until it was successfully processed
+    def get_request_status(request_id):
+        # we want to check if request status is updated either by a cron or
+        # a webhook so we get it from webapp database as using the Web API
+        # to get request info automatically updates its status
+        return webapp_host.check_output(
+            "psql -qt service=swh-web -c "
+            f"'select loading_task_status from save_origin_request where id = {request_id}'"  # noqa
+        ).strip()
+
     retry_until_success(
-        lambda: api_get(api_path)[0].get("save_task_status") == "succeeded",
+        lambda: get_request_status(request_id) == "succeeded",
         error_message="Save Code Now request did not succeed",
         max_attempts=60,
     )
