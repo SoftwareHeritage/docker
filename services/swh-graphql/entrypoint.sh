@@ -7,6 +7,8 @@ source /srv/softwareheritage/utils/swhutils.sh
 
 setup_pip
 
+setup_config_file
+
 case "$1" in
     "shell")
       exec bash -i

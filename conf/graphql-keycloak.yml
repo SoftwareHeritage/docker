@@ -16,7 +16,7 @@ max_query_cost:
 
 auth:
   server: http://nginx/keycloak/auth/
-  public_server: http://localhost/keycloak/auth/
+  public_server: http://localhost:${PUBLIC_PORT}/keycloak/auth/
   realm: SoftwareHeritage
   client: swh-web
   cache:

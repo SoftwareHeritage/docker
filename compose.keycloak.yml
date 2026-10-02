@@ -42,5 +42,7 @@ services:
   swh-graphql:
     depends_on:
       - keycloak
+    environment:
+      SWH_CONFIG_FILENAME: /srv/softwareheritage/config-kc.yml
     volumes:
-      - "./conf/graphql-keycloak.yml:/srv/softwareheritage/config.yml:ro"
+      - "./conf/graphql-keycloak.yml:/srv/softwareheritage/config-kc.yml.in:ro"
