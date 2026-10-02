@@ -6,6 +6,7 @@
 # See top-level LICENSE file for more information
 
 import logging
+from functools import lru_cache
 
 import requests
 from keycloak import KeycloakAdmin
@@ -23,14 +24,21 @@ ADMIN = {"username": "admin", "password": "admin"}
 logger = logging.getLogger(__name__)
 
 
-def get_frontend_url():
+@lru_cache()
+def get_keycloak_base_urls():
     # query the docker API to get the port of the edge router
-    resp = requests.get("http://docker-helper/public-port/")
-    if resp.status_code == 200:
-        port = resp.json()
-        return f"http://localhost:{port}/keycloak/auth/"
+    resp = requests.get("http://docker-helper/gateway/")
+    resp2 = requests.get("http://docker-helper/public-port/")
+    if resp.status_code == 200 and resp2.status_code == 200:
+        gateway = resp.text
+        port = resp2.json()
+        return [f"http://localhost:{port}", f"http://{gateway}:{port}"]
 
-    return SERVER_URL
+    return [SERVER_URL]
+
+
+def get_frontend_url():
+    return get_keycloak_base_urls()[0] + "/keycloak/auth/"
 
 
 def assign_client_base_url(keycloak_admin, client_name, base_url):
@@ -200,15 +208,13 @@ KEYCLOAK_ADMIN = KeycloakAdmin(
 for client_name, redirect_uris in [
     (
         CLIENT_WEBAPP_NAME,
-        [
-            "http://localhost:5004/*",
-            "http://localhost/*",
-            "http://localhost:5013/*",
-            "http://localhost/graphql",
-        ],
+        [url + "/*" for url in get_keycloak_base_urls()],
     ),
-    (CLIENT_DEPOSIT_NAME, ["http://localhost:5006/*"]),
-    (CLIENT_COARNOTIFY_NAME, ["http://localhost:5009/*"]),
+    (CLIENT_DEPOSIT_NAME, [url + "/deposit/*" for url in get_keycloak_base_urls()]),
+    (
+        CLIENT_COARNOTIFY_NAME,
+        [url + "/coarnotify/*" for url in get_keycloak_base_urls()],
+    ),
 ]:
     # create swh-web public client
     KEYCLOAK_ADMIN.create_client(
