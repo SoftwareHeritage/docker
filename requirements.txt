@@ -2,3 +2,4 @@ gunicorn
 pip
 setuptools
 wheel
+uv

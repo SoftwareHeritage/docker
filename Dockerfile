@@ -137,7 +137,7 @@ RUN --mount=type=cache,uid=1000,target=/srv/softwareheritage/.cache \
 
 COPY requirements-swh.txt /srv/softwareheritage/
 RUN --mount=type=cache,uid=1000,target=/srv/softwareheritage/.cache \
-  pip install -r /srv/softwareheritage/requirements-swh.txt
+  uv pip install -r /srv/softwareheritage/requirements-swh.txt
 
 RUN pip list > /srv/softwareheritage/pip-installed.txt
 COPY utils/*.sh /srv/softwareheritage/utils/
