@@ -7,6 +7,8 @@ cd
 if [ ! -d swh-keycloak-theme ]
 then
     git clone https://gitlab.softwareheritage.org/swh/infra/websites/swh-keycloak-theme.git
+    cd swh-keycloak-theme
+    git checkout v0.3.1
     cp -r /opt/jboss/swh-keycloak-theme/swh /opt/jboss/keycloak/themes/swh
 fi
 
