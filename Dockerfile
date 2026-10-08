@@ -47,11 +47,6 @@ RUN --mount=type=secret,mode=0444,id=SCCACHE_REDIS_ENDPOINT \
       swh-graph-grpc-server@${swh_graph_version} \
       --all-features --locked
 
-# build yq (stolen from https://github.com/mikefarah/yq/blob/master/Dockerfile)
-FROM golang:1.27 AS build_yq
-
-RUN CGO_ENABLED=0 go install -ldflags "-s" github.com/mikefarah/yq/v4@latest
-
 FROM python:3.11 AS install_non_python_dependencies
 
 ARG PGDG_REPO=http://apt.postgresql.org/pub/repos/apt
@@ -120,7 +115,9 @@ COPY --from=build_rust_rage /usr/local/cargo/bin/* /usr/local/bin
 COPY --from=build_rust_swh_graph /usr/local/cargo/bin/* /usr/local/bin
 
 # Install yq
-COPY --from=build_yq /go/bin/yq /usr/local/bin
+ARG yq_version=4.54.1
+RUN curl -LO https://github.com/mikefarah/yq/releases/download/v${yq_version}/yq_linux_amd64 && \
+  chmod +x yq_linux_amd64 && mv yq_linux_amd64 /usr/local/bin/yq
 
 # Install maven-index-exporter tool used by the maven lister
 COPY --from=maven_index_exporter_image /opt/maven-index-exporter /opt/maven-index-exporter
