@@ -137,8 +137,7 @@ RUN --mount=type=cache,uid=1000,target=/srv/softwareheritage/.cache \
 
 COPY requirements-swh.txt /srv/softwareheritage/
 RUN --mount=type=cache,uid=1000,target=/srv/softwareheritage/.cache \
-    # set some CFLAGS to allow compilation of `subvertpy` with GCC>=14
-    CFLAGS=-Wno-int-conversion pip install -r /srv/softwareheritage/requirements-swh.txt
+  pip install -r /srv/softwareheritage/requirements-swh.txt
 
 RUN pip list > /srv/softwareheritage/pip-installed.txt
 COPY utils/*.sh /srv/softwareheritage/utils/
