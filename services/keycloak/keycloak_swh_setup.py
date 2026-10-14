@@ -9,7 +9,7 @@ import logging
 from functools import lru_cache
 
 import requests
-from keycloak import KeycloakAdmin
+from keycloak import KeycloakAdmin, KeycloakDeleteError
 
 SERVER_URL = "http://localhost:8080/keycloak/"
 REALM_NAME = "SoftwareHeritage"
@@ -38,7 +38,9 @@ def get_keycloak_base_urls():
 
 
 def get_frontend_url():
-    return get_keycloak_base_urls()[0] + "/keycloak"
+    # use frontend URL with docker gateway IP as keycloak session cookies are
+    # dropped otherwise when executing authentication flow outside of a browser
+    return get_keycloak_base_urls()[1] + "/keycloak"
 
 
 def assign_client_base_url(keycloak_admin, client_name, base_url):
@@ -133,6 +135,10 @@ assign_client_redirect_uris(
 )
 
 # create swh realm
+try:
+    KEYCLOAK_ADMIN.delete_realm(REALM_NAME)
+except KeycloakDeleteError:
+    pass
 KEYCLOAK_ADMIN.create_realm(
     payload={
         "id": REALM_NAME,
@@ -229,15 +235,23 @@ KEYCLOAK_ADMIN = KeycloakAdmin(
     realm_name=REALM_NAME,
 )
 
-for client_name, redirect_uris in [
+for client_name, redirect_uris, direct_access_grants_enabled in [
     (
         CLIENT_WEBAPP_NAME,
         [url + "/*" for url in get_keycloak_base_urls()],
+        False,
     ),
-    (CLIENT_DEPOSIT_NAME, [url + "/deposit/*" for url in get_keycloak_base_urls()]),
+    (
+        CLIENT_DEPOSIT_NAME,
+        [url + "/deposit/*" for url in get_keycloak_base_urls()],
+        # swh-deposit uses direct access grant in its implementation so
+        # keep it enabled
+        True,
+    ),
     (
         CLIENT_COARNOTIFY_NAME,
         [url + "/coarnotify/*" for url in get_keycloak_base_urls()],
+        False,
     ),
 ]:
     # create swh-web public client
@@ -252,7 +266,7 @@ for client_name, redirect_uris in [
             "consentRequired": False,
             "standardFlowEnabled": True,
             "implicitFlowEnabled": False,
-            "directAccessGrantsEnabled": True,
+            "directAccessGrantsEnabled": direct_access_grants_enabled,
             "serviceAccountsEnabled": False,
             "publicClient": True,
             "frontchannelLogout": False,

@@ -55,11 +55,11 @@ def origin_urls(origin_urls):
     ]
 
 
-def test_save_bulk(docker_compose, webapp_host, api_get, origin_urls):
+def test_save_bulk(docker_compose, nginx_url, api_get, origin_urls):
     print("Generating a bearer token for granted user")
     bearer_token = retry_until_success(
         lambda: generate_bearer_token(
-            webapp_host,
+            nginx_url,
             # user johndoe has the swh.web.api.save_bulk permission set
             # see services/keycloak/keycloak_swh_setup.py script
             username="johndoe",

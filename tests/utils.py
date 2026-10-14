@@ -8,6 +8,7 @@ import hashlib
 import itertools
 import logging
 import random
+import subprocess
 import time
 from os.path import join
 from typing import Any, Callable, Dict, Generator, Iterable, List, Mapping, Tuple
@@ -133,13 +134,16 @@ def api_get_directory(
             )
 
 
-def generate_bearer_token(webapp_host, username, password):
+def generate_bearer_token(nginx_url, username, password, redirect_uri=None):
+    redirect_uri = redirect_uri or f"{nginx_url}/"
     try:
-        return webapp_host.check_output(
-            f"swh auth -u http://nginx/keycloak/ generate-token {username} "
-            f"-p {password}"
-        )
-    except AssertionError:
+        return subprocess.check_output(
+            f"swh auth -u {nginx_url}/keycloak/ "
+            f"generate-token -p {password} -r {redirect_uri} {username}",
+            shell=True,
+            text=True,
+        ).strip()
+    except subprocess.CalledProcessError:
         return False
 
 

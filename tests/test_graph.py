@@ -157,13 +157,13 @@ def test_graph_masked_node(
     )
 
 
-def test_graph_web_api(graph_service, api_get, origins):
+def test_graph_web_api(graph_service, nginx_url, api_get, origins):
     graph_service.check_output("wait-for-it swh-graph:50091 -s --timeout=0")
 
     # generate a token for admin user
     bearer_token = retry_until_success(
         lambda: generate_bearer_token(
-            graph_service,
+            nginx_url,
             # user johndoe has the swh.web.api.graph permission set
             # see services/keycloak/keycloak_swh_setup.py script
             username="johndoe",

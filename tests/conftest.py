@@ -191,6 +191,15 @@ def docker_compose(
         # nginx service must be restarted when executing test modules
         # sequentially or 502 and 504 errors can happen otherwise
         docker_host.check_compose_output("stop nginx")
+        try:
+            # keycloak service must be restarted as it depends on nginx public port
+            # that will change so swh realm configuration must be updated
+            docker_host.check_compose_output("stop keycloak")
+        except AssertionError:
+            pass
+        if "compose.keycloak.yml" in compose_cmd:
+            # swh-web must be restarted to update the keycloak URL
+            docker_host.check_compose_output("stop swh-web")
 
     print(f"Starting the compose session {project_name} ...", end=" ", flush=True)
     t = time.time()

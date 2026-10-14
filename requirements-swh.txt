@@ -1,4 +1,5 @@
 swh-alter
+swh-auth
 swh-core[db,http]
 swh-counters
 swh-coarnotify

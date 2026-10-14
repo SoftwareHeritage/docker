@@ -98,7 +98,7 @@ host-port-from-url() {
 }
 
 setup_config_file() {
-    if [ ! -f "$SWH_CONFIG_FILENAME" ] && [ -f "${SWH_CONFIG_FILENAME}.in" ]; then
+    if [ -f "${SWH_CONFIG_FILENAME}.in" ]; then
         # templatized...
         export PUBLIC_PORT=$(curl -s http://docker-helper/public-port/)
         export GATEWAY=$(curl -s http://docker-helper/gateway/)

@@ -30,10 +30,14 @@ def compose_services() -> List[str]:
     ]
 
 
-def test_keycloak_authentication(webapp_host, api_get):
+def test_keycloak_authentication(nginx_url, api_get):
     # generate a token for admin user
     bearer_token = retry_until_success(
-        lambda: generate_bearer_token(webapp_host, username="admin", password="admin")
+        lambda: generate_bearer_token(
+            nginx_url,
+            username="admin",
+            password="admin",
+        )
     )
 
     # Web API authentication with valid bearer token should succeed
