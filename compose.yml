@@ -127,6 +127,7 @@ services:
       - "./services/docker-helper/app.py:/srv/softwareheritage/app.py:ro"
     depends_on:
       - docker-proxy
+      - nginx
     healthcheck:
       test: curl -f http://localhost/public-port/ || exit 1
       interval: 5s
