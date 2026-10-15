@@ -1,4 +1,4 @@
-# Copyright (C) 2019-2025  The Software Heritage developers
+# Copyright (C) 2019-2026  The Software Heritage developers
 # See the AUTHORS file at the top-level directory of this distribution
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
@@ -10,13 +10,12 @@ import shutil
 import time
 from functools import partial
 from subprocess import CalledProcessError, check_output
-from typing import Iterable, List, Set, Tuple, Union
+from typing import Iterable, List, Tuple, Union
 from uuid import uuid4 as uuid
 
 import pytest
 import requests
 import testinfra
-import yaml
 
 from .utils import api_get as api_get_func
 from .utils import api_get_directory as api_get_directory_func
@@ -75,18 +74,6 @@ def compose_files() -> List[str]:
     # this fixture is meant to be overloaded in test modules to include the
     # required compose files for the test (see test_deposit.py for example)
     return ["compose.yml"]
-
-
-@pytest.fixture(scope="module")
-def defined_compose_services(compose_files) -> Set[str]:
-    services = set()
-    for compose_file in compose_files:
-        with open(compose_file, "r") as compose_fd:
-            compose_data = yaml.safe_load(
-                compose_fd.read().replace("!override", "").replace("!reset", "")
-            )
-            services.update(compose_data["services"].keys())
-    return services
 
 
 @pytest.fixture(scope="module")
@@ -178,7 +165,6 @@ def docker_compose(
     compose_cmd,
     compose_services,
     tmp_path_factory,
-    defined_compose_services,
     reset_compose_session,
 ):
     failed_tests_count = request.node.session.testsfailed
@@ -211,7 +197,8 @@ def docker_compose(
         for i in range(3):
             try:
                 docker_host.check_output(
-                    f"{compose_cmd} up --wait -d {' '.join(compose_services)}"
+                    f"{compose_cmd} up --remove-orphans --wait "
+                    f"-d {' '.join(compose_services)}"
                 )
                 break
             except Exception as exc:
@@ -223,20 +210,6 @@ def docker_compose(
                     print("Retrying...")
 
         print("OK")
-
-        if hasattr(docker_host, "check_compose_output"):
-            # kill orphan services from previous test module execution
-            services = set(
-                docker_host.check_compose_output("ps --services").splitlines()
-            )
-            services_to_kill = [
-                service
-                for service in services
-                if service not in defined_compose_services
-            ]
-            if services_to_kill:
-                print("Killing orphan services: ", ", ".join(services_to_kill))
-                docker_host.check_compose_output(f"kill {' '.join(services_to_kill)}")
 
         elapsed = time.time() - t
 
