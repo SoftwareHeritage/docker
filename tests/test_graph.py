@@ -108,7 +108,7 @@ def test_graph_find_context(graph_service, origins):
         try:
             output = graph_service.check_output(
                 "swh graph find-context -c "
-                "swh:1:cnt:524175c2bad0b35b975f79284c2f5a6d5eaf2eb4"
+                "swh:1:cnt:04099ac72f83e65c1b5c99ede4d3abed7c06ae88"
             )
         except Exception:
             return False
