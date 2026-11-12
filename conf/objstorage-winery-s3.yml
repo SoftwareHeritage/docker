@@ -1,0 +1,43 @@
+objstorage:
+    cls: winery
+
+    # boolean (false (default): allow writes, true: only allow reads)
+    readonly: false
+    allow_delete: true
+
+    # Shared database settings
+    database:
+      # string: PostgreSQL connection string for the object index and read-write
+      # shards
+      db: postgresql:///?service=winery
+
+      # string: PostgreSQL application name for connections (unset by default)
+      application_name: winery
+
+    # Shards pool settings
+    shards_pools:
+      -
+       ## Settings for an S3-based mosaic pool
+       type: mosaic-s3
+       base_url: s3://winery
+       shard_max_size: 10_000_000
+       compression_level: 3
+       tmp_directory: /tmp
+       s3_config:
+         aws_endpoint_url: http://winery-s3:3900
+         aws_access_key_id: testing_key
+         aws_secret_access_key: testing_long_enough_secret
+         aws_default_region: garage
+         aws_allow_http: true
+       pool_name: mosaic
+
+    shards_active_pool: mosaic
+
+    # Packer-related settings
+    packer:
+      # Whether the packer should create shards in the shard pool, or defer to
+      # the pool manager (default: true, the packer creates images)
+      create_images: true
+
+
+client_max_size: 1073741824

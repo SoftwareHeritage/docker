@@ -29,8 +29,9 @@ def reset_compose_session():
         ],
         ["compose.yml", "compose.vault.yml"],
         ["compose.yml", "compose.vault.yml", "compose.winery.yml"],
+        ["compose.yml", "compose.vault.yml", "compose.mosaic-s3.yml"],
     ],
-    ids=["azure_cache", "local_cache", "winery"],
+    ids=["azure_cache", "local_cache", "winery", "winery-mosaic-s3"],
 )
 def compose_files(request) -> List[str]:
     return request.param
@@ -52,6 +53,8 @@ def compose_services(compose_files):
     ]
     if "compose.winery.yml" in compose_files:
         services.extend(["winery-packer", "winery-cleaner"])
+    if "compose.mosaic-s3.yml" in compose_files:
+        services.extend(["winery-packer", "winery-cleaner", "winery-s3"])
     return services
 
 

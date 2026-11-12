@@ -23,8 +23,8 @@ def reset_compose_session():
 
 @pytest.fixture(
     scope="module",
-    params=[[], ["compose.winery.yml"]],
-    ids=["pathslicer", "winery"],
+    params=[[], ["compose.winery.yml"], ["compose.mosaic-s3.yml"]],
+    ids=["pathslicer", "winery", "winery-mosaic-s3"],
 )
 def compose_files(request) -> List[str]:
     return ["compose.yml", "compose.search.yml", "compose.alter.yml"] + request.param
@@ -49,6 +49,8 @@ def compose_services(compose_files) -> List[str]:
     ]
     if "compose.winery.yml" in compose_files:
         services.extend(["winery-packer", "winery-cleaner"])
+    if "compose.mosaic-s3.yml" in compose_files:
+        services.extend(["winery-packer", "winery-cleaner", "winery-s3"])
     return services
 
 

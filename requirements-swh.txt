@@ -20,7 +20,8 @@ swh-loader-mercurial
 swh-loader-metadata
 swh-loader-svn
 swh-storage
-swh-objstorage[azure,winery]
+
+swh-objstorage[azure,winery,mosaic] >= 9.0.0
 swh-objstorage-replayer
 swh-scheduler
 swh-scrubber
