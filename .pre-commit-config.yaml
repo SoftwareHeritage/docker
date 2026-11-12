@@ -33,11 +33,11 @@ repos:
         types: [python]
 
   - repo: https://github.com/PyCQA/isort
-    rev: 6.1.0
+    rev: 8.0.1
     hooks:
       - id: isort
 
   - repo: https://github.com/python/black
-    rev: 25.9.0
+    rev: 26.5.1
     hooks:
       - id: black
