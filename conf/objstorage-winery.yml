@@ -23,13 +23,13 @@ objstorage:
         type: directory
         base_directory: /srv/softwareheritage/winery
         pool_name: shards
-        shard_max_size: 100_000_000_000
+        shard_max_size: 10_000_000
       -
         ## Settings for another directory shards pool
         type: directory
         base_directory: /srv/softwareheritage/winery
         pool_name: shards2
-        shard_max_size: 100_000_000_000
+        shard_max_size: 10_000_000
 #      -
 #        ## Settings for a directory mosaic pool
 #        type: mosaic

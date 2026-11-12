@@ -411,3 +411,8 @@ def alter_host(docker_compose) -> Iterable[testinfra.host.Host]:
 @pytest.fixture(scope="module")
 def storage_public_service(docker_compose):
     return compose_host_for_service(docker_compose, "swh-storage-public")
+
+
+@pytest.fixture(scope="module")
+def service_host(docker_compose):
+    return partial(compose_host_for_service, docker_compose)

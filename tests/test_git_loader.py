@@ -3,6 +3,7 @@
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
 
+import time
 from urllib.parse import quote_plus
 
 import pytest
@@ -59,7 +60,8 @@ def origin_urls():
     ]
 
 
-def test_git_loader(scheduler_host, loader_host, origins, api_get):
+def test_git_loader(origins, api_get, compose_files, service_host):
+    loader_host = service_host("swh-loader")
     # check the loaded repos from origins are OK, and nothing is missing
     for origin_type, url in origins:
         assert origin_type == "git"
@@ -161,3 +163,38 @@ def test_git_loader(scheduler_host, loader_host, origins, api_get):
             known = api_get("known/", verb="post", json=swhids)
             missing = [k for k, v in known.items() if v["known"] is not True]
             assert not missing, missing
+
+        # specific checks for winery (ensure shards have been packed in the backend)
+        if (
+            "compose.mosaic-s3.yml" in compose_files
+            or "compose.winery.yml" in compose_files
+        ):
+            packer = service_host("winery-packer")
+            for i in range(10):
+                # wait for the packer to do its job...
+                # we accept both readonly and packed because it can
+                # take a bit of time for the cleaner to actually
+                # update the shard state, so this makes the test
+                # execution a bit faster...
+                query = (
+                    "select count(*) from shards "
+                    "where state in ('readonly', 'packed');"
+                )
+                shards = packer.check_output(
+                    f'psql service=winery -c "{query}" --csv'
+                ).splitlines()
+                assert shards[0] == "count"
+                if int(shards[1]) > 0:
+                    break
+                time.sleep(1)
+            else:
+                print(
+                    packer.check_output(
+                        'psql service=winery -c "select * from shards;" '
+                    )
+                )
+                assert False, "No shard have been packed in timely manner!"
+
+            # TODO: check actual shard files exist on the storage
+            # backend, but this needs helper tools from swh-objstorage
+            # not to be a PITA to do here
