@@ -3,15 +3,18 @@ storage:
   steps:
     - cls: buffer
       min_batch_size:
-        content: 10000
-        content_bytes: 104857600
+        content: 1000
+        content_bytes: 52428800
         directory: 1000
+        directory_entries: 12000
         revision: 1000
+        revision_parents: 2000
+        revision_bytes: 52428800
+        release: 1000
+        release_bytes: 52428800
+        extid: 1000
     - cls: filter
-    - cls: tenacious
-      error_rate_limit:
-        errors: 10
-        window_size: 1000
+    - cls: retry
     - cls: remote
       url: http://nginx/rpc/storage/
 

@@ -11,6 +11,9 @@ services:
       KAFKA_NUM_PARTITIONS: 16
       KAFKA_LOG_CLEANUP_POLICY: compact
       KAFKA_LOG_DIRS: /var/lib/kafka/data/kraft-combined-logs
+      KAFKA_MESSAGE_MAX_BYTES: 1000000000
+      KAFKA_REPLICA_FETCH_MAX_BYTES: 1000000000
+      KAFKA_SOCKET_REQUEST_MAX_BYTES: 1000000000
     volumes:
       - kafka-data:/var/lib/kafka/data
       - kafka-secrets:/etc/kafka/secrets

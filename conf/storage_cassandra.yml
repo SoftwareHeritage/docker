@@ -13,4 +13,6 @@ storage:
     prefix: swh.journal.objects
     client_id: swh.storage.master
     anonymize: true
+    producer_config:
+      message.max.bytes: 1000000000
   auth_provider: null
