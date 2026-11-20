@@ -28,6 +28,7 @@ import elasticsearch
 es = elasticsearch.Elasticsearch(['http://elasticsearch:9200'])
 es.cluster.health(wait_for_status='yellow')
 EOF
+              swh search initialize
               echo "ElasticSearch cluster is up"
               ;;
 
