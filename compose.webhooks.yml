@@ -39,7 +39,5 @@ services:
       - nginx
 
   swh-web-cron:
-    # we cannot really remove a service in an override compose file...
-    command: noop
-    deploy:
-      replicas: 0
+    environment:
+      DISABLE_SCN_STATUS_REFRESH_CRON: 1
