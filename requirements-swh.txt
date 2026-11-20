@@ -4,7 +4,7 @@ swh-core[db,http]
 swh-counters
 swh-coarnotify
 swh-datasets
-swh-deposit[azure,swh-datasetsserver]
+swh-deposit[azure,server]
 swh-export
 swh-graph
 swh-graph-libs
